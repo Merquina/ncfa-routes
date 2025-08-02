@@ -822,6 +822,9 @@
                             gapi.client.setToken(tokenResponse);
                             isAuthorized = true;
                             console.log("✅ User authorized");
+
+                            // Save OAuth session to localStorage
+                            saveOAuthSession(tokenResponse);
                         } else {
                             console.log("❌ No access token received");
                             isAuthorized = false;
@@ -933,12 +936,78 @@
                         window.gapi.client.setToken("");
                     }
                     isAuthorized = false;
+
+                    // Clear saved OAuth session
+                    clearOAuthSession();
+
                     updateAuthUI();
                     console.log("✅ Signed out successfully");
                 } catch (error) {
                     console.error("❌ Error during sign out:", error);
                     isAuthorized = false;
                     updateAuthUI();
+                }
+            }
+
+            // Save OAuth session to localStorage
+            function saveOAuthSession(tokenResponse) {
+                try {
+                    const sessionData = {
+                        access_token: tokenResponse.access_token,
+                        expires_at:
+                            Date.now() + tokenResponse.expires_in * 1000,
+                        scope: tokenResponse.scope,
+                        token_type: tokenResponse.token_type,
+                    };
+                    localStorage.setItem(
+                        "oauth_session",
+                        JSON.stringify(sessionData),
+                    );
+                    console.log("✅ OAuth session saved to localStorage");
+                } catch (error) {
+                    console.error("❌ Error saving OAuth session:", error);
+                }
+            }
+
+            // Restore OAuth session from localStorage
+            function restoreOAuthSession() {
+                try {
+                    const sessionData = localStorage.getItem("oauth_session");
+                    if (!sessionData) {
+                        console.log("No saved OAuth session found");
+                        return;
+                    }
+
+                    const session = JSON.parse(sessionData);
+
+                    // Check if token is still valid (with 5 minute buffer)
+                    if (Date.now() > session.expires_at - 300000) {
+                        console.log("Saved OAuth session expired");
+                        clearOAuthSession();
+                        return;
+                    }
+
+                    // Restore the token
+                    gapi.client.setToken({
+                        access_token: session.access_token,
+                    });
+
+                    isAuthorized = true;
+                    updateAuthUI();
+                    console.log("✅ OAuth session restored from localStorage");
+                } catch (error) {
+                    console.error("❌ Error restoring OAuth session:", error);
+                    clearOAuthSession();
+                }
+            }
+
+            // Clear OAuth session from localStorage
+            function clearOAuthSession() {
+                try {
+                    localStorage.removeItem("oauth_session");
+                    console.log("✅ OAuth session cleared from localStorage");
+                } catch (error) {
+                    console.error("❌ Error clearing OAuth session:", error);
                 }
             }
 
@@ -984,6 +1053,13 @@
 
                 // Initialize auth UI (will show "not authorized" state initially)
                 updateAuthUI();
+
+                // Check for saved OAuth session after a brief delay to ensure gapi is loaded
+                setTimeout(() => {
+                    if (typeof gapi !== "undefined" && gapi.client) {
+                        restoreOAuthSession();
+                    }
+                }, 2000);
 
                 // Fetch sheet data immediately (doesn't need OAuth)
                 try {
