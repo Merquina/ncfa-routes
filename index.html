@@ -747,8 +747,6 @@
             <div id="assignmentContainer"></div>
         </div>
 
-        <script src="https://apis.google.com/js/api.js"></script>
-        <script src="https://accounts.google.com/gsi/client"></script>
         <script>
             // Google Sheets API Configuration
             const SHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
@@ -793,19 +791,54 @@
                 "assignmentContainer",
             );
 
+            // Function to load Google APIs dynamically
+            function loadGoogleAPIs() {
+                return new Promise((resolve, reject) => {
+                    console.log("🔄 Loading Google APIs...");
+
+                    // Load Google API client
+                    const gapiScript = document.createElement("script");
+                    gapiScript.src = "https://apis.google.com/js/api.js";
+                    gapiScript.onload = () => {
+                        console.log("✅ Google API script loaded");
+
+                        // Load Google Sign-In
+                        const gsiScript = document.createElement("script");
+                        gsiScript.src =
+                            "https://accounts.google.com/gsi/client";
+                        gsiScript.onload = () => {
+                            console.log("✅ Google Sign-In script loaded");
+                            resolve();
+                        };
+                        gsiScript.onerror = () => {
+                            console.error(
+                                "❌ Failed to load Google Sign-In script",
+                            );
+                            reject(new Error("Failed to load Google Sign-In"));
+                        };
+                        document.head.appendChild(gsiScript);
+                    };
+                    gapiScript.onerror = () => {
+                        console.error("❌ Failed to load Google API script");
+                        reject(new Error("Failed to load Google API"));
+                    };
+                    document.head.appendChild(gapiScript);
+                });
+            }
+
             // OAuth Initialization
             async function initializeGapi() {
                 return new Promise((resolve, reject) => {
-                    console.log("Loading Google API client...");
-                    if (typeof gapi === "undefined") {
-                        console.error("Google API not loaded");
+                    console.log("🔄 Loading Google API client...");
+                    if (typeof window.gapi === "undefined") {
+                        console.error("❌ Google API not loaded");
                         reject(new Error("Google API not loaded"));
                         return;
                     }
 
-                    gapi.load("client", async () => {
+                    window.gapi.load("client", async () => {
                         try {
-                            await gapi.client.init({
+                            await window.gapi.client.init({
                                 apiKey: API_KEY,
                                 discoveryDocs: [DISCOVERY_DOC],
                             });
@@ -823,37 +856,42 @@
             }
 
             function initializeGsi() {
-                console.log("Initializing Google Sign-In...");
-                if (typeof google === "undefined" || !google.accounts) {
-                    console.error("Google Sign-In library not loaded");
+                console.log("🔄 Initializing Google Sign-In...");
+                if (
+                    typeof window.google === "undefined" ||
+                    !window.google.accounts
+                ) {
+                    console.error("❌ Google Sign-In library not loaded");
                     return;
                 }
 
                 try {
-                    tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: CLIENT_ID,
-                        scope: SCOPES,
-                        callback: (tokenResponse) => {
-                            console.log(
-                                "✅ OAuth token received:",
-                                tokenResponse,
-                            );
-                            if (tokenResponse.access_token) {
-                                gapi.client.setToken(tokenResponse);
-                                isAuthorized = true;
-                                console.log("✅ User authorized");
-                            } else {
-                                console.log("❌ No access token received");
+                    tokenClient = window.google.accounts.oauth2.initTokenClient(
+                        {
+                            client_id: CLIENT_ID,
+                            scope: SCOPES,
+                            callback: (tokenResponse) => {
+                                console.log(
+                                    "✅ OAuth token received:",
+                                    tokenResponse,
+                                );
+                                if (tokenResponse.access_token) {
+                                    window.gapi.client.setToken(tokenResponse);
+                                    isAuthorized = true;
+                                    console.log("✅ User authorized");
+                                } else {
+                                    console.log("❌ No access token received");
+                                    isAuthorized = false;
+                                }
+                                updateAuthUI();
+                            },
+                            error_callback: (error) => {
+                                console.error("❌ OAuth error:", error);
                                 isAuthorized = false;
-                            }
-                            updateAuthUI();
+                                updateAuthUI();
+                            },
                         },
-                        error_callback: (error) => {
-                            console.error("❌ OAuth error:", error);
-                            isAuthorized = false;
-                            updateAuthUI();
-                        },
-                    });
+                    );
                     console.log("✅ Google Sign-In client initialized");
                 } catch (error) {
                     console.error(
@@ -905,16 +943,18 @@
 
             function signOut() {
                 try {
-                    const token = gapi.client.getToken();
+                    const token = window.gapi.client.getToken();
                     if (token !== null) {
-                        google.accounts.oauth2.revoke(token.access_token);
-                        gapi.client.setToken("");
+                        window.google.accounts.oauth2.revoke(
+                            token.access_token,
+                        );
+                        window.gapi.client.setToken("");
                     }
                     isAuthorized = false;
                     updateAuthUI();
-                    console.log("Signed out successfully");
+                    console.log("✅ Signed out successfully");
                 } catch (error) {
-                    console.error("Error during sign out:", error);
+                    console.error("❌ Error during sign out:", error);
                     isAuthorized = false;
                     updateAuthUI();
                 }
@@ -976,29 +1016,36 @@
             window.onload = async () => {
                 console.log("🚀 Starting application initialization...");
 
-                // Wait a bit for Google APIs to load
-                setTimeout(async () => {
+                try {
+                    // Load Google APIs first
+                    await loadGoogleAPIs();
+
+                    // Small delay to ensure APIs are fully ready
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+
+                    console.log("🔑 Initializing OAuth...");
+                    await initializeGapi();
+                    initializeGsi();
+                    updateAuthUI();
+
+                    console.log("📊 Fetching sheet data...");
+                    await fetchSheetData();
+                    console.log("✅ Application initialized successfully");
+                } catch (error) {
+                    console.error("❌ Error during initialization:", error);
+                    // Still try to fetch data even if OAuth fails
                     try {
-                        console.log("🔑 Initializing OAuth...");
-                        await initializeGapi();
-                        initializeGsi();
-                        updateAuthUI();
-                        console.log("📊 Fetching sheet data...");
+                        console.log(
+                            "🔄 Attempting to fetch data without OAuth...",
+                        );
                         await fetchSheetData();
-                        console.log("✅ Application initialized successfully");
-                    } catch (error) {
-                        console.error("❌ Error during initialization:", error);
-                        // Still try to fetch data even if OAuth fails
-                        try {
-                            await fetchSheetData();
-                        } catch (dataError) {
-                            console.error(
-                                "❌ Failed to fetch data:",
-                                dataError,
-                            );
-                        }
+                        console.log(
+                            "✅ Data loaded successfully (without OAuth)",
+                        );
+                    } catch (dataError) {
+                        console.error("❌ Failed to fetch data:", dataError);
                     }
-                }, 1000);
+                }
             };
 
             // Fetch data from Google Sheets API
