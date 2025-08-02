@@ -801,6 +801,7 @@
             let data = []; // Main spreadsheet data - routes, workers, assignments
             let recoveryData = []; // Recovery routes data from Recovery sheet tab
             let inventoryData = []; // Box inventory data from separate sheet tab
+            let contactsData = []; // Contacts data from Contacts sheet tab
             let currentView = "worker"; // Track which view is active: 'worker' or 'date'
 
             // ========================================
@@ -1157,9 +1158,10 @@
                     console.log("Sample route data:", data[0]);
                     console.log("Available columns:", headers);
 
-                    // Also fetch recovery routes and box inventory data
+                    // Also fetch recovery routes, box inventory, and contacts data
                     await fetchRecoveryData();
                     await fetchInventoryData();
+                    await fetchContactsData();
 
                     // Set up the view switching buttons (Worker view vs Date view)
                     document
@@ -1513,10 +1515,20 @@
                 <h2>${assignment.market} – ${assignment.date}</h2>
                 <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
                 <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
-                <p><strong>Address:</strong> ${assignment.marketAddress}
-                  <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.marketAddress)}"
+                <p><strong>Address:</strong> ${(() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo ? contactInfo.address : assignment.marketAddress;
+                })()}
+                  <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo ? contactInfo.address : assignment.marketAddress;
+                  })())}"
                      target="_blank" class="directions-btn">📍 Get Directions</a>
                 </p>
+                ${(() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                })()}
                 ${
                     assignment.dropOffAddress &&
                     assignment.dropOffAddress.trim() !== "" &&
@@ -1618,16 +1630,23 @@
                         assignment.dropOff.trim() &&
                         assignment.dropOff !== "TBD"
                             ? `<p><strong>${assignment.dropOff}</strong></p>
-                       <p><strong>Address:</strong> ${assignment.dropOffAddress}
-                         ${
-                             assignment.dropOffAddress &&
-                             assignment.dropOffAddress.trim() !== "" &&
-                             assignment.dropOffAddress.trim() !== "TBD"
-                                 ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.dropOffAddress.trim())}"
+                       <p><strong>Address:</strong> ${(() => {
+                           const contactInfo = getAddressFromContacts(assignment.dropOff);
+                           return contactInfo ? contactInfo.address : assignment.dropOffAddress;
+                       })()}
+                         ${(() => {
+                             const contactInfo = getAddressFromContacts(assignment.dropOff);
+                             const address = contactInfo ? contactInfo.address : assignment.dropOffAddress;
+                             return address && address.trim() !== "" && address.trim() !== "TBD"
+                                 ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.trim())}"
                               target="_blank" class="directions-btn">📍 Get Directions</a>`
-                                 : ""
-                         }
-                       </p>`
+                                 : "";
+                         })()}
+                       </p>
+                       ${(() => {
+                           const contactInfo = getAddressFromContacts(assignment.dropOff);
+                           return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                       })()}`
                             : "<p><strong>Drop-off location TBD</strong></p>"
                     }
                   </div>
@@ -1810,10 +1829,20 @@
                 <h2>${assignment.market} – ${assignment.date}</h2>
                 <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
                 <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
-                <p><strong>Address:</strong> ${assignment.marketAddress}
-                  <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.marketAddress)}"
+                <p><strong>Address:</strong> ${(() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo ? contactInfo.address : assignment.marketAddress;
+                })()}
+                  <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo ? contactInfo.address : assignment.marketAddress;
+                  })())}"
                      target="_blank" class="directions-btn">📍 Get Directions</a>
                 </p>
+                ${(() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                })()}
                 ${
                     assignment.dropOffAddress &&
                     assignment.dropOffAddress.trim() !== "" &&
@@ -1915,16 +1944,23 @@
                         assignment.dropOff.trim() &&
                         assignment.dropOff !== "TBD"
                             ? `<p><strong>${assignment.dropOff}</strong></p>
-                       <p><strong>Address:</strong> ${assignment.dropOffAddress}
-                         ${
-                             assignment.dropOffAddress &&
-                             assignment.dropOffAddress.trim() !== "" &&
-                             assignment.dropOffAddress.trim() !== "TBD"
-                                 ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.dropOffAddress.trim())}"
+                       <p><strong>Address:</strong> ${(() => {
+                           const contactInfo = getAddressFromContacts(assignment.dropOff);
+                           return contactInfo ? contactInfo.address : assignment.dropOffAddress;
+                       })()}
+                         ${(() => {
+                             const contactInfo = getAddressFromContacts(assignment.dropOff);
+                             const address = contactInfo ? contactInfo.address : assignment.dropOffAddress;
+                             return address && address.trim() !== "" && address.trim() !== "TBD"
+                                 ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.trim())}"
                               target="_blank" class="directions-btn">📍 Get Directions</a>`
-                                 : ""
-                         }
-                       </p>`
+                                 : "";
+                         })()}
+                       </p>
+                       ${(() => {
+                           const contactInfo = getAddressFromContacts(assignment.dropOff);
+                           return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                       })()}`
                             : "<p><strong>Drop-off location TBD</strong></p>"
                     }
                   </div>
@@ -1979,9 +2015,11 @@
                             stopName.trim() &&
                             stopName !== `Stop ${String.fromCharCode(64 + i)}`
                         ) {
+                            const contactInfo = getAddressFromContacts(stopName);
                             stops.push({
                                 name: stopName,
-                                address: stopAddress || "",
+                                address: contactInfo ? contactInfo.address : (stopAddress || ""),
+                                phone: contactInfo ? contactInfo.phone : "",
                             });
                         }
                     }
@@ -2019,6 +2057,7 @@
                                         <p><strong>Address:</strong> ${stop.address}
                                             <a href="${directionUrl}" target="_blank" class="directions-btn">📍 Get Directions</a>
                                         </p>
+                                        ${stop.phone ? `<p><strong>Phone:</strong> ${stop.phone}</p>` : ''}
                                     `
                                             : `<p><em>Address not specified</em></p>`
                                     }
@@ -2166,9 +2205,11 @@
                         stopName.trim() &&
                         stopName !== `Stop ${String.fromCharCode(64 + i)}`
                     ) {
+                        const contactInfo = getAddressFromContacts(stopName);
                         stops.push({
                             name: stopName,
-                            address: stopAddress || "",
+                            address: contactInfo ? contactInfo.address : (stopAddress || ""),
+                            phone: contactInfo ? contactInfo.phone : "",
                         });
                     }
                 }
@@ -2204,7 +2245,8 @@
                                     stop.address
                                         ? `<p><strong>Address:</strong> ${stop.address}
                                         <a href="${directionUrl}" target="_blank" class="directions-btn">📍 Get Directions</a>
-                                       </p>`
+                                       </p>
+                                       ${stop.phone ? `<p><strong>Phone:</strong> ${stop.phone}</p>` : ''}`
                                         : `<p><em>Address not specified</em></p>`
                                 }
                             </div>
@@ -2432,6 +2474,60 @@
                 // Display the inventory box with current data
                 inventoryContent.innerHTML = boxesHtml + verificationHtml;
                 inventoryBox.style.display = "block"; // Make inventory visible
+            }
+
+            // ========================================
+            // CONTACTS DATA FETCHING
+            // ========================================
+            async function fetchContactsData() {
+                try {
+                    const contactsRange = "Contacts!A:Z";
+                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${contactsRange}?key=${API_KEY}`;
+                    console.log("📞 Attempting to fetch contacts data...");
+
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        console.log("Contacts tab not found - using original addresses");
+                        return;
+                    }
+
+                    const result = await response.json();
+                    const values = result.values;
+
+                    if (!values || values.length === 0) {
+                        console.log("No contacts data found.");
+                        return;
+                    }
+
+                    const headers = values[0];
+                    contactsData = values.slice(1).map((row) => {
+                        const contact = {};
+                        headers.forEach((header, index) => {
+                            contact[header] = row[index] || "";
+                        });
+                        return contact;
+                    });
+
+                    console.log("✅ Contacts data loaded:", contactsData.length, "contacts");
+                } catch (error) {
+                    console.error("❌ Error fetching contacts data:", error);
+                }
+            }
+
+            function getAddressFromContacts(locationName) {
+                if (!contactsData || contactsData.length === 0) {
+                    return null;
+                }
+
+                const contact = contactsData.find(contact =>
+                    contact.Location && contact.Location.toLowerCase().trim() === locationName.toLowerCase().trim()
+                );
+
+                return contact ? {
+                    address: contact.Address || '',
+                    phone: contact.Phone || '',
+                    contactName: contact['Contact Name'] || contact.Location || ''
+                } : null;
             }
 
             // ========================================
