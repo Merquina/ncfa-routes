@@ -646,7 +646,7 @@
     <body>
         <div class="container">
             <div class="header">
-                <h1>🥕 SPFM and Recovery Routes</h1>
+                <h1>🧑‍🌾 SPFM and Recovery Routes 🥕🥒🥬</h1>
                 <p>
                     Click a worker to see their next assignment or view by date
                 </p>
@@ -831,6 +831,8 @@
                 Ayoyo: "⚡",
                 Rosey: "🌹",
                 Boniat: "🌊",
+                // Volunteers get a generic person emoji
+                Volunteer: "👤",
             };
 
             const vanIcons = {
@@ -1238,7 +1240,7 @@
                     );
                 });
 
-                // Also get workers from Recovery data
+                // Also get workers from Recovery data (including volunteers)
                 recoveryData.forEach((route) => {
                     const worker = route.Worker;
                     if (worker && typeof worker === "string") {
@@ -2247,6 +2249,12 @@
             function getWorkerEmoji(workerName) {
                 // Return appropriate emoji for worker, or default person icon
                 if (!workerName || workerName.trim() === "") return "👤";
+
+                // Check for volunteers (case-insensitive)
+                if (workerName.trim().toLowerCase().includes("volunteer")) {
+                    return "👤";
+                }
+
                 const workerIcon = Object.keys(workerIcons).find(
                     (key) =>
                         key.toLowerCase() === workerName.trim().toLowerCase(),
