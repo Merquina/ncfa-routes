@@ -932,18 +932,15 @@
                 const authStatus = document.getElementById("authStatus");
 
                 if (isAuthorized) {
-                    // User is signed in - show sign out option
-                    authButton.textContent = "✅ Sign Out";
-                    authButton.onclick = signOut;
-                    authStatus.textContent = "✅ Signed in";
-                    authStatus.style.color = "rgba(144, 238, 144, 0.9)";
+                    // User is signed in - hide the auth button
+                    authButton.style.display = "none";
+                    authStatus.style.display = "none";
                 } else {
-                    // User is not signed in - show sign in option
+                    // User is not signed in - show sign in button only
                     authButton.textContent = "🔐 Sign In with Google";
                     authButton.onclick = authorize;
-                    authStatus.textContent =
-                        "Sign in to access additional features";
-                    authStatus.style.color = "rgba(255, 255, 255, 0.7)";
+                    authButton.style.display = "inline-block";
+                    authStatus.style.display = "none";
                 }
             }
 
@@ -1820,9 +1817,12 @@
                     card.className = "assignment-card";
                     card.style.marginTop = "20px";
 
-                    // Create recovery route flow
+                    // Create recovery route flow with calculated date
+                    const routeDate =
+                        getNextDateForDay(route["Recovery Routes"]) ||
+                        route["Recovery Routes"];
                     const recoveryHeader = `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem;">
-                             🚗 Recovery Route - ${route["Recovery Routes"]}
+                             🚗 Recovery Route - ${routeDate}
                            </div>`;
 
                     // Build stops array from the route data
@@ -1890,7 +1890,7 @@
                         <div class="market-section">
                             <h2>🚗 Recovery Route</h2>
                             <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
-                            <p><strong>Day:</strong> ${route["Recovery Routes"]}</p>
+                            <p><strong>Date:</strong> ${routeDate}</p>
                             ${
                                 stops.length > 1
                                     ? `
@@ -1927,6 +1927,37 @@
             // UTILITY FUNCTIONS
             // ========================================
             // Helper functions for formatting and display
+
+            // Calculate next occurrence of a given day of week
+            function getNextDateForDay(dayName) {
+                const today = new Date();
+                const dayNames = [
+                    "sunday",
+                    "monday",
+                    "tuesday",
+                    "wednesday",
+                    "thursday",
+                    "friday",
+                    "saturday",
+                ];
+                const targetDay = dayNames.indexOf(dayName.toLowerCase());
+
+                if (targetDay === -1) return null;
+
+                const daysUntilTarget = (targetDay - today.getDay() + 7) % 7;
+                const nextDate = new Date(today);
+                nextDate.setDate(
+                    today.getDate() +
+                        (daysUntilTarget === 0 ? 7 : daysUntilTarget),
+                );
+
+                return nextDate.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                });
+            }
 
             function getWorkerEmoji(workerName) {
                 // Return appropriate emoji for worker, or default person icon
