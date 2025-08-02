@@ -782,6 +782,7 @@
             let isAuthorized = false; // Track if user is signed in (for UI only)
 
             let data = []; // Main spreadsheet data - routes, workers, assignments
+            let recoveryData = []; // Recovery routes data from Recovery sheet tab
             let inventoryData = []; // Box inventory data from separate sheet tab
             let currentView = "worker"; // Track which view is active: 'worker' or 'date'
 
@@ -1139,7 +1140,8 @@
                     console.log("Sample route data:", data[0]);
                     console.log("Available columns:", headers);
 
-                    // Also fetch box inventory data from separate sheet tab
+                    // Also fetch recovery routes and box inventory data
+                    await fetchRecoveryData();
                     await fetchInventoryData();
 
                     // Set up the view switching buttons (Worker view vs Date view)
@@ -1186,6 +1188,7 @@
                 // Find all unique worker names from the spreadsheet data
                 const workerSet = new Set();
 
+                // Get workers from SPFM data
                 data.forEach((route) => {
                     // Each route can have up to 3 workers assigned
                     [route.worker1, route.worker2, route.worker3].forEach(
@@ -1202,6 +1205,20 @@
                             }
                         },
                     );
+                });
+
+                // Also get workers from Recovery data
+                recoveryData.forEach((route) => {
+                    const worker = route.Worker;
+                    if (worker && typeof worker === "string") {
+                        const normalized = worker.trim();
+                        if (
+                            normalized !== "" &&
+                            normalized.toLowerCase() !== "worker"
+                        ) {
+                            workerSet.add(normalized);
+                        }
+                    }
                 });
 
                 const workers = [...workerSet].sort(); // Convert to array and sort alphabetically
@@ -1589,7 +1606,7 @@
                 });
 
                 // Sort by date chronologically and show only the very next assignment
-                const nextAssignment = upcomingAssignments
+                const nextSpfmAssignment = upcomingAssignments
                     .sort((a, b) => {
                         const dateA = new Date(a.date);
                         const dateB = new Date(b.date);
@@ -1597,12 +1614,37 @@
                     })
                     .slice(0, 1); // Take only the first (next) assignment
 
-                console.log("🎯 Next assignment selected:");
-                if (nextAssignment.length > 0) {
+                // Find recovery routes for this worker
+                const nextRecoveryRoute = recoveryData
+                    .filter((route) => {
+                        const routeWorker = (route.Worker || "")
+                            .trim()
+                            .toLowerCase();
+                        const normalizedWorker = worker.trim().toLowerCase();
+                        return (
+                            routeWorker === normalizedWorker &&
+                            route["Recovery Routes"] &&
+                            route["Recovery Routes"].trim().toLowerCase() !==
+                                "worker"
+                        );
+                    })
+                    .slice(0, 1); // Take only first recovery route
+
+                console.log("🎯 Next assignments selected:");
+                if (nextSpfmAssignment.length > 0) {
                     console.log(
-                        `  → ${nextAssignment[0].routeId} - ${nextAssignment[0].date} - ${nextAssignment[0].market}`,
+                        `  → SPFM: ${nextSpfmAssignment[0].routeId} - ${nextSpfmAssignment[0].date} - ${nextSpfmAssignment[0].market}`,
                     );
-                } else {
+                }
+                if (nextRecoveryRoute.length > 0) {
+                    console.log(
+                        `  → Recovery: ${nextRecoveryRoute[0]["Recovery Routes"]} route`,
+                    );
+                }
+                if (
+                    nextSpfmAssignment.length === 0 &&
+                    nextRecoveryRoute.length === 0
+                ) {
                     console.log("  → No upcoming assignments found");
                 }
 
@@ -1612,23 +1654,31 @@
                 assignmentContainer.innerHTML = ""; // Clear previous content
 
                 // Show message if no upcoming work found
-                if (nextAssignment.length === 0) {
+                if (
+                    nextSpfmAssignment.length === 0 &&
+                    nextRecoveryRoute.length === 0
+                ) {
                     assignmentContainer.innerHTML =
                         '<div class="no-assignments">🎉 No upcoming assignments for this worker.</div>';
                     return;
                 }
 
-                // Display the next assignment for this worker
-                nextAssignment.forEach((assignment, index) => {
+                // Display SPFM assignment first (if exists)
+                nextSpfmAssignment.forEach((assignment, index) => {
                     const card = document.createElement("div");
                     card.className = "assignment-card";
                     card.style.marginTop = index > 0 ? "20px" : "30px";
 
-                    // No market header needed since we only show one assignment per worker
-                    const marketHeader = "";
+                    // Add header to distinguish SPFM vs Recovery
+                    const assignmentHeader =
+                        nextRecoveryRoute.length > 0
+                            ? `<div style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                             🥕 SPFM Market Assignment
+                           </div>`
+                            : "";
 
                     card.innerHTML = `
-                      ${marketHeader}
+                      ${assignmentHeader}
               <div class="market-section">
                 <h2>${assignment.market} – ${assignment.date}</h2>
                 <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
@@ -1763,6 +1813,101 @@
                     assignmentContainer.appendChild(card);
                 });
 
+                // Display Recovery route (if exists)
+                nextRecoveryRoute.forEach((route, index) => {
+                    const card = document.createElement("div");
+                    card.className = "assignment-card";
+                    card.style.marginTop = "20px";
+
+                    // Create recovery route flow
+                    const recoveryHeader = `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                             🚗 Recovery Route - ${route["Recovery Routes"]}
+                           </div>`;
+
+                    // Build stops array from the route data
+                    const stops = [];
+                    for (let i = 1; i <= 7; i++) {
+                        const stopName = route[`Stop ${i}`];
+                        const stopAddress = route[`Addy ${i}`];
+                        if (
+                            stopName &&
+                            stopName.trim() &&
+                            stopName !== `Stop ${String.fromCharCode(64 + i)}`
+                        ) {
+                            stops.push({
+                                name: stopName,
+                                address: stopAddress || "",
+                            });
+                        }
+                    }
+
+                    // Create Google Maps route URL for all stops
+                    const allAddresses = stops
+                        .filter((stop) => stop.address && stop.address.trim())
+                        .map((stop) => encodeURIComponent(stop.address));
+
+                    const fullRouteUrl =
+                        allAddresses.length > 1
+                            ? `https://www.google.com/maps/dir/${allAddresses.join("/")}`
+                            : allAddresses.length === 1
+                              ? `https://www.google.com/maps/search/?api=1&query=${allAddresses[0]}`
+                              : "#";
+
+                    // Build stops HTML
+                    const stopsHtml = stops
+                        .map((stop, index) => {
+                            const directionUrl =
+                                stop.address && stop.address.trim()
+                                    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}`
+                                    : "#";
+
+                            return `
+                            <div class="step-section">
+                                <div class="step-header">
+                                    <span class="step-number">${index + 1}</span>
+                                    <h3>📍 ${stop.name}</h3>
+                                </div>
+                                <div class="single-column">
+                                    ${
+                                        stop.address
+                                            ? `
+                                        <p><strong>Address:</strong> ${stop.address}
+                                            <a href="${directionUrl}" target="_blank" class="directions-btn">📍 Get Directions</a>
+                                        </p>
+                                    `
+                                            : `<p><em>Address not specified</em></p>`
+                                    }
+                                </div>
+                            </div>
+                            ${index < stops.length - 1 ? '<div class="flow-arrow">⬇️</div>' : ""}
+                        `;
+                        })
+                        .join("");
+
+                    card.innerHTML = `
+                        ${recoveryHeader}
+                        <div class="market-section">
+                            <h2>🚗 Recovery Route</h2>
+                            <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
+                            <p><strong>Day:</strong> ${route["Recovery Routes"]}</p>
+                            ${
+                                stops.length > 1
+                                    ? `
+                                <p><strong>Full Route:</strong>
+                                    <a href="${fullRouteUrl}" target="_blank" class="directions-btn">🗺️ Open Full Route in Maps</a>
+                                </p>
+                            `
+                                    : ""
+                            }
+                        </div>
+                        <div class="flow-section">
+                            ${stopsHtml}
+                        </div>
+                    `;
+
+                    assignmentContainer.appendChild(card);
+                });
+
                 // Make checkboxes interactive (visual only - no saving)
                 document.querySelectorAll(".task-checkbox").forEach((box) => {
                     box.addEventListener("click", () => {
@@ -1807,6 +1952,57 @@
                     day: "numeric",
                 };
                 return date.toLocaleDateString("en-US", options);
+            }
+
+            // ========================================
+            // RECOVERY ROUTES DATA FETCHING
+            // ========================================
+            // Fetch recovery routes from Recovery sheet tab
+
+            async function fetchRecoveryData() {
+                try {
+                    // Try to fetch recovery routes from the "Recovery" sheet tab
+                    const recoveryRange = "Recovery!A:P";
+                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${recoveryRange}?key=${API_KEY}`;
+                    console.log("🚗 Attempting to fetch recovery routes...");
+
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        console.log(
+                            "Recovery tab not found - skipping recovery routes",
+                        );
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    if (!result.values || result.values.length < 2) {
+                        console.log(
+                            "Recovery tab is empty - skipping recovery routes",
+                        );
+                        return;
+                    }
+
+                    // Convert recovery rows to JavaScript objects
+                    const headers = result.values[0];
+                    recoveryData = result.values.slice(1).map((row) => {
+                        const obj = {};
+                        headers.forEach((header, index) => {
+                            obj[header] = row[index] || "";
+                        });
+                        return obj;
+                    });
+
+                    console.log(
+                        `✅ Loaded ${recoveryData.length} recovery routes`,
+                    );
+                } catch (error) {
+                    console.log(
+                        "Recovery data not available (this is optional):",
+                        error,
+                    );
+                    // Don't show error message - recovery is an optional feature
+                }
             }
 
             // ========================================
