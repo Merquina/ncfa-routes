@@ -703,23 +703,7 @@
                     >
                         Sign in to save your progress
                     </div>
-                    <button
-                        onclick="printAssignment()"
-                        style="
-                            color: rgba(255, 255, 255, 0.8);
-                            background: transparent;
-                            border: 1px solid rgba(255, 255, 255, 0.3);
-                            font-size: 0.9rem;
-                            padding: 8px 16px;
-                            border-radius: 20px;
-                            cursor: pointer;
-                            transition: all 0.2s ease;
-                        "
-                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.color='white';"
-                        onmouseout="this.style.backgroundColor='transparent'; this.style.color='rgba(255,255,255,0.8)';"
-                    >
-                        🖨️ Print/PDF
-                    </button>
+
                 </div>
             </div>
             <div style="padding: 15px">
@@ -1560,6 +1544,9 @@
                     ${assignment.van3 ? `<span class="van-badge">${vanIcons[assignment.van3]} ${assignment.van3}</span>` : ""}
                   </div>
                 </div>
+                <div style="text-align: center; margin-top: 15px;">
+                  <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                </div>
               </div>
 
               <div class="flow-section">
@@ -1854,6 +1841,9 @@
                     ${assignment.van3 ? `<span class="van-badge">${vanIcons[assignment.van3]} ${assignment.van3}</span>` : ""}
                   </div>
                 </div>
+                <div style="text-align: center; margin-top: 15px;">
+                  <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                </div>
               </div>
 
               <div class="flow-section">
@@ -2054,6 +2044,9 @@
                             `
                                     : ""
                             }
+                            <div style="text-align: center; margin-top: 15px;">
+                              <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                            </div>
                         </div>
                         <div class="flow-section">
                             ${stopsHtml}
@@ -2234,6 +2227,9 @@
                                </p>`
                                 : ""
                         }
+                        <div style="text-align: center; margin-top: 15px;">
+                          <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                        </div>
                     </div>
                     <div class="flow-section">
                         ${stopsHtml}
