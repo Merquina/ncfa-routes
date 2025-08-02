@@ -1511,6 +1511,9 @@
 
                     card.innerHTML = `
                       ${marketHeader}
+                      <div style="text-align: center; padding: 10px; background: white;">
+                        <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                      </div>
               <div class="market-section">
                 <h2>${assignment.market} – ${assignment.date}</h2>
                 <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
@@ -1556,9 +1559,7 @@
                     ${assignment.van3 ? `<span class="van-badge">${vanIcons[assignment.van3]} ${assignment.van3}</span>` : ""}
                   </div>
                 </div>
-                <div style="text-align: center; margin-top: 15px;">
-                  <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-                </div>
+
               </div>
 
               <div class="flow-section">
@@ -1825,6 +1826,9 @@
 
                     card.innerHTML = `
                       ${assignmentHeader}
+                      <div style="text-align: center; padding: 10px; background: white;">
+                        <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                      </div>
               <div class="market-section">
                 <h2>${assignment.market} – ${assignment.date}</h2>
                 <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
@@ -1870,9 +1874,7 @@
                     ${assignment.van3 ? `<span class="van-badge">${vanIcons[assignment.van3]} ${assignment.van3}</span>` : ""}
                   </div>
                 </div>
-                <div style="text-align: center; margin-top: 15px;">
-                  <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-                </div>
+
               </div>
 
               <div class="flow-section">
@@ -2070,6 +2072,9 @@
 
                     card.innerHTML = `
                         ${recoveryHeader}
+                        <div style="text-align: center; padding: 10px; background: white;">
+                          <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                        </div>
                         <div class="market-section">
                             <h2>🚗 Recovery Route</h2>
                             <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
@@ -2083,9 +2088,7 @@
                             `
                                     : ""
                             }
-                            <div style="text-align: center; margin-top: 15px;">
-                              <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-                            </div>
+
                         </div>
                         <div class="flow-section">
                             ${stopsHtml}
@@ -2258,6 +2261,9 @@
 
                 card.innerHTML = `
                     ${recoveryHeader}
+                    <div style="text-align: center; padding: 10px; background: white;">
+                      <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                    </div>
                     <div class="market-section">
                         <h2>🚗 Recovery Route</h2>
                         <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
@@ -2269,9 +2275,7 @@
                                </p>`
                                 : ""
                         }
-                        <div style="text-align: center; margin-top: 15px;">
-                          <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-                        </div>
+
                     </div>
                     <div class="flow-section">
                         ${stopsHtml}
