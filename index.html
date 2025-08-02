@@ -832,19 +832,24 @@
             }
 
             function renderWorkers() {
-                const workers = [
-                    ...new Set(
-                        data
-                            .flatMap((d) => [d.worker1, d.worker2, d.worker3])
-                            .filter(Boolean)
-                            .filter((worker) => worker.trim() !== "")
-                            .filter(
-                                (worker) =>
-                                    worker.trim().toUpperCase() !== "CANCELLED",
-                            )
-                            .map((worker) => worker.trim()),
-                    ),
-                ].sort(); // Sort alphabetically
+                // Normalize worker names and remove duplicates more robustly
+                const workerSet = new Set();
+
+                data.forEach((d) => {
+                    [d.worker1, d.worker2, d.worker3].forEach((worker) => {
+                        if (worker && typeof worker === "string") {
+                            const normalized = worker.trim();
+                            if (
+                                normalized !== "" &&
+                                normalized.toUpperCase() !== "CANCELLED"
+                            ) {
+                                workerSet.add(normalized);
+                            }
+                        }
+                    });
+                });
+
+                const workers = [...workerSet].sort(); // Sort alphabetically
 
                 workerGrid.innerHTML = ""; // Clear existing workers
 
@@ -1148,12 +1153,17 @@
                     .forEach((card) => card.classList.remove("selected"));
                 el.classList.add("selected");
 
-                const allAssignments = data.filter(
-                    (d) =>
-                        d.worker1 === worker ||
-                        d.worker2 === worker ||
-                        d.worker3 === worker,
-                );
+                const allAssignments = data.filter((d) => {
+                    const normalizedWorker = worker.trim().toLowerCase();
+                    const worker1 = (d.worker1 || "").trim().toLowerCase();
+                    const worker2 = (d.worker2 || "").trim().toLowerCase();
+                    const worker3 = (d.worker3 || "").trim().toLowerCase();
+                    return (
+                        worker1 === normalizedWorker ||
+                        worker2 === normalizedWorker ||
+                        worker3 === normalizedWorker
+                    );
+                });
 
                 console.log(`Debug for ${worker}:`);
                 console.log("All assignments found:", allAssignments.length);
