@@ -1,0 +1,1554 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Market Recovery Routes</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                margin: 0;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+
+            .header {
+                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                padding: 30px;
+                text-align: center;
+                color: white;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                font-weight: 300;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+                color: #333;
+                font-weight: 600;
+                margin-bottom: 20px;
+            }
+
+            .worker-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+            }
+
+            .worker-card {
+                background: #f8f9fa;
+                border-radius: 15px;
+                padding: 20px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 2px solid #ddd;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+
+            .worker-card:hover {
+                border-color: #56ab2f;
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+                transform: translateY(-2px);
+            }
+
+            .worker-card.selected {
+                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                color: white;
+                border-color: #56ab2f;
+                box-shadow: 0 8px 16px rgba(86, 171, 47, 0.3);
+                transform: translateY(-3px);
+            }
+
+            .assignment-card {
+                margin-top: 30px;
+                border-radius: 15px;
+                overflow: hidden;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            }
+
+            .market-section,
+            .dropoff-section,
+            .final-section {
+                padding: 30px;
+                color: white;
+            }
+
+            .market-section {
+                background: linear-gradient(135deg, #87ceeb 0%, #b8d4f0 100%);
+            }
+
+            .dropoff-section {
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            }
+
+            .final-section {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                text-align: center;
+            }
+
+            .task-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                padding: 30px;
+                background: white;
+            }
+
+            .task-column {
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+            }
+
+            .task-header {
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #e9ecef;
+            }
+
+            .task-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                padding: 8px;
+                border-radius: 5px;
+                transition: background-color 0.2s;
+            }
+
+            .task-item:hover {
+                background-color: #e9ecef;
+            }
+
+            .task-checkbox {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #56ab2f;
+                border-radius: 4px;
+                margin-right: 10px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .task-checkbox.checked {
+                background-color: #56ab2f;
+                position: relative;
+            }
+
+            .task-checkbox.checked::after {
+                content: "✓";
+                color: white;
+                font-size: 14px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+
+            .task-text {
+                flex: 1;
+                color: #333;
+            }
+
+            .team-info {
+                padding: 30px;
+                background: #f8f9fa;
+                border-top: 1px solid #e9ecef;
+            }
+
+            .team-info h3 {
+                color: #333;
+                margin-bottom: 10px;
+                font-size: 1.1rem;
+            }
+
+            .team-info-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-top: 20px;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .team-info-header h3 {
+                color: white;
+                margin-bottom: 10px;
+                font-size: 1.1rem;
+            }
+
+            .flow-section {
+                background: white;
+            }
+
+            .step-section {
+                padding: 30px;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .step-section:last-child {
+                border-bottom: none;
+            }
+
+            .step-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+                gap: 15px;
+            }
+
+            .step-number {
+                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 1.2rem;
+            }
+
+            .step-header h3 {
+                color: #333;
+                margin: 0;
+                font-size: 1.3rem;
+            }
+
+            .single-column {
+                max-width: 600px;
+            }
+
+            .flow-arrow {
+                text-align: center;
+                font-size: 2rem;
+                padding: 20px;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                color: #56ab2f;
+            }
+
+            .team-member {
+                display: inline-block;
+                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                margin-right: 10px;
+                font-weight: 500;
+            }
+
+            .van-badge {
+                display: inline-block;
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                margin-right: 10px;
+                font-weight: 500;
+            }
+
+            .no-assignments {
+                padding: 40px;
+                text-align: center;
+                color: #666;
+                font-size: 1.1rem;
+            }
+
+            @media (max-width: 768px) {
+                .task-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .header h1 {
+                    font-size: 2rem;
+                }
+
+                .container {
+                    margin: 10px;
+                    border-radius: 15px;
+                }
+
+                .team-info-header {
+                    flex-direction: column;
+                }
+
+                .step-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+            }
+
+            .view-toggle {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                justify-content: center;
+            }
+
+            .view-btn {
+                background: #f8f9fa;
+                border: 2px solid #ddd;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }
+
+            .view-btn:hover {
+                border-color: #56ab2f;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .view-btn.active {
+                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                color: white;
+                border-color: #56ab2f;
+                box-shadow: 0 4px 12px rgba(86, 171, 47, 0.3);
+            }
+
+            .date-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+                padding: 0 20px;
+            }
+
+            .date-card {
+                background: #f8f9fa;
+                border-radius: 15px;
+                padding: 20px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 2px solid #ddd;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .date-card:hover {
+                border-color: #56ab2f;
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+                transform: translateY(-2px);
+            }
+
+            .date-card.selected {
+                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                color: white;
+                border-color: #56ab2f;
+                box-shadow: 0 8px 16px rgba(86, 171, 47, 0.3);
+                transform: translateY(-3px);
+            }
+
+            .date-card h3 {
+                margin: 0 0 10px 0;
+                font-size: 1.3rem;
+            }
+
+            .date-card .markets {
+                font-size: 0.9rem;
+                opacity: 0.8;
+            }
+
+            .date-card.selected .markets {
+                opacity: 1;
+            }
+
+            .directions-btn {
+                background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-left: 10px;
+                transition: all 0.2s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .directions-btn:hover {
+                box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .print-btn {
+                background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-left: 10px;
+                transition: all 0.2s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .print-btn:hover {
+                box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+                transform: translateY(-1px);
+            }
+
+            @media print {
+                @page {
+                    size: letter;
+                    margin: 0.5in;
+                }
+
+                body {
+                    background: white !important;
+                    font-size: 10px;
+                    line-height: 1.2;
+                    margin: 0;
+                    padding: 0;
+                    height: 100vh;
+                    overflow: hidden;
+                }
+
+                .container {
+                    background: white !important;
+                    box-shadow: none !important;
+                    border-radius: 0 !important;
+                    margin: 0 !important;
+                    max-width: none !important;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .header {
+                    background: #f0f0f0 !important;
+                    color: black !important;
+                    padding: 8px !important;
+                    flex-shrink: 0;
+                }
+
+                .header h1 {
+                    font-size: 16px !important;
+                    margin: 0 !important;
+                }
+
+                .header p {
+                    font-size: 10px !important;
+                    margin: 2px 0 !important;
+                }
+
+                .view-toggle,
+                .worker-grid,
+                .date-grid,
+                #inventoryBox {
+                    display: none !important;
+                }
+
+                #assignmentContainer {
+                    flex: 1;
+                    overflow: hidden;
+                }
+
+                .assignment-card {
+                    margin: 0 !important;
+                    page-break-inside: avoid;
+                    box-shadow: none !important;
+                    border: 1px solid #ccc !important;
+                    height: calc(100vh - 60px);
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .market-section {
+                    background: #f5f5f5 !important;
+                    color: black !important;
+                    padding: 8px !important;
+                    flex-shrink: 0;
+                }
+
+                .market-section h2 {
+                    font-size: 14px !important;
+                    margin: 0 0 4px 0 !important;
+                }
+
+                .market-section p {
+                    margin: 2px 0 !important;
+                    font-size: 9px !important;
+                }
+
+                .team-info-header {
+                    background: #f0f0f0 !important;
+                    color: black !important;
+                    padding: 6px !important;
+                    font-size: 8px !important;
+                    flex-shrink: 0;
+                }
+
+                .team-info-header h3 {
+                    font-size: 9px !important;
+                    margin: 0 0 3px 0 !important;
+                }
+
+                .team-member,
+                .van-badge {
+                    background: #e0e0e0 !important;
+                    color: black !important;
+                    border: 1px solid #ccc !important;
+                    padding: 2px 6px !important;
+                    font-size: 8px !important;
+                }
+
+                .flow-section {
+                    flex: 1;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .step-section {
+                    padding: 6px !important;
+                    border-bottom: 1px solid #ddd !important;
+                    flex: 1;
+                    overflow: hidden;
+                }
+
+                .step-header {
+                    margin-bottom: 4px !important;
+                }
+
+                .step-header h3 {
+                    font-size: 10px !important;
+                    margin: 0 !important;
+                }
+
+                .step-number {
+                    width: 20px !important;
+                    height: 20px !important;
+                    font-size: 8px !important;
+                }
+
+                .task-grid {
+                    grid-template-columns: 1fr 1fr !important;
+                    gap: 6px !important;
+                    height: calc(100% - 30px);
+                    overflow: hidden;
+                }
+
+                .task-column {
+                    background: #f9f9f9 !important;
+                    padding: 6px !important;
+                    overflow: hidden;
+                }
+
+                .task-header {
+                    font-size: 9px !important;
+                    margin-bottom: 4px !important;
+                    padding-bottom: 2px !important;
+                }
+
+                .task-item {
+                    margin-bottom: 3px !important;
+                    padding: 2px !important;
+                    font-size: 8px !important;
+                }
+
+                .task-checkbox {
+                    width: 12px !important;
+                    height: 12px !important;
+                    margin-right: 4px !important;
+                }
+
+                .single-column {
+                    max-width: none;
+                    height: calc(100% - 30px);
+                    overflow: hidden;
+                }
+
+                .directions-btn,
+                .print-btn {
+                    display: none !important;
+                }
+
+                .flow-arrow {
+                    font-size: 8px !important;
+                    padding: 2px !important;
+                    flex-shrink: 0;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🥕 SPFM Market Recovery Routes</h1>
+                <p>
+                    Click a worker to see their next assignment or view by date
+                </p>
+                <div
+                    style="
+                        margin-top: 15px;
+                        display: flex;
+                        gap: 15px;
+                        justify-content: center;
+                        align-items: center;
+                    "
+                >
+                    <a
+                        href="https://docs.google.com/spreadsheets/d/1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k/edit?usp=sharing"
+                        target="_blank"
+                        style="
+                            color: rgba(255, 255, 255, 0.8);
+                            text-decoration: none;
+                            font-size: 0.9rem;
+                            padding: 8px 16px;
+                            border: 1px solid rgba(255, 255, 255, 0.3);
+                            border-radius: 20px;
+                            transition: all 0.2s ease;
+                        "
+                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.color='white';"
+                        onmouseout="this.style.backgroundColor='transparent'; this.style.color='rgba(255,255,255,0.8)';"
+                    >
+                        🔧 Backend Access (Editors Only)
+                    </a>
+                    <button
+                        onclick="printAssignment()"
+                        style="
+                            color: rgba(255, 255, 255, 0.8);
+                            background: transparent;
+                            border: 1px solid rgba(255, 255, 255, 0.3);
+                            font-size: 0.9rem;
+                            padding: 8px 16px;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        "
+                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.color='white';"
+                        onmouseout="this.style.backgroundColor='transparent'; this.style.color='rgba(255,255,255,0.8)';"
+                    >
+                        🖨️ Print/PDF
+                    </button>
+                </div>
+            </div>
+            <div style="padding: 20px">
+                <div
+                    id="inventoryBox"
+                    style="margin-bottom: 20px; display: none"
+                >
+                    <div
+                        style="
+                            background: linear-gradient(
+                                135deg,
+                                #4facfe 0%,
+                                #00f2fe 100%
+                            );
+                            color: white;
+                            padding: 20px;
+                            border-radius: 15px;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        "
+                    >
+                        <h3
+                            style="
+                                margin: 0 0 15px 0;
+                                display: flex;
+                                align-items: center;
+                                gap: 10px;
+                            "
+                        >
+                            📦 Current Box Inventory
+                        </h3>
+                        <div
+                            id="inventoryContent"
+                            style="
+                                display: grid;
+                                grid-template-columns: repeat(
+                                    auto-fit,
+                                    minmax(200px, 1fr)
+                                );
+                                gap: 15px;
+                            "
+                        >
+                            <!-- Inventory items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="view-toggle">
+                    <button id="workerViewBtn" class="view-btn active">
+                        👥 By Worker
+                    </button>
+                    <button id="dateViewBtn" class="view-btn">
+                        📅 By Date
+                    </button>
+                </div>
+                <div class="section-title" id="sectionTitle">Workers</div>
+            </div>
+            <div class="worker-grid" id="workerGrid"></div>
+            <div class="date-grid" id="dateGrid" style="display: none"></div>
+            <div id="assignmentContainer"></div>
+        </div>
+
+        <script>
+            // Google Sheets API Configuration
+            const SHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
+            // API key directly in code - will secure with Google Cloud restrictions
+            const API_KEY = "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s";
+            const RANGE = "A:Z"; // Use range without tab name, rely on GID
+
+            let data = [];
+            let inventoryData = [];
+            let currentView = "worker"; // 'worker' or 'date'
+
+            const workerIcons = {
+                Samuel: "🐋",
+                Emmanuel: "🦁",
+                Irmydel: "🐸",
+                Tess: "🌟",
+                Ayoyo: "⚡",
+                Rosey: "🌹",
+                Boniat: "🌊",
+            };
+
+            const vanIcons = {
+                "Green Bean": "🫛",
+                Tooth: "🦷",
+                Marshmallow: "🍡",
+            };
+
+            const workerGrid = document.getElementById("workerGrid");
+            const assignmentContainer = document.getElementById(
+                "assignmentContainer",
+            );
+
+            // Fetch data from Google Sheets API
+            async function fetchSheetData() {
+                try {
+                    // Add cache busting to ensure fresh data
+                    const timestamp = new Date().getTime();
+                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SPFM!A:T?key=${API_KEY}&_=${timestamp}`;
+                    console.log(
+                        `Fetching from Google Sheets API with cache busting`,
+                    );
+
+                    const response = await fetch(url);
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP ${response.status}: ${response.statusText}`,
+                        );
+                    }
+
+                    const result = await response.json();
+                    console.log("API Response received");
+
+                    if (!result.values || result.values.length < 2) {
+                        throw new Error("No data found in the specified range");
+                    }
+
+                    // Convert rows to objects (skip header row)
+                    const headers = result.values[0];
+                    data = result.values
+                        .slice(1)
+                        .filter((row) => row && row.length > 0 && row[0]) // Filter out empty rows
+                        .map((row) => {
+                            const obj = {};
+                            headers.forEach((header, index) => {
+                                obj[header] = row[index] || "";
+                            });
+                            return obj;
+                        });
+
+                    console.log(`Successfully loaded ${data.length} rows`);
+                    console.log("Sample data:", data[0]);
+                    console.log("Headers found:", headers);
+
+                    // Fetch inventory data
+                    await fetchInventoryData();
+
+                    // Set up view toggle event listeners
+                    document
+                        .getElementById("workerViewBtn")
+                        .addEventListener("click", () => switchView("worker"));
+                    document
+                        .getElementById("dateViewBtn")
+                        .addEventListener("click", () => switchView("date"));
+
+                    // Initialize with worker view
+                    switchView("worker");
+
+                    // Debug info
+                    console.log("Debug info:");
+                    console.log("Total data rows:", data.length);
+                    console.log(
+                        "Sample statuses:",
+                        data.slice(0, 5).map((d) => d.status),
+                    );
+                } catch (error) {
+                    console.error("Google Sheets API Error:", error);
+                    document.getElementById("workerGrid").innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; color: red; padding: 40px;">
+                            <h3>⚠️ Error Loading Data</h3>
+                            <p><strong>API Access Issue:</strong></p>
+                            <p>1. Make sure the sheet is set to "Anyone with the link can view"</p>
+                            <p>2. Check that the API key is valid</p>
+                            <p><strong>Error:</strong> ${error.message}</p>
+                            <br>
+                            <p>Contact admin if this continues.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function renderWorkers() {
+                const workers = [
+                    ...new Set(
+                        data
+                            .flatMap((d) => [d.worker1, d.worker2, d.worker3])
+                            .filter(Boolean)
+                            .filter((worker) => worker.trim() !== "")
+                            .filter(
+                                (worker) =>
+                                    worker.trim().toUpperCase() !== "CANCELLED",
+                            )
+                            .map((worker) => worker.trim()),
+                    ),
+                ].sort(); // Sort alphabetically
+
+                workerGrid.innerHTML = ""; // Clear existing workers
+
+                workers.forEach((worker) => {
+                    const div = document.createElement("div");
+                    div.className = "worker-card";
+                    // Case-insensitive emoji lookup
+                    const workerIcon = Object.keys(workerIcons).find(
+                        (key) => key.toLowerCase() === worker.toLowerCase(),
+                    );
+                    const emoji = workerIcon ? workerIcons[workerIcon] : "👤";
+                    div.innerHTML = `${emoji} ${worker}`;
+                    div.onclick = () => selectWorker(worker, div);
+                    workerGrid.appendChild(div);
+                });
+            }
+
+            function renderDates() {
+                // Filter out empty rows and completed routes
+                const upcomingRoutes = data.filter((route) => {
+                    // Check if route has essential data
+                    if (!route.routeId || !route.date || !route.market) {
+                        return false;
+                    }
+                    // Filter out completed routes
+                    const status = route.status || "";
+                    return status.trim().toLowerCase() !== "completed";
+                });
+
+                console.log(
+                    `Filtered to ${upcomingRoutes.length} upcoming routes from ${data.length} total`,
+                );
+                console.log(
+                    "Sample upcoming routes:",
+                    upcomingRoutes.slice(0, 3),
+                );
+
+                // Group by date and get next 4 dates
+                const dateGroups = {};
+                upcomingRoutes.forEach((route) => {
+                    const date = route.date;
+                    if (date && date.trim()) {
+                        if (!dateGroups[date]) {
+                            dateGroups[date] = [];
+                        }
+                        dateGroups[date].push(route);
+                    }
+                });
+
+                // Sort by the earliest routeId in each date group and take next 4
+                // Sort dates chronologically
+                const sortedDates = Object.keys(dateGroups)
+                    .filter((date) => date && date.trim())
+                    .sort((a, b) => {
+                        return new Date(a) - new Date(b);
+                    })
+                    .slice(0, 4);
+
+                const dateGrid = document.getElementById("dateGrid");
+                dateGrid.innerHTML = ""; // Clear existing dates
+
+                if (sortedDates.length === 0) {
+                    dateGrid.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                            <h3>No upcoming routes found</h3>
+                            <p>All routes appear to be completed or no data available.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                sortedDates.forEach((date) => {
+                    const routes = dateGroups[date];
+                    const markets = routes
+                        .map((r) => r.market)
+                        .filter(Boolean)
+                        .join(", ");
+
+                    const div = document.createElement("div");
+                    div.className = "date-card";
+                    div.innerHTML = `
+                        <h3>📅 ${date}</h3>
+                        <div class="markets"><strong>Markets:</strong> ${markets || "No markets"}</div>
+                        <div style="margin-top: 10px; font-size: 0.8rem;">
+                            ${routes.length} route${routes.length > 1 ? "s" : ""}
+                        </div>
+                    `;
+                    div.onclick = () => selectDate(date, div);
+                    dateGrid.appendChild(div);
+                });
+            }
+
+            function switchView(viewType) {
+                currentView = viewType;
+
+                // Update button states
+                document
+                    .getElementById("workerViewBtn")
+                    .classList.toggle("active", viewType === "worker");
+                document
+                    .getElementById("dateViewBtn")
+                    .classList.toggle("active", viewType === "date");
+
+                // Update section title
+                document.getElementById("sectionTitle").textContent =
+                    viewType === "worker" ? "Workers" : "Upcoming Dates";
+
+                // Show/hide grids
+                document.getElementById("workerGrid").style.display =
+                    viewType === "worker" ? "grid" : "none";
+                document.getElementById("dateGrid").style.display =
+                    viewType === "date" ? "grid" : "none";
+
+                // Clear assignment container
+                document.getElementById("assignmentContainer").innerHTML = "";
+
+                // Render appropriate view
+                if (viewType === "worker") {
+                    renderWorkers();
+                } else {
+                    renderDates();
+                }
+            }
+
+            function selectDate(selectedDate, el) {
+                // Remove selected class from all date cards
+                document
+                    .querySelectorAll(".date-card")
+                    .forEach((card) => card.classList.remove("selected"));
+                el.classList.add("selected");
+
+                // Find all routes for this date
+                const routesForDate = data.filter(
+                    (route) => route.date === selectedDate,
+                );
+                const assignmentContainer = document.getElementById(
+                    "assignmentContainer",
+                );
+                assignmentContainer.innerHTML = "";
+
+                routesForDate.forEach((assignment, index) => {
+                    const card = document.createElement("div");
+                    card.className = "assignment-card";
+                    card.style.marginTop = index > 0 ? "20px" : "30px";
+
+                    // Add market indicator if multiple markets
+                    const marketHeader =
+                        routesForDate.length > 1
+                            ? `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                             📍 Market ${index + 1} of ${routesForDate.length}
+                           </div>`
+                            : "";
+
+                    card.innerHTML = `
+                      ${marketHeader}
+              <div class="market-section">
+                <h2>${assignment.market} – ${assignment.date}</h2>
+                <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
+                <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
+                <p><strong>Address:</strong> ${assignment.marketAddress}
+                  <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.marketAddress)}"
+                     target="_blank" class="directions-btn">📍 Get Directions</a>
+                </p>
+
+                <div class="team-info-header">
+                  <div>
+                    <h3>👥 Team</h3>
+                    ${assignment.worker1 ? `<span class="team-member">${getWorkerEmoji(assignment.worker1)} ${assignment.worker1}</span>` : ""}
+                    ${assignment.worker2 ? `<span class="team-member">${getWorkerEmoji(assignment.worker2)} ${assignment.worker2}</span>` : ""}
+                    ${assignment.worker3 ? `<span class="team-member">${getWorkerEmoji(assignment.worker3)} ${assignment.worker3}</span>` : ""}
+                  </div>
+                  <div>
+                    <h3>🚐 Vans</h3>
+                    ${assignment.van1 ? `<span class="van-badge">${vanIcons[assignment.van1]} ${assignment.van1}</span>` : ""}
+                    ${assignment.van2 ? `<span class="van-badge">${vanIcons[assignment.van2]} ${assignment.van2}</span>` : ""}
+                    ${assignment.van3 ? `<span class="van-badge">${vanIcons[assignment.van3]} ${assignment.van3}</span>` : ""}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flow-section">
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h3>📦 Materials</h3>
+                  </div>
+                  <div class="task-grid">
+                    <div class="task-column">
+                      <div class="task-header">📂 Office Materials</div>
+                      ${assignment.materials_office
+                          .split(",")
+                          .map((item) => item.trim())
+                          .sort()
+                          .map(
+                              (item) => `
+                        <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                      `,
+                          )
+                          .join("")}
+                    </div>
+                    <div class="task-column">
+                      <div class="task-header">🏕️ Storage Materials</div>
+                      ${assignment.materials_storage
+                          .split(",")
+                          .map((item) => item.trim())
+                          .sort()
+                          .map(
+                              (item) => `
+                        <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                      `,
+                          )
+                          .join("")}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h3>🏪 At Market</h3>
+                  </div>
+                  <div class="single-column">
+                    ${assignment.atMarket
+                        .split(",")
+                        .map((item) => item.trim())
+                        .map(
+                            (item) => `
+                      <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                    `,
+                        )
+                        .join("")}
+                  </div>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h3>🚚 Drop-off</h3>
+                  </div>
+                  <div class="single-column">
+                    ${
+                        assignment.dropOff &&
+                        assignment.dropOff.trim() &&
+                        assignment.dropOff !== "TBD"
+                            ? `<p><strong>${assignment.dropOff}</strong></p>
+                       <p><strong>Address:</strong> ${assignment.dropOffAddress}
+                         ${
+                             assignment.dropOffAddress &&
+                             assignment.dropOffAddress.trim() !== "" &&
+                             assignment.dropOffAddress.trim() !== "TBD"
+                                 ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.dropOffAddress.trim())}"
+                              target="_blank" class="directions-btn">📍 Get Directions</a>`
+                                 : ""
+                         }
+                       </p>`
+                            : "<p><strong>Drop-off location TBD</strong></p>"
+                    }
+                  </div>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h3>🏢 Back at Office</h3>
+                  </div>
+                  <div class="single-column">
+                    ${assignment.backAtOffice
+                        .split(",")
+                        .map((item) => item.trim())
+                        .map(
+                            (item) => `
+                      <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                    `,
+                        )
+                        .join("")}
+                  </div>
+                </div>
+              </div>
+            `;
+                    assignmentContainer.appendChild(card);
+                });
+
+                // Make checkboxes interactive
+                document.querySelectorAll(".task-checkbox").forEach((box) => {
+                    box.addEventListener("click", () =>
+                        box.classList.toggle("checked"),
+                    );
+                });
+            }
+
+            function selectWorker(worker, el) {
+                // Remove selected class from all worker cards
+                document
+                    .querySelectorAll(".worker-card")
+                    .forEach((card) => card.classList.remove("selected"));
+                el.classList.add("selected");
+
+                const allAssignments = data.filter(
+                    (d) =>
+                        d.worker1 === worker ||
+                        d.worker2 === worker ||
+                        d.worker3 === worker,
+                );
+
+                console.log(`Debug for ${worker}:`);
+                console.log("All assignments found:", allAssignments.length);
+                allAssignments.forEach((a, i) => {
+                    console.log(
+                        `  ${i}: ${a.routeId} - ${a.date} - ${a.market} - Status: "${a.status}" - Workers: ${a.worker1}/${a.worker2}/${a.worker3}`,
+                    );
+                });
+
+                // Filter to only upcoming (non-completed) assignments
+                const upcomingAssignments = allAssignments.filter(
+                    (assignment) => {
+                        if (
+                            !assignment.routeId ||
+                            !assignment.date ||
+                            !assignment.market
+                        ) {
+                            return false;
+                        }
+                        const status = assignment.status || "";
+                        return status.trim().toLowerCase() !== "completed";
+                    },
+                );
+
+                console.log(
+                    "Upcoming assignments:",
+                    upcomingAssignments.length,
+                );
+                upcomingAssignments.forEach((a, i) => {
+                    console.log(
+                        `  ${i}: ${a.routeId} - ${a.date} - ${a.market} - Status: "${a.status}"`,
+                    );
+                });
+
+                // Sort by date chronologically and take only the next assignment
+                console.log(
+                    "Before sorting - upcoming assignments with dates:",
+                );
+                upcomingAssignments.forEach((a, i) => {
+                    const dateObj = new Date(a.date);
+                    console.log(
+                        `  ${i}: ${a.routeId} - "${a.date}" - Parsed: ${dateObj} - Valid: ${!isNaN(dateObj.getTime())}`,
+                    );
+                });
+
+                const nextAssignment = upcomingAssignments
+                    .sort((a, b) => {
+                        const dateA = new Date(a.date);
+                        const dateB = new Date(b.date);
+                        console.log(
+                            `Comparing: ${a.date} (${dateA.getTime()}) vs ${b.date} (${dateB.getTime()})`,
+                        );
+                        return dateA - dateB;
+                    })
+                    .slice(0, 1); // Only take the first (next) assignment
+
+                console.log("After sorting - all assignments:");
+                upcomingAssignments.forEach((a, i) => {
+                    console.log(
+                        `${i}: ${a.routeId} - ${a.date} - ${new Date(a.date)}`,
+                    );
+                });
+                console.log("Next assignment selected:", nextAssignment.length);
+                if (nextAssignment.length > 0) {
+                    console.log(
+                        `  Selected: ${nextAssignment[0].routeId} - ${nextAssignment[0].date} - ${nextAssignment[0].market}`,
+                    );
+                }
+
+                const assignmentContainer = document.getElementById(
+                    "assignmentContainer",
+                );
+                assignmentContainer.innerHTML = "";
+
+                if (nextAssignment.length === 0) {
+                    assignmentContainer.innerHTML =
+                        '<div class="no-assignments">No upcoming assignments for this worker.</div>';
+                    return;
+                }
+
+                nextAssignment.forEach((assignment, index) => {
+                    const card = document.createElement("div");
+                    card.className = "assignment-card";
+                    card.style.marginTop = index > 0 ? "20px" : "30px";
+
+                    // No market header needed since we're only showing next assignment
+                    const marketHeader = "";
+
+                    card.innerHTML = `
+                      ${marketHeader}
+              <div class="market-section">
+                <h2>${assignment.market} – ${assignment.date}</h2>
+                <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
+                <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
+                <p><strong>Address:</strong> ${assignment.marketAddress}
+                  <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.marketAddress)}"
+                     target="_blank" class="directions-btn">📍 Get Directions</a>
+                </p>
+
+                <div class="team-info-header">
+                  <div>
+                    <h3>👥 Team</h3>
+                    ${assignment.worker1 ? `<span class="team-member">${getWorkerEmoji(assignment.worker1)} ${assignment.worker1}</span>` : ""}
+                    ${assignment.worker2 ? `<span class="team-member">${getWorkerEmoji(assignment.worker2)} ${assignment.worker2}</span>` : ""}
+                    ${assignment.worker3 ? `<span class="team-member">${getWorkerEmoji(assignment.worker3)} ${assignment.worker3}</span>` : ""}
+                  </div>
+                  <div>
+                    <h3>🚐 Vans</h3>
+                    ${assignment.van1 ? `<span class="van-badge">${vanIcons[assignment.van1]} ${assignment.van1}</span>` : ""}
+                    ${assignment.van2 ? `<span class="van-badge">${vanIcons[assignment.van2]} ${assignment.van2}</span>` : ""}
+                    ${assignment.van3 ? `<span class="van-badge">${vanIcons[assignment.van3]} ${assignment.van3}</span>` : ""}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flow-section">
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h3>📦 Materials</h3>
+                  </div>
+                  <div class="task-grid">
+                    <div class="task-column">
+                      <div class="task-header">📂 Office Materials</div>
+                      ${assignment.materials_office
+                          .split(",")
+                          .map((item) => item.trim())
+                          .sort()
+                          .map(
+                              (item) => `
+                        <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                      `,
+                          )
+                          .join("")}
+                    </div>
+                    <div class="task-column">
+                      <div class="task-header">🏕️ Storage Materials</div>
+                      ${assignment.materials_storage
+                          .split(",")
+                          .map((item) => item.trim())
+                          .sort()
+                          .map(
+                              (item) => `
+                        <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                      `,
+                          )
+                          .join("")}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h3>🏪 At Market</h3>
+                  </div>
+                  <div class="single-column">
+                    ${assignment.atMarket
+                        .split(",")
+                        .map((item) => item.trim())
+                        .map(
+                            (item) => `
+                      <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                    `,
+                        )
+                        .join("")}
+                  </div>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h3>🚚 Drop-off</h3>
+                  </div>
+                  <div class="single-column">
+                    ${
+                        assignment.dropOff &&
+                        assignment.dropOff.trim() &&
+                        assignment.dropOff !== "TBD"
+                            ? `<p><strong>${assignment.dropOff}</strong></p>
+                       <p><strong>Address:</strong> ${assignment.dropOffAddress}
+                         ${
+                             assignment.dropOffAddress &&
+                             assignment.dropOffAddress.trim() !== "" &&
+                             assignment.dropOffAddress.trim() !== "TBD"
+                                 ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.dropOffAddress.trim())}"
+                              target="_blank" class="directions-btn">📍 Get Directions</a>`
+                                 : ""
+                         }
+                       </p>`
+                            : "<p><strong>Drop-off location TBD</strong></p>"
+                    }
+                  </div>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="step-section">
+                  <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h3>🏢 Back at Office</h3>
+                  </div>
+                  <div class="single-column">
+                    ${assignment.backAtOffice
+                        .split(",")
+                        .map((item) => item.trim())
+                        .map(
+                            (item) => `
+                      <div class="task-item"><div class="task-checkbox"></div><div class="task-text">${item}</div></div>
+                    `,
+                        )
+                        .join("")}
+                  </div>
+                </div>
+              </div>
+            `;
+                    assignmentContainer.appendChild(card);
+                });
+
+                // Make checkboxes interactive for all assignments
+                document.querySelectorAll(".task-checkbox").forEach((box) => {
+                    box.addEventListener("click", () =>
+                        box.classList.toggle("checked"),
+                    );
+                });
+            }
+
+            function getWorkerEmoji(workerName) {
+                if (!workerName || workerName.trim() === "") return "👤";
+                const workerIcon = Object.keys(workerIcons).find(
+                    (key) =>
+                        key.toLowerCase() === workerName.trim().toLowerCase(),
+                );
+                return workerIcon ? workerIcons[workerIcon] : "👤";
+            }
+
+            function formatDate(dateString) {
+                // If the date is already formatted (like "Sunday, August 3, 2025"), return as is
+                if (dateString.includes(",")) {
+                    return dateString;
+                }
+                // Otherwise, format from ISO date
+                const date = new Date(dateString);
+                const options = {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                };
+                return date.toLocaleDateString("en-US", options);
+            }
+
+            // Fetch inventory data from Inventory tab
+            async function fetchInventoryData() {
+                try {
+                    const inventoryRange = "Inventory!A:Z";
+                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${inventoryRange}?key=${API_KEY}`;
+                    console.log(`Fetching inventory from API`);
+
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        console.log(
+                            "Inventory fetch failed - inventory not available",
+                        );
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    if (!result.values || result.values.length < 2) {
+                        console.log("No inventory data found");
+                        return;
+                    }
+
+                    // Convert rows to objects
+                    const headers = result.values[0];
+                    inventoryData = result.values.slice(1).map((row) => {
+                        const obj = {};
+                        headers.forEach((header, index) => {
+                            obj[header] = row[index] || "";
+                        });
+                        return obj;
+                    });
+
+                    console.log(
+                        `Loaded ${inventoryData.length} inventory items`,
+                    );
+                    renderInventory();
+                } catch (error) {
+                    console.log("Inventory data not available:", error);
+                    // Don't show error for inventory - it's optional
+                }
+            }
+
+            function renderInventory() {
+                if (inventoryData.length === 0) return;
+
+                const inventoryContent =
+                    document.getElementById("inventoryContent");
+                const inventoryBox = document.getElementById("inventoryBox");
+
+                // Find box inventory items and verification date
+                const boxItems = inventoryData.filter((item) => {
+                    const firstColumn = Object.values(item)[0];
+                    return (
+                        firstColumn &&
+                        (firstColumn.includes("Large") ||
+                            firstColumn.includes("Small"))
+                    );
+                });
+
+                const verifiedItem = inventoryData.find((item) => {
+                    const firstColumn = Object.values(item)[0];
+                    return firstColumn && firstColumn.includes("Verified on");
+                });
+
+                const boxesHtml = boxItems
+                    .map((item) => {
+                        const values = Object.values(item);
+                        const boxType = values[0] || "Unknown";
+                        const quantity = values[1] || "0";
+
+                        return `
+                        <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; text-align: center;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${boxType} Boxes</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;">${quantity}</div>
+                        </div>
+                    `;
+                    })
+                    .join("");
+
+                const verificationHtml = verifiedItem
+                    ? `
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">📅 Last Verified</div>
+                        <div style="font-size: 1.1rem; font-weight: bold;">${Object.values(verifiedItem)[1]}</div>
+                    </div>
+                `
+                    : "";
+
+                inventoryContent.innerHTML = boxesHtml + verificationHtml;
+                inventoryBox.style.display = "block";
+            }
+
+            function printAssignment() {
+                const assignmentContainer = document.getElementById(
+                    "assignmentContainer",
+                );
+
+                if (!assignmentContainer.innerHTML.trim()) {
+                    alert(
+                        "Please select a worker or date first to print their assignment.",
+                    );
+                    return;
+                }
+
+                // Create print-friendly title
+                const selectedWorker = document.querySelector(
+                    ".worker-card.selected",
+                );
+                const selectedDate = document.querySelector(
+                    ".date-card.selected",
+                );
+
+                let printTitle = "SPFM Market Recovery Routes";
+                if (selectedWorker) {
+                    printTitle += " - " + selectedWorker.textContent.trim();
+                } else if (selectedDate) {
+                    const dateText = selectedDate
+                        .querySelector("h3")
+                        .textContent.replace("📅 ", "");
+                    printTitle += " - " + dateText;
+                }
+
+                // Add print title to header temporarily
+                const originalHeaderContent =
+                    document.querySelector(".header p").innerHTML;
+                document.querySelector(".header p").innerHTML = printTitle;
+
+                // Print
+                window.print();
+
+                // Restore original header
+                setTimeout(() => {
+                    document.querySelector(".header p").innerHTML =
+                        originalHeaderContent;
+                }, 100);
+            }
+
+            // Initialize app by fetching data
+            fetchSheetData();
+        </script>
+    </body>
+</html>
