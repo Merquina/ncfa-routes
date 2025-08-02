@@ -945,11 +945,9 @@
             // Function to save checkbox state
             async function saveCheckboxState(routeId, taskText, isChecked) {
                 try {
-                    // Always save to localStorage for immediate persistence
-                    const checkboxKey = `${routeId}_${taskText}`;
-                    localStorage.setItem(checkboxKey, isChecked.toString());
+                    // localStorage persistence disabled
                     console.log(
-                        `Checkbox state saved locally: ${checkboxKey} = ${isChecked}`,
+                        `Checkbox toggled: ${routeId}_${taskText} = ${isChecked}`,
                     );
 
                     // If authorized, also attempt to save to Google Sheets
@@ -966,7 +964,7 @@
                         // This requires determining the correct column and row for the checkbox state
                     } else {
                         console.log(
-                            "Not authorized - saved to localStorage only",
+                            "Not authorized - checkbox state not persisted",
                         );
                     }
                 } catch (error) {
@@ -974,24 +972,10 @@
                 }
             }
 
-            // Function to load checkbox states
+            // Function to load checkbox states (disabled)
             function loadCheckboxStates() {
-                document.querySelectorAll(".task-checkbox").forEach((box) => {
-                    const taskText =
-                        box.nextElementSibling?.textContent?.trim();
-                    const routeId =
-                        box.closest(".assignment-card")?.dataset?.routeId;
-
-                    if (routeId && taskText) {
-                        const checkboxKey = `${routeId}_${taskText}`;
-                        const isChecked =
-                            localStorage.getItem(checkboxKey) === "true";
-
-                        if (isChecked) {
-                            box.classList.add("checked");
-                        }
-                    }
-                });
+                // localStorage persistence disabled - checkboxes reset on page load
+                console.log("Checkbox state loading disabled");
             }
 
             // Initialize when page loads
