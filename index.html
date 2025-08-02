@@ -1266,7 +1266,18 @@
                     const emoji = workerIcon ? workerIcons[workerIcon] : "👤"; // Default person emoji
 
                     div.innerHTML = `${emoji} ${worker}`;
-                    div.onclick = () => selectWorker(worker, div);
+                    div.onclick = () => {
+                        selectWorker(worker, div);
+                        // Smooth scroll to assignment container
+                        setTimeout(() => {
+                            document
+                                .getElementById("assignmentContainer")
+                                .scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start",
+                                });
+                        }, 100);
+                    };
                     workerGrid.appendChild(div);
                 });
             }
@@ -1355,7 +1366,18 @@
                                 ${routes.length} route${routes.length > 1 ? "s" : ""}
                             </div>
                         `;
-                        div.onclick = () => selectDate(date, div);
+                        div.onclick = () => {
+                            selectDate(date, div);
+                            // Smooth scroll to assignment container
+                            setTimeout(() => {
+                                document
+                                    .getElementById("assignmentContainer")
+                                    .scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                    });
+                            }, 100);
+                        };
                         spfmContainer.appendChild(div);
                     });
                 }
@@ -1402,7 +1424,18 @@
                                 Recovery route
                             </div>
                         `;
-                        div.onclick = () => selectRecoveryRoute(route, div);
+                        div.onclick = () => {
+                            selectRecoveryRoute(route, div);
+                            // Smooth scroll to assignment container
+                            setTimeout(() => {
+                                document
+                                    .getElementById("assignmentContainer")
+                                    .scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                    });
+                            }, 100);
+                        };
                         recoveryContainer.appendChild(div);
                     });
                 }
@@ -1493,7 +1526,7 @@
                 ${
                     assignment.dropOffAddress &&
                     assignment.dropOffAddress.trim() !== "" &&
-                    assignment.dropOffAddress.trim() !== "TBD"
+                    assignment.dropOffAddress.trim().toUpperCase() !== "TBD"
                         ? `
                     <p><strong>Full Route:</strong>
                         <a href="https://www.google.com/maps/dir/${encodeURIComponent(assignment.marketAddress)}/${encodeURIComponent(assignment.dropOffAddress.trim())}"
@@ -1787,7 +1820,7 @@
                 ${
                     assignment.dropOffAddress &&
                     assignment.dropOffAddress.trim() !== "" &&
-                    assignment.dropOffAddress.trim() !== "TBD"
+                    assignment.dropOffAddress.trim().toUpperCase() !== "TBD"
                         ? `
                     <p><strong>Full Route:</strong>
                         <a href="https://www.google.com/maps/dir/${encodeURIComponent(assignment.marketAddress)}/${encodeURIComponent(assignment.dropOffAddress.trim())}"
