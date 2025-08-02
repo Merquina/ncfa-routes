@@ -1357,11 +1357,20 @@
                             .filter(Boolean)
                             .join(", ");
 
+                        // Get worker names for this date
+                        const workers = routes
+                            .flatMap((r) => [r.worker1, r.worker2, r.worker3])
+                            .filter(Boolean)
+                            .filter((w) => w.toLowerCase() !== "cancelled")
+                            .map((w) => `${getWorkerEmoji(w)} ${w}`)
+                            .join(", ");
+
                         const div = document.createElement("div");
                         div.className = "date-card";
                         div.innerHTML = `
                             <h3>📅 ${date}</h3>
                             <div class="markets"><strong>Markets:</strong> ${markets || "No markets"}</div>
+                            ${workers ? `<div class="markets"><strong>Workers:</strong> ${workers}</div>` : ""}
                             <div style="margin-top: 10px; font-size: 0.8rem;">
                                 ${routes.length} route${routes.length > 1 ? "s" : ""}
                             </div>
