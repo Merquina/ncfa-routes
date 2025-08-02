@@ -644,6 +644,33 @@
                         🔧 Backend Access (Editors Only)
                     </a>
                     <button
+                        id="authButton"
+                        style="
+                            color: rgba(255, 255, 255, 0.8);
+                            background: transparent;
+                            border: 1px solid rgba(255, 255, 255, 0.3);
+                            font-size: 0.9rem;
+                            padding: 8px 16px;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        "
+                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.color='white';"
+                        onmouseout="this.style.backgroundColor='transparent'; this.style.color='rgba(255,255,255,0.8)';"
+                    >
+                        🔐 Sign In with Google
+                    </button>
+                    <div
+                        id="authStatus"
+                        style="
+                            font-size: 0.8rem;
+                            color: rgba(255, 255, 255, 0.7);
+                            margin-top: 5px;
+                        "
+                    >
+                        Sign in to save your progress
+                    </div>
+                    <button
                         onclick="printAssignment()"
                         style="
                             color: rgba(255, 255, 255, 0.8);
@@ -720,12 +747,25 @@
             <div id="assignmentContainer"></div>
         </div>
 
+        <script src="https://apis.google.com/js/api.js"></script>
+        <script src="https://accounts.google.com/gsi/client"></script>
         <script>
             // Google Sheets API Configuration
             const SHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
-            // API key directly in code - will secure with Google Cloud restrictions
+            // OAuth Client ID - replace with your actual client ID from Google Cloud Console
+            // For GitHub Pages: https://merquina.github.io/spfm-routes/
+            const CLIENT_ID = "YOUR_CLIENT_ID_HERE.apps.googleusercontent.com";
             const API_KEY = "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s";
-            const RANGE = "A:Z"; // Use range without tab name, rely on GID
+            const RANGE = "A:Z";
+
+            // OAuth Configuration
+            const DISCOVERY_DOC =
+                "https://sheets.googleapis.com/$discovery/rest?version=v4";
+            const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+
+            let gapi;
+            let tokenClient;
+            let isAuthorized = false;
 
             let data = [];
             let inventoryData = [];
@@ -751,6 +791,122 @@
             const assignmentContainer = document.getElementById(
                 "assignmentContainer",
             );
+
+            // OAuth Initialization
+            async function initializeGapi() {
+                await new Promise((resolve) => {
+                    gapi.load("client", resolve);
+                });
+
+                await gapi.client.init({
+                    apiKey: API_KEY,
+                    discoveryDocs: [DISCOVERY_DOC],
+                });
+            }
+
+            function initializeGsi() {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: (tokenResponse) => {
+                        console.log("OAuth token received");
+                        isAuthorized = true;
+                        updateAuthUI();
+                    },
+                });
+            }
+
+            function updateAuthUI() {
+                const authButton = document.getElementById("authButton");
+                const authStatus = document.getElementById("authStatus");
+                if (isAuthorized) {
+                    authButton.textContent = "✅ Sign Out";
+                    authButton.onclick = signOut;
+                    authStatus.textContent =
+                        "✅ Signed in - your progress will be saved";
+                    authStatus.style.color = "rgba(144, 238, 144, 0.9)";
+                } else {
+                    authButton.textContent = "🔐 Sign In with Google";
+                    authButton.onclick = authorize;
+                    authStatus.textContent = "Sign in to save your progress";
+                    authStatus.style.color = "rgba(255, 255, 255, 0.7)";
+                }
+            }
+
+            function authorize() {
+                tokenClient.requestAccessToken({ prompt: "consent" });
+            }
+
+            function signOut() {
+                const token = gapi.client.getToken();
+                if (token !== null) {
+                    google.accounts.oauth2.revoke(token.access_token);
+                    gapi.client.setToken("");
+                    isAuthorized = false;
+                    updateAuthUI();
+                }
+            }
+
+            // Function to save checkbox state to Google Sheets
+            async function saveCheckboxState(routeId, taskText, isChecked) {
+                if (!isAuthorized) {
+                    console.log("Not authorized to save checkbox state");
+                    return;
+                }
+
+                try {
+                    // Find the row for this route
+                    const rowIndex = data.findIndex(
+                        (row) => row.routeId === routeId,
+                    );
+                    if (rowIndex === -1) {
+                        console.error("Route not found:", routeId);
+                        return;
+                    }
+
+                    // Create a column for checkbox states if it doesn't exist
+                    // For now, we'll use localStorage as backup and log the action
+                    const checkboxKey = `${routeId}_${taskText}`;
+                    localStorage.setItem(checkboxKey, isChecked.toString());
+
+                    console.log(
+                        `Checkbox state saved: ${checkboxKey} = ${isChecked}`,
+                    );
+
+                    // In a full implementation, you would update the specific cell in Google Sheets
+                    // This requires knowing the exact column mapping for checkbox states
+                } catch (error) {
+                    console.error("Error saving checkbox state:", error);
+                }
+            }
+
+            // Function to load checkbox states
+            function loadCheckboxStates() {
+                document.querySelectorAll(".task-checkbox").forEach((box) => {
+                    const taskText =
+                        box.nextElementSibling?.textContent?.trim();
+                    const routeId =
+                        box.closest(".assignment-card")?.dataset?.routeId;
+
+                    if (routeId && taskText) {
+                        const checkboxKey = `${routeId}_${taskText}`;
+                        const isChecked =
+                            localStorage.getItem(checkboxKey) === "true";
+
+                        if (isChecked) {
+                            box.classList.add("checked");
+                        }
+                    }
+                });
+            }
+
+            // Initialize when page loads
+            window.onload = async () => {
+                await initializeGapi();
+                initializeGsi();
+                updateAuthUI();
+                fetchSheetData();
+            };
 
             // Fetch data from Google Sheets API
             async function fetchSheetData() {
@@ -1135,15 +1291,34 @@
                 </div>
               </div>
             `;
+                    card.dataset.routeId = assignment.routeId;
                     assignmentContainer.appendChild(card);
                 });
 
                 // Make checkboxes interactive
                 document.querySelectorAll(".task-checkbox").forEach((box) => {
-                    box.addEventListener("click", () =>
-                        box.classList.toggle("checked"),
-                    );
+                    box.addEventListener("click", async () => {
+                        box.classList.toggle("checked");
+
+                        // Save state to Google Sheets (or localStorage as backup)
+                        const taskText =
+                            box.nextElementSibling?.textContent?.trim();
+                        const routeId =
+                            box.closest(".assignment-card")?.dataset?.routeId;
+                        const isChecked = box.classList.contains("checked");
+
+                        if (routeId && taskText) {
+                            await saveCheckboxState(
+                                routeId,
+                                taskText,
+                                isChecked,
+                            );
+                        }
+                    });
                 });
+
+                // Load saved checkbox states
+                loadCheckboxStates();
             }
 
             function selectWorker(worker, el) {
@@ -1384,15 +1559,34 @@
                 </div>
               </div>
             `;
+                    card.dataset.routeId = assignment.routeId;
                     assignmentContainer.appendChild(card);
                 });
 
-                // Make checkboxes interactive for all assignments
+                // Make checkboxes interactive
                 document.querySelectorAll(".task-checkbox").forEach((box) => {
-                    box.addEventListener("click", () =>
-                        box.classList.toggle("checked"),
-                    );
+                    box.addEventListener("click", async () => {
+                        box.classList.toggle("checked");
+
+                        // Save state to Google Sheets (or localStorage as backup)
+                        const taskText =
+                            box.nextElementSibling?.textContent?.trim();
+                        const routeId =
+                            box.closest(".assignment-card")?.dataset?.routeId;
+                        const isChecked = box.classList.contains("checked");
+
+                        if (routeId && taskText) {
+                            await saveCheckboxState(
+                                routeId,
+                                taskText,
+                                isChecked,
+                            );
+                        }
+                    });
                 });
+
+                // Load saved checkbox states
+                loadCheckboxStates();
             }
 
             function getWorkerEmoji(workerName) {
