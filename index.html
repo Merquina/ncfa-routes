@@ -795,26 +795,72 @@
 
             // OAuth Initialization
             async function initializeGapi() {
-                await new Promise((resolve) => {
-                    gapi.load("client", resolve);
-                });
+                return new Promise((resolve, reject) => {
+                    console.log("Loading Google API client...");
+                    if (typeof gapi === "undefined") {
+                        console.error("Google API not loaded");
+                        reject(new Error("Google API not loaded"));
+                        return;
+                    }
 
-                await gapi.client.init({
-                    apiKey: API_KEY,
-                    discoveryDocs: [DISCOVERY_DOC],
+                    gapi.load("client", async () => {
+                        try {
+                            await gapi.client.init({
+                                apiKey: API_KEY,
+                                discoveryDocs: [DISCOVERY_DOC],
+                            });
+                            console.log("✅ Google API client initialized");
+                            resolve();
+                        } catch (error) {
+                            console.error(
+                                "❌ Error initializing Google API client:",
+                                error,
+                            );
+                            reject(error);
+                        }
+                    });
                 });
             }
 
             function initializeGsi() {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: (tokenResponse) => {
-                        console.log("OAuth token received");
-                        isAuthorized = true;
-                        updateAuthUI();
-                    },
-                });
+                console.log("Initializing Google Sign-In...");
+                if (typeof google === "undefined" || !google.accounts) {
+                    console.error("Google Sign-In library not loaded");
+                    return;
+                }
+
+                try {
+                    tokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: CLIENT_ID,
+                        scope: SCOPES,
+                        callback: (tokenResponse) => {
+                            console.log(
+                                "✅ OAuth token received:",
+                                tokenResponse,
+                            );
+                            if (tokenResponse.access_token) {
+                                gapi.client.setToken(tokenResponse);
+                                isAuthorized = true;
+                                console.log("✅ User authorized");
+                            } else {
+                                console.log("❌ No access token received");
+                                isAuthorized = false;
+                            }
+                            updateAuthUI();
+                        },
+                        error_callback: (error) => {
+                            console.error("❌ OAuth error:", error);
+                            isAuthorized = false;
+                            updateAuthUI();
+                        },
+                    });
+                    console.log("✅ Google Sign-In client initialized");
+                } catch (error) {
+                    console.error(
+                        "❌ Error initializing Google Sign-In:",
+                        error,
+                    );
+                }
             }
 
             function updateAuthUI() {
@@ -835,47 +881,72 @@
             }
 
             function authorize() {
-                tokenClient.requestAccessToken({ prompt: "consent" });
+                console.log("🔐 Attempting to authorize...");
+                try {
+                    if (tokenClient) {
+                        console.log("📝 Requesting access token...");
+                        tokenClient.requestAccessToken({
+                            prompt: "consent",
+                            hint: "Select your Google account",
+                        });
+                    } else {
+                        console.error("❌ Token client not initialized");
+                        alert(
+                            "Authentication not ready. Please refresh the page and try again.",
+                        );
+                    }
+                } catch (error) {
+                    console.error("❌ Error during authorization:", error);
+                    alert(
+                        "Sign-in failed. Please check console for details and try again.",
+                    );
+                }
             }
 
             function signOut() {
-                const token = gapi.client.getToken();
-                if (token !== null) {
-                    google.accounts.oauth2.revoke(token.access_token);
-                    gapi.client.setToken("");
+                try {
+                    const token = gapi.client.getToken();
+                    if (token !== null) {
+                        google.accounts.oauth2.revoke(token.access_token);
+                        gapi.client.setToken("");
+                    }
+                    isAuthorized = false;
+                    updateAuthUI();
+                    console.log("Signed out successfully");
+                } catch (error) {
+                    console.error("Error during sign out:", error);
                     isAuthorized = false;
                     updateAuthUI();
                 }
             }
 
-            // Function to save checkbox state to Google Sheets
+            // Function to save checkbox state
             async function saveCheckboxState(routeId, taskText, isChecked) {
-                if (!isAuthorized) {
-                    console.log("Not authorized to save checkbox state");
-                    return;
-                }
-
                 try {
-                    // Find the row for this route
-                    const rowIndex = data.findIndex(
-                        (row) => row.routeId === routeId,
-                    );
-                    if (rowIndex === -1) {
-                        console.error("Route not found:", routeId);
-                        return;
-                    }
-
-                    // Create a column for checkbox states if it doesn't exist
-                    // For now, we'll use localStorage as backup and log the action
+                    // Always save to localStorage for immediate persistence
                     const checkboxKey = `${routeId}_${taskText}`;
                     localStorage.setItem(checkboxKey, isChecked.toString());
-
                     console.log(
-                        `Checkbox state saved: ${checkboxKey} = ${isChecked}`,
+                        `Checkbox state saved locally: ${checkboxKey} = ${isChecked}`,
                     );
 
-                    // In a full implementation, you would update the specific cell in Google Sheets
-                    // This requires knowing the exact column mapping for checkbox states
+                    // If authorized, also attempt to save to Google Sheets
+                    if (isAuthorized) {
+                        console.log(
+                            "Authorized - would save to Google Sheets:",
+                            {
+                                routeId,
+                                taskText,
+                                isChecked,
+                            },
+                        );
+                        // TODO: Implement Google Sheets write operation
+                        // This requires determining the correct column and row for the checkbox state
+                    } else {
+                        console.log(
+                            "Not authorized - saved to localStorage only",
+                        );
+                    }
                 } catch (error) {
                     console.error("Error saving checkbox state:", error);
                 }
@@ -903,10 +974,31 @@
 
             // Initialize when page loads
             window.onload = async () => {
-                await initializeGapi();
-                initializeGsi();
-                updateAuthUI();
-                fetchSheetData();
+                console.log("🚀 Starting application initialization...");
+
+                // Wait a bit for Google APIs to load
+                setTimeout(async () => {
+                    try {
+                        console.log("🔑 Initializing OAuth...");
+                        await initializeGapi();
+                        initializeGsi();
+                        updateAuthUI();
+                        console.log("📊 Fetching sheet data...");
+                        await fetchSheetData();
+                        console.log("✅ Application initialized successfully");
+                    } catch (error) {
+                        console.error("❌ Error during initialization:", error);
+                        // Still try to fetch data even if OAuth fails
+                        try {
+                            await fetchSheetData();
+                        } catch (dataError) {
+                            console.error(
+                                "❌ Failed to fetch data:",
+                                dataError,
+                            );
+                        }
+                    }
+                }, 1000);
             };
 
             // Fetch data from Google Sheets API
