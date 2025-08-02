@@ -427,17 +427,19 @@
             @media print {
                 @page {
                     size: letter;
-                    margin: 0.5in;
+                    margin: 0.3in;
                 }
 
                 body {
                     background: white !important;
-                    font-size: 10px;
-                    line-height: 1.2;
+                    font-size: 8px;
+                    line-height: 1.1;
                     margin: 0;
                     padding: 0;
                     height: 100vh;
                     overflow: hidden;
+                    transform: scale(0.95);
+                    transform-origin: top left;
                 }
 
                 .container {
@@ -613,7 +615,7 @@
     <body>
         <div class="container">
             <div class="header">
-                <h1>🥕 SPFM Market Recovery Routes</h1>
+                <h1>🥕 SPFM and Recovery Routes</h1>
                 <p>
                     Click a worker to see their next assignment or view by date
                 </p>
@@ -1246,79 +1248,135 @@
             // Creates clickable cards for upcoming dates with their routes
 
             function renderDates() {
-                // Filter out empty rows and completed routes to show only upcoming work
+                const dateGrid = document.getElementById("dateGrid");
+                dateGrid.innerHTML = ""; // Clear existing dates
+
+                // Create SPFM section
+                const spfmSection = document.createElement("div");
+                spfmSection.innerHTML = `
+                    <div style="margin-bottom: 30px;">
+                        <h2 style="color: #56ab2f; font-size: 1.4rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            🥕 <span>SPFM Market Routes</span>
+                        </h2>
+                        <div id="spfmDates" class="date-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        </div>
+                    </div>
+                `;
+                dateGrid.appendChild(spfmSection);
+
+                // Create Recovery section
+                const recoverySection = document.createElement("div");
+                recoverySection.innerHTML = `
+                    <div>
+                        <h2 style="color: #ff6b6b; font-size: 1.4rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            🚗 <span>Recovery Routes</span>
+                        </h2>
+                        <div id="recoveryDates" class="date-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        </div>
+                    </div>
+                `;
+                dateGrid.appendChild(recoverySection);
+
+                // Process SPFM routes
                 const upcomingRoutes = data.filter((route) => {
-                    // Check if route has essential data
                     if (!route.routeId || !route.date || !route.market) {
                         return false;
                     }
-                    // Filter out completed routes
                     const status = route.status || "";
                     return status.trim().toLowerCase() !== "completed";
                 });
 
-                console.log(
-                    `📊 Filtered to ${upcomingRoutes.length} upcoming routes from ${data.length} total`,
-                );
-                console.log(
-                    "Sample upcoming routes:",
-                    upcomingRoutes.slice(0, 3),
-                );
-
-                // Group routes by date for easier display
                 const dateGroups = {};
                 upcomingRoutes.forEach((route) => {
                     const date = route.date;
                     if (date && date.trim()) {
                         if (!dateGroups[date]) {
-                            dateGroups[date] = []; // Create new array for this date
+                            dateGroups[date] = [];
                         }
-                        dateGroups[date].push(route); // Add route to this date's list
+                        dateGroups[date].push(route);
                     }
                 });
 
-                // Sort dates chronologically and show only the next 4 upcoming dates
                 const sortedDates = Object.keys(dateGroups)
-                    .filter((date) => date && date.trim()) // Remove empty dates
-                    .sort((a, b) => {
-                        return new Date(a) - new Date(b); // Chronological order
-                    })
-                    .slice(0, 4); // Limit to next 4 dates
+                    .filter((date) => date && date.trim())
+                    .sort((a, b) => new Date(a) - new Date(b))
+                    .slice(0, 4);
 
-                const dateGrid = document.getElementById("dateGrid");
-                dateGrid.innerHTML = ""; // Clear existing dates
-
+                const spfmContainer = document.getElementById("spfmDates");
                 if (sortedDates.length === 0) {
-                    dateGrid.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-                            <h3>No upcoming routes found</h3>
-                            <p>All routes appear to be completed or no data available.</p>
+                    spfmContainer.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #666;">
+                            <p>No upcoming SPFM routes</p>
                         </div>
                     `;
-                    return;
+                } else {
+                    sortedDates.forEach((date) => {
+                        const routes = dateGroups[date];
+                        const markets = routes
+                            .map((r) => r.market)
+                            .filter(Boolean)
+                            .join(", ");
+
+                        const div = document.createElement("div");
+                        div.className = "date-card";
+                        div.innerHTML = `
+                            <h3>📅 ${date}</h3>
+                            <div class="markets"><strong>Markets:</strong> ${markets || "No markets"}</div>
+                            <div style="margin-top: 10px; font-size: 0.8rem;">
+                                ${routes.length} route${routes.length > 1 ? "s" : ""}
+                            </div>
+                        `;
+                        div.onclick = () => selectDate(date, div);
+                        spfmContainer.appendChild(div);
+                    });
                 }
 
-                // Create a clickable card for each upcoming date
-                sortedDates.forEach((date) => {
-                    const routes = dateGroups[date];
-                    // Get list of markets for this date
-                    const markets = routes
-                        .map((r) => r.market)
-                        .filter(Boolean) // Remove empty market names
-                        .join(", ");
-
-                    const div = document.createElement("div");
-                    div.className = "date-card";
-                    div.innerHTML = `
-                        <h3>📅 ${date}</h3>
-                        <div class="markets"><strong>Markets:</strong> ${markets || "No markets"}</div>
-                        <div style="margin-top: 10px; font-size: 0.8rem;">
-                            ${routes.length} route${routes.length > 1 ? "s" : ""}
+                // Process Recovery routes
+                const recoveryContainer =
+                    document.getElementById("recoveryDates");
+                if (recoveryData.length === 0) {
+                    recoveryContainer.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #666;">
+                            <p>No recovery routes available</p>
                         </div>
                     `;
-                    div.onclick = () => selectDate(date, div); // Make card clickable
-                    dateGrid.appendChild(div);
-                });
+                } else {
+                    // Get next 4 recovery route dates
+                    const today = new Date();
+                    const recoveryRoutes = recoveryData
+                        .filter(
+                            (route) =>
+                                route["Recovery Routes"] &&
+                                route.Worker &&
+                                route.Worker.toLowerCase() !== "worker",
+                        )
+                        .map((route) => {
+                            const dayName = route["Recovery Routes"];
+                            const nextDate = getNextDateForDay(dayName);
+                            return {
+                                ...route,
+                                calculatedDate: nextDate,
+                                sortDate: getNextDateObjectForDay(dayName),
+                            };
+                        })
+                        .filter((route) => route.sortDate)
+                        .sort((a, b) => a.sortDate - b.sortDate)
+                        .slice(0, 4);
+
+                    recoveryRoutes.forEach((route) => {
+                        const div = document.createElement("div");
+                        div.className = "date-card";
+                        div.innerHTML = `
+                            <h3>🚗 ${route.calculatedDate}</h3>
+                            <div class="markets"><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</div>
+                            <div style="margin-top: 10px; font-size: 0.8rem;">
+                                Recovery route
+                            </div>
+                        `;
+                        div.onclick = () => selectRecoveryRoute(route, div);
+                        recoveryContainer.appendChild(div);
+                    });
+                }
             }
 
             // ========================================
@@ -1957,6 +2015,136 @@
                     month: "long",
                     day: "numeric",
                 });
+            }
+
+            // Get Date object for sorting
+            function getNextDateObjectForDay(dayName) {
+                const today = new Date();
+                const dayNames = [
+                    "sunday",
+                    "monday",
+                    "tuesday",
+                    "wednesday",
+                    "thursday",
+                    "friday",
+                    "saturday",
+                ];
+                const targetDay = dayNames.indexOf(dayName.toLowerCase());
+
+                if (targetDay === -1) return null;
+
+                const daysUntilTarget = (targetDay - today.getDay() + 7) % 7;
+                const nextDate = new Date(today);
+                nextDate.setDate(
+                    today.getDate() +
+                        (daysUntilTarget === 0 ? 7 : daysUntilTarget),
+                );
+
+                return nextDate;
+            }
+
+            // Handle recovery route selection
+            function selectRecoveryRoute(route, el) {
+                // Update visual selection
+                document
+                    .querySelectorAll(".date-card")
+                    .forEach((card) => card.classList.remove("selected"));
+                el.classList.add("selected");
+
+                const assignmentContainer = document.getElementById(
+                    "assignmentContainer",
+                );
+                assignmentContainer.innerHTML = "";
+
+                // Create recovery route display
+                const card = document.createElement("div");
+                card.className = "assignment-card";
+                card.style.marginTop = "30px";
+
+                const routeDate =
+                    route.calculatedDate || route["Recovery Routes"];
+                const recoveryHeader = `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                         🚗 Recovery Route - ${routeDate}
+                       </div>`;
+
+                // Build stops array
+                const stops = [];
+                for (let i = 1; i <= 7; i++) {
+                    const stopName = route[`Stop ${i}`];
+                    const stopAddress = route[`Addy ${i}`];
+                    if (
+                        stopName &&
+                        stopName.trim() &&
+                        stopName !== `Stop ${String.fromCharCode(64 + i)}`
+                    ) {
+                        stops.push({
+                            name: stopName,
+                            address: stopAddress || "",
+                        });
+                    }
+                }
+
+                // Create Google Maps URLs
+                const allAddresses = stops
+                    .filter((stop) => stop.address && stop.address.trim())
+                    .map((stop) => encodeURIComponent(stop.address));
+
+                const fullRouteUrl =
+                    allAddresses.length > 1
+                        ? `https://www.google.com/maps/dir/${allAddresses.join("/")}`
+                        : allAddresses.length === 1
+                          ? `https://www.google.com/maps/search/?api=1&query=${allAddresses[0]}`
+                          : "#";
+
+                // Build stops HTML
+                const stopsHtml = stops
+                    .map((stop, index) => {
+                        const directionUrl =
+                            stop.address && stop.address.trim()
+                                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}`
+                                : "#";
+
+                        return `
+                        <div class="step-section">
+                            <div class="step-header">
+                                <span class="step-number">${index + 1}</span>
+                                <h3>📍 ${stop.name}</h3>
+                            </div>
+                            <div class="single-column">
+                                ${
+                                    stop.address
+                                        ? `<p><strong>Address:</strong> ${stop.address}
+                                        <a href="${directionUrl}" target="_blank" class="directions-btn">📍 Get Directions</a>
+                                       </p>`
+                                        : `<p><em>Address not specified</em></p>`
+                                }
+                            </div>
+                        </div>
+                        ${index < stops.length - 1 ? '<div class="flow-arrow">⬇️</div>' : ""}
+                    `;
+                    })
+                    .join("");
+
+                card.innerHTML = `
+                    ${recoveryHeader}
+                    <div class="market-section">
+                        <h2>🚗 Recovery Route</h2>
+                        <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
+                        <p><strong>Date:</strong> ${routeDate}</p>
+                        ${
+                            stops.length > 1
+                                ? `<p><strong>Full Route:</strong>
+                                <a href="${fullRouteUrl}" target="_blank" class="directions-btn">🗺️ Open Full Route in Maps</a>
+                               </p>`
+                                : ""
+                        }
+                    </div>
+                    <div class="flow-section">
+                        ${stopsHtml}
+                    </div>
+                `;
+
+                assignmentContainer.appendChild(card);
             }
 
             function getWorkerEmoji(workerName) {
