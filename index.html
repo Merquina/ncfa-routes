@@ -1461,6 +1461,18 @@
                   <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.marketAddress)}"
                      target="_blank" class="directions-btn">📍 Get Directions</a>
                 </p>
+                ${
+                    assignment.dropOffAddress &&
+                    assignment.dropOffAddress.trim() !== "" &&
+                    assignment.dropOffAddress.trim() !== "TBD"
+                        ? `
+                    <p><strong>Full Route:</strong>
+                        <a href="https://www.google.com/maps/dir/${encodeURIComponent(assignment.marketAddress)}/${encodeURIComponent(assignment.dropOffAddress.trim())}"
+                           target="_blank" class="directions-btn">🗺️ Market to Drop-off Route</a>
+                    </p>
+                `
+                        : ""
+                }
 
                 <div class="team-info-header">
                   <div>
@@ -1743,6 +1755,18 @@
                   <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(assignment.marketAddress)}"
                      target="_blank" class="directions-btn">📍 Get Directions</a>
                 </p>
+                ${
+                    assignment.dropOffAddress &&
+                    assignment.dropOffAddress.trim() !== "" &&
+                    assignment.dropOffAddress.trim() !== "TBD"
+                        ? `
+                    <p><strong>Full Route:</strong>
+                        <a href="https://www.google.com/maps/dir/${encodeURIComponent(assignment.marketAddress)}/${encodeURIComponent(assignment.dropOffAddress.trim())}"
+                           target="_blank" class="directions-btn">🗺️ Market to Drop-off Route</a>
+                    </p>
+                `
+                        : ""
+                }
 
                 <div class="team-info-header">
                   <div>
