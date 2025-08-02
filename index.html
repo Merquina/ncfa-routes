@@ -748,25 +748,47 @@
         </div>
 
         <script>
-            // Google Sheets API Configuration
-            const SHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
-            const CLIENT_ID =
-                "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com";
-            const API_KEY = "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s";
-            const RANGE = "A:Z";
+            /*
+             * ========================================
+             * SPFM ROUTES DASHBOARD
+             * ========================================
+             * This is a visual-only interface for viewing Google Sheets data.
+             * No data is saved - it's just a prettier way to view spreadsheet info.
+             * Data flows: User's Browser ↔ Google Sheets API ↔ Spreadsheet
+             */
 
-            // OAuth Configuration
+            // ========================================
+            // GOOGLE SHEETS API CONFIGURATION
+            // ========================================
+            // These connect directly to Google's servers - no middleman
+            const SHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k"; // The spreadsheet ID from the URL
+            const CLIENT_ID =
+                "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com"; // Google OAuth app ID
+            const API_KEY = "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s"; // Public API key for reading sheets
+            const RANGE = "A:Z"; // Read all columns from the sheet
+
+            // ========================================
+            // OAUTH CONFIGURATION (FOR FUTURE FEATURES)
+            // ========================================
+            // Currently used for authentication UI only - no data is actually saved
             const DISCOVERY_DOC =
                 "https://sheets.googleapis.com/$discovery/rest?version=v4";
             const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 
-            let tokenClient;
-            let isAuthorized = false;
+            // ========================================
+            // GLOBAL VARIABLES
+            // ========================================
+            let tokenClient; // Handles Google sign-in
+            let isAuthorized = false; // Track if user is signed in (for UI only)
 
-            let data = [];
-            let inventoryData = [];
-            let currentView = "worker"; // 'worker' or 'date'
+            let data = []; // Main spreadsheet data - routes, workers, assignments
+            let inventoryData = []; // Box inventory data from separate sheet tab
+            let currentView = "worker"; // Track which view is active: 'worker' or 'date'
 
+            // ========================================
+            // UI CUSTOMIZATION
+            // ========================================
+            // Fun emojis to make the interface more friendly and recognizable
             const workerIcons = {
                 Samuel: "🐋",
                 Emmanuel: "🦁",
@@ -783,23 +805,32 @@
                 Marshmallow: "🍡",
             };
 
+            // ========================================
+            // DOM ELEMENT REFERENCES
+            // ========================================
+            // Get references to main UI containers for easy manipulation
             const workerGrid = document.getElementById("workerGrid");
             const assignmentContainer = document.getElementById(
                 "assignmentContainer",
             );
 
-            // Global callback function for Google API initialization
+            // ========================================
+            // GOOGLE API INITIALIZATION
+            // ========================================
+            // These functions are called automatically when Google's scripts load
+
+            // Called when the main Google API script finishes loading
             function gapiLoaded() {
                 console.log("✅ Google API loaded");
-                gapi.load("client", initializeGapiClient);
+                gapi.load("client", initializeGapiClient); // Load the Sheets API client
             }
 
-            // Initialize the Google API client
+            // Set up the Google Sheets API client with our credentials
             async function initializeGapiClient() {
                 try {
                     await gapi.client.init({
-                        apiKey: API_KEY,
-                        discoveryDocs: [DISCOVERY_DOC],
+                        apiKey: API_KEY, // Public key for reading data
+                        discoveryDocs: [DISCOVERY_DOC], // API documentation
                     });
                     console.log("✅ Google API client initialized");
                 } catch (error) {
@@ -810,9 +841,14 @@
                 }
             }
 
-            // Global callback function for Google Sign-In initialization
+            // ========================================
+            // GOOGLE SIGN-IN INITIALIZATION
+            // ========================================
+            // Called when Google's sign-in script finishes loading
+
             function gsiLoaded() {
                 console.log("✅ Google Sign-In loaded");
+                // Set up the sign-in client (for UI purposes - no actual data saving)
                 tokenClient = google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID,
                     scope: SCOPES,
@@ -822,14 +858,13 @@
                             gapi.client.setToken(tokenResponse);
                             isAuthorized = true;
                             console.log("✅ User authorized");
-
-                            // Save OAuth session to localStorage
+                            // Save session locally (just for this browser session)
                             saveOAuthSession(tokenResponse);
                         } else {
                             console.log("❌ No access token received");
                             isAuthorized = false;
                         }
-                        updateAuthUI();
+                        updateAuthUI(); // Update the sign-in button appearance
                     },
                     error_callback: (error) => {
                         console.error("❌ OAuth error:", error);
@@ -886,28 +921,41 @@
                 }
             }
 
+            // ========================================
+            // AUTHENTICATION UI MANAGEMENT
+            // ========================================
+            // Updates the sign-in button and status text based on auth state
+
             function updateAuthUI() {
                 const authButton = document.getElementById("authButton");
                 const authStatus = document.getElementById("authStatus");
+
                 if (isAuthorized) {
+                    // User is signed in - show sign out option
                     authButton.textContent = "✅ Sign Out";
                     authButton.onclick = signOut;
-                    authStatus.textContent =
-                        "✅ Signed in - your progress will be saved";
+                    authStatus.textContent = "✅ Signed in (visual mode only)";
                     authStatus.style.color = "rgba(144, 238, 144, 0.9)";
                 } else {
+                    // User is not signed in - show sign in option
                     authButton.textContent = "🔐 Sign In with Google";
                     authButton.onclick = authorize;
-                    authStatus.textContent = "Sign in to save your progress";
+                    authStatus.textContent = "Visual mode - no data saving";
                     authStatus.style.color = "rgba(255, 255, 255, 0.7)";
                 }
             }
+
+            // ========================================
+            // SIGN-IN FUNCTIONS
+            // ========================================
+            // Handle user authentication (currently just for UI - no data saving)
 
             function authorize() {
                 console.log("🔐 Attempting to authorize...");
                 try {
                     if (tokenClient) {
                         console.log("📝 Requesting access token...");
+                        // Trigger Google's sign-in popup
                         tokenClient.requestAccessToken({
                             prompt: "consent",
                             hint: "Select your Google account",
@@ -930,16 +978,15 @@
                 try {
                     const token = window.gapi.client.getToken();
                     if (token !== null) {
+                        // Revoke the access token with Google
                         window.google.accounts.oauth2.revoke(
                             token.access_token,
                         );
                         window.gapi.client.setToken("");
                     }
                     isAuthorized = false;
-
-                    // Clear saved OAuth session
+                    // Clear any saved session data
                     clearOAuthSession();
-
                     updateAuthUI();
                     console.log("✅ Signed out successfully");
                 } catch (error) {
@@ -949,7 +996,12 @@
                 }
             }
 
-            // Save OAuth session to localStorage
+            // ========================================
+            // SESSION MANAGEMENT (BROWSER ONLY)
+            // ========================================
+            // These functions manage sign-in state in the user's browser only
+            // No data is sent to external servers
+
             function saveOAuthSession(tokenResponse) {
                 try {
                     const sessionData = {
@@ -959,6 +1011,7 @@
                         scope: tokenResponse.scope,
                         token_type: tokenResponse.token_type,
                     };
+                    // Save to browser's local storage (stays on user's computer)
                     localStorage.setItem(
                         "oauth_session",
                         JSON.stringify(sessionData),
@@ -969,7 +1022,6 @@
                 }
             }
 
-            // Restore OAuth session from localStorage
             function restoreOAuthSession() {
                 try {
                     const sessionData = localStorage.getItem("oauth_session");
@@ -980,14 +1032,14 @@
 
                     const session = JSON.parse(sessionData);
 
-                    // Check if token is still valid (with 5 minute buffer)
+                    // Check if the saved token is still valid (with 5 minute safety buffer)
                     if (Date.now() > session.expires_at - 300000) {
                         console.log("Saved OAuth session expired");
                         clearOAuthSession();
                         return;
                     }
 
-                    // Restore the token
+                    // Token is still good - restore it
                     gapi.client.setToken({
                         access_token: session.access_token,
                     });
@@ -1001,7 +1053,6 @@
                 }
             }
 
-            // Clear OAuth session from localStorage
             function clearOAuthSession() {
                 try {
                     localStorage.removeItem("oauth_session");
@@ -1011,59 +1062,27 @@
                 }
             }
 
-            // Function to save checkbox state
-            async function saveCheckboxState(routeId, taskText, isChecked) {
-                try {
-                    // localStorage persistence disabled
-                    console.log(
-                        `Checkbox toggled: ${routeId}_${taskText} = ${isChecked}`,
-                    );
+            // ========================================
+            // APPLICATION INITIALIZATION
+            // ========================================
+            // This runs when the page first loads
 
-                    // If authorized, also attempt to save to Google Sheets
-                    if (isAuthorized) {
-                        console.log(
-                            "Authorized - would save to Google Sheets:",
-                            {
-                                routeId,
-                                taskText,
-                                isChecked,
-                            },
-                        );
-                        // TODO: Implement Google Sheets write operation
-                        // This requires determining the correct column and row for the checkbox state
-                    } else {
-                        console.log(
-                            "Not authorized - checkbox state not persisted",
-                        );
-                    }
-                } catch (error) {
-                    console.error("Error saving checkbox state:", error);
-                }
-            }
-
-            // Function to load checkbox states (disabled)
-            function loadCheckboxStates() {
-                // localStorage persistence disabled - checkboxes reset on page load
-                console.log("Checkbox state loading disabled");
-            }
-
-            // Initialize when page loads
             window.onload = async () => {
-                console.log("🚀 Starting application initialization...");
+                console.log("🚀 Starting SPFM Routes Dashboard...");
 
-                // Initialize auth UI (will show "not authorized" state initially)
+                // Set up the authentication UI (starts in "not signed in" state)
                 updateAuthUI();
 
-                // Check for saved OAuth session after a brief delay to ensure gapi is loaded
+                // After a brief delay, check if user was previously signed in
                 setTimeout(() => {
                     if (typeof gapi !== "undefined" && gapi.client) {
                         restoreOAuthSession();
                     }
                 }, 2000);
 
-                // Fetch sheet data immediately (doesn't need OAuth)
+                // Fetch the actual spreadsheet data (this works without signing in)
                 try {
-                    console.log("📊 Fetching sheet data...");
+                    console.log("📊 Fetching sheet data from Google...");
                     await fetchSheetData();
                     console.log("✅ Data loaded successfully");
                 } catch (dataError) {
@@ -1071,16 +1090,20 @@
                 }
             };
 
-            // Fetch data from Google Sheets API
+            // ========================================
+            // DATA FETCHING FROM GOOGLE SHEETS
+            // ========================================
+            // This function reads data directly from the Google Spreadsheet
+            // No intermediate servers - direct browser-to-Google communication
+
             async function fetchSheetData() {
                 try {
-                    // Add cache busting to ensure fresh data
+                    // Add timestamp to prevent browser caching old data
                     const timestamp = new Date().getTime();
                     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SPFM!A:T?key=${API_KEY}&_=${timestamp}`;
-                    console.log(
-                        `Fetching from Google Sheets API with cache busting`,
-                    );
+                    console.log("Fetching fresh data from Google Sheets...");
 
+                    // Make the API call directly to Google
                     const response = await fetch(url);
 
                     if (!response.ok) {
@@ -1090,33 +1113,36 @@
                     }
 
                     const result = await response.json();
-                    console.log("API Response received");
+                    console.log("✅ Raw data received from Google");
 
                     if (!result.values || result.values.length < 2) {
-                        throw new Error("No data found in the specified range");
+                        throw new Error("No data found in the spreadsheet");
                     }
 
-                    // Convert rows to objects (skip header row)
-                    const headers = result.values[0];
+                    // Convert spreadsheet rows into JavaScript objects for easier use
+                    const headers = result.values[0]; // First row contains column names
                     data = result.values
-                        .slice(1)
-                        .filter((row) => row && row.length > 0 && row[0]) // Filter out empty rows
+                        .slice(1) // Skip the header row
+                        .filter((row) => row && row.length > 0 && row[0]) // Remove empty rows
                         .map((row) => {
+                            // Create an object for each row using headers as keys
                             const obj = {};
                             headers.forEach((header, index) => {
-                                obj[header] = row[index] || "";
+                                obj[header] = row[index] || ""; // Use empty string if cell is blank
                             });
                             return obj;
                         });
 
-                    console.log(`Successfully loaded ${data.length} rows`);
-                    console.log("Sample data:", data[0]);
-                    console.log("Headers found:", headers);
+                    console.log(
+                        `✅ Processed ${data.length} routes from spreadsheet`,
+                    );
+                    console.log("Sample route data:", data[0]);
+                    console.log("Available columns:", headers);
 
-                    // Fetch inventory data
+                    // Also fetch box inventory data from separate sheet tab
                     await fetchInventoryData();
 
-                    // Set up view toggle event listeners
+                    // Set up the view switching buttons (Worker view vs Date view)
                     document
                         .getElementById("workerViewBtn")
                         .addEventListener("click", () => switchView("worker"));
@@ -1124,25 +1150,26 @@
                         .getElementById("dateViewBtn")
                         .addEventListener("click", () => switchView("date"));
 
-                    // Initialize with worker view
+                    // Start with the worker view displayed
                     switchView("worker");
 
-                    // Debug info
-                    console.log("Debug info:");
-                    console.log("Total data rows:", data.length);
+                    // Log some debug information
+                    console.log("Debug summary:");
+                    console.log("• Total routes loaded:", data.length);
                     console.log(
-                        "Sample statuses:",
+                        "• Sample route statuses:",
                         data.slice(0, 5).map((d) => d.status),
                     );
                 } catch (error) {
-                    console.error("Google Sheets API Error:", error);
+                    console.error("❌ Google Sheets API Error:", error);
+                    // Show user-friendly error message if data loading fails
                     document.getElementById("workerGrid").innerHTML = `
                         <div style="grid-column: 1/-1; text-align: center; color: red; padding: 40px;">
                             <h3>⚠️ Error Loading Data</h3>
-                            <p><strong>API Access Issue:</strong></p>
-                            <p>1. Make sure the sheet is set to "Anyone with the link can view"</p>
-                            <p>2. Check that the API key is valid</p>
-                            <p><strong>Error:</strong> ${error.message}</p>
+                            <p><strong>Connection Issue:</strong></p>
+                            <p>1. Make sure the spreadsheet is set to "Anyone with the link can view"</p>
+                            <p>2. Check your internet connection</p>
+                            <p><strong>Technical Error:</strong> ${error.message}</p>
                             <br>
                             <p>Contact admin if this continues.</p>
                         </div>
@@ -1150,44 +1177,61 @@
                 }
             }
 
+            // ========================================
+            // WORKER VIEW RENDERING
+            // ========================================
+            // Creates clickable cards for each worker found in the spreadsheet
+
             function renderWorkers() {
-                // Normalize worker names and remove duplicates more robustly
+                // Find all unique worker names from the spreadsheet data
                 const workerSet = new Set();
 
-                data.forEach((d) => {
-                    [d.worker1, d.worker2, d.worker3].forEach((worker) => {
-                        if (worker && typeof worker === "string") {
-                            const normalized = worker.trim();
-                            if (
-                                normalized !== "" &&
-                                normalized.toUpperCase() !== "CANCELLED"
-                            ) {
-                                workerSet.add(normalized);
+                data.forEach((route) => {
+                    // Each route can have up to 3 workers assigned
+                    [route.worker1, route.worker2, route.worker3].forEach(
+                        (worker) => {
+                            if (worker && typeof worker === "string") {
+                                const normalized = worker.trim();
+                                // Skip empty entries and cancelled routes
+                                if (
+                                    normalized !== "" &&
+                                    normalized.toUpperCase() !== "CANCELLED"
+                                ) {
+                                    workerSet.add(normalized);
+                                }
                             }
-                        }
-                    });
+                        },
+                    );
                 });
 
-                const workers = [...workerSet].sort(); // Sort alphabetically
+                const workers = [...workerSet].sort(); // Convert to array and sort alphabetically
 
-                workerGrid.innerHTML = ""; // Clear existing workers
+                workerGrid.innerHTML = ""; // Clear any existing worker cards
 
+                // Create a clickable card for each worker
                 workers.forEach((worker) => {
                     const div = document.createElement("div");
                     div.className = "worker-card";
-                    // Case-insensitive emoji lookup
+
+                    // Find matching emoji for this worker (case-insensitive)
                     const workerIcon = Object.keys(workerIcons).find(
                         (key) => key.toLowerCase() === worker.toLowerCase(),
                     );
-                    const emoji = workerIcon ? workerIcons[workerIcon] : "👤";
+                    const emoji = workerIcon ? workerIcons[workerIcon] : "👤"; // Default person emoji
+
                     div.innerHTML = `${emoji} ${worker}`;
                     div.onclick = () => selectWorker(worker, div);
                     workerGrid.appendChild(div);
                 });
             }
 
+            // ========================================
+            // DATE VIEW RENDERING
+            // ========================================
+            // Creates clickable cards for upcoming dates with their routes
+
             function renderDates() {
-                // Filter out empty rows and completed routes
+                // Filter out empty rows and completed routes to show only upcoming work
                 const upcomingRoutes = data.filter((route) => {
                     // Check if route has essential data
                     if (!route.routeId || !route.date || !route.market) {
@@ -1199,33 +1243,32 @@
                 });
 
                 console.log(
-                    `Filtered to ${upcomingRoutes.length} upcoming routes from ${data.length} total`,
+                    `📊 Filtered to ${upcomingRoutes.length} upcoming routes from ${data.length} total`,
                 );
                 console.log(
                     "Sample upcoming routes:",
                     upcomingRoutes.slice(0, 3),
                 );
 
-                // Group by date and get next 4 dates
+                // Group routes by date for easier display
                 const dateGroups = {};
                 upcomingRoutes.forEach((route) => {
                     const date = route.date;
                     if (date && date.trim()) {
                         if (!dateGroups[date]) {
-                            dateGroups[date] = [];
+                            dateGroups[date] = []; // Create new array for this date
                         }
-                        dateGroups[date].push(route);
+                        dateGroups[date].push(route); // Add route to this date's list
                     }
                 });
 
-                // Sort by the earliest routeId in each date group and take next 4
-                // Sort dates chronologically
+                // Sort dates chronologically and show only the next 4 upcoming dates
                 const sortedDates = Object.keys(dateGroups)
-                    .filter((date) => date && date.trim())
+                    .filter((date) => date && date.trim()) // Remove empty dates
                     .sort((a, b) => {
-                        return new Date(a) - new Date(b);
+                        return new Date(a) - new Date(b); // Chronological order
                     })
-                    .slice(0, 4);
+                    .slice(0, 4); // Limit to next 4 dates
 
                 const dateGrid = document.getElementById("dateGrid");
                 dateGrid.innerHTML = ""; // Clear existing dates
@@ -1240,11 +1283,13 @@
                     return;
                 }
 
+                // Create a clickable card for each upcoming date
                 sortedDates.forEach((date) => {
                     const routes = dateGroups[date];
+                    // Get list of markets for this date
                     const markets = routes
                         .map((r) => r.market)
-                        .filter(Boolean)
+                        .filter(Boolean) // Remove empty market names
                         .join(", ");
 
                     const div = document.createElement("div");
@@ -1256,15 +1301,20 @@
                             ${routes.length} route${routes.length > 1 ? "s" : ""}
                         </div>
                     `;
-                    div.onclick = () => selectDate(date, div);
+                    div.onclick = () => selectDate(date, div); // Make card clickable
                     dateGrid.appendChild(div);
                 });
             }
 
-            function switchView(viewType) {
-                currentView = viewType;
+            // ========================================
+            // VIEW SWITCHING (WORKER vs DATE)
+            // ========================================
+            // Toggles between showing workers or upcoming dates
 
-                // Update button states
+            function switchView(viewType) {
+                currentView = viewType; // Remember which view is active
+
+                // Update button appearance (highlight the active view)
                 document
                     .getElementById("workerViewBtn")
                     .classList.toggle("active", viewType === "worker");
@@ -1272,49 +1322,55 @@
                     .getElementById("dateViewBtn")
                     .classList.toggle("active", viewType === "date");
 
-                // Update section title
+                // Change the section title
                 document.getElementById("sectionTitle").textContent =
                     viewType === "worker" ? "Workers" : "Upcoming Dates";
 
-                // Show/hide grids
+                // Show/hide the appropriate grid
                 document.getElementById("workerGrid").style.display =
                     viewType === "worker" ? "grid" : "none";
                 document.getElementById("dateGrid").style.display =
                     viewType === "date" ? "grid" : "none";
 
-                // Clear assignment container
+                // Clear any previously displayed assignments
                 document.getElementById("assignmentContainer").innerHTML = "";
 
-                // Render appropriate view
+                // Render the appropriate view content
                 if (viewType === "worker") {
-                    renderWorkers();
+                    renderWorkers(); // Show worker cards
                 } else {
-                    renderDates();
+                    renderDates(); // Show date cards
                 }
             }
 
+            // ========================================
+            // DATE SELECTION HANDLER
+            // ========================================
+            // Shows all routes/assignments for a selected date
+
             function selectDate(selectedDate, el) {
-                // Remove selected class from all date cards
+                // Update visual selection (highlight clicked date card)
                 document
                     .querySelectorAll(".date-card")
                     .forEach((card) => card.classList.remove("selected"));
                 el.classList.add("selected");
 
-                // Find all routes for this date
+                // Find all routes scheduled for this specific date
                 const routesForDate = data.filter(
                     (route) => route.date === selectedDate,
                 );
                 const assignmentContainer = document.getElementById(
                     "assignmentContainer",
                 );
-                assignmentContainer.innerHTML = "";
+                assignmentContainer.innerHTML = ""; // Clear previous content
 
+                // Create a detailed assignment card for each route on this date
                 routesForDate.forEach((assignment, index) => {
                     const card = document.createElement("div");
                     card.className = "assignment-card";
                     card.style.marginTop = index > 0 ? "20px" : "30px";
 
-                    // Add market indicator if multiple markets
+                    // If multiple routes on same date, add a header to distinguish them
                     const marketHeader =
                         routesForDate.length > 1
                             ? `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem;">
@@ -1458,44 +1514,39 @@
                     assignmentContainer.appendChild(card);
                 });
 
-                // Make checkboxes interactive
+                // Make checkboxes interactive (visual only - no saving)
                 document.querySelectorAll(".task-checkbox").forEach((box) => {
-                    box.addEventListener("click", async () => {
+                    box.addEventListener("click", () => {
+                        // Simply toggle the visual state (checkmark appears/disappears)
                         box.classList.toggle("checked");
 
-                        // Save state to Google Sheets (or localStorage as backup)
+                        // Log for debugging (no actual saving occurs)
                         const taskText =
                             box.nextElementSibling?.textContent?.trim();
-                        const routeId =
-                            box.closest(".assignment-card")?.dataset?.routeId;
-                        const isChecked = box.classList.contains("checked");
-
-                        if (routeId && taskText) {
-                            await saveCheckboxState(
-                                routeId,
-                                taskText,
-                                isChecked,
-                            );
-                        }
+                        console.log(`✓ Checkbox toggled: ${taskText}`);
                     });
                 });
-
-                // Load saved checkbox states
-                loadCheckboxStates();
             }
 
+            // ========================================
+            // WORKER SELECTION HANDLER
+            // ========================================
+            // Shows the next assignment for a selected worker
+
             function selectWorker(worker, el) {
-                // Remove selected class from all worker cards
+                // Update visual selection (highlight clicked worker card)
                 document
                     .querySelectorAll(".worker-card")
                     .forEach((card) => card.classList.remove("selected"));
                 el.classList.add("selected");
 
-                const allAssignments = data.filter((d) => {
+                // Find all assignments where this worker is involved
+                const allAssignments = data.filter((route) => {
                     const normalizedWorker = worker.trim().toLowerCase();
-                    const worker1 = (d.worker1 || "").trim().toLowerCase();
-                    const worker2 = (d.worker2 || "").trim().toLowerCase();
-                    const worker3 = (d.worker3 || "").trim().toLowerCase();
+                    const worker1 = (route.worker1 || "").trim().toLowerCase();
+                    const worker2 = (route.worker2 || "").trim().toLowerCase();
+                    const worker3 = (route.worker3 || "").trim().toLowerCase();
+                    // Check if worker appears in any of the three worker slots
                     return (
                         worker1 === normalizedWorker ||
                         worker2 === normalizedWorker ||
@@ -1503,17 +1554,18 @@
                     );
                 });
 
-                console.log(`Debug for ${worker}:`);
-                console.log("All assignments found:", allAssignments.length);
-                allAssignments.forEach((a, i) => {
+                console.log(`🔍 Finding assignments for ${worker}:`);
+                console.log(`Found ${allAssignments.length} total assignments`);
+                allAssignments.forEach((assignment, i) => {
                     console.log(
-                        `  ${i}: ${a.routeId} - ${a.date} - ${a.market} - Status: "${a.status}" - Workers: ${a.worker1}/${a.worker2}/${a.worker3}`,
+                        `  ${i + 1}: ${assignment.routeId} - ${assignment.date} - ${assignment.market} - Status: "${assignment.status}"`,
                     );
                 });
 
                 // Filter to only upcoming (non-completed) assignments
                 const upcomingAssignments = allAssignments.filter(
                     (assignment) => {
+                        // Skip assignments missing essential data
                         if (
                             !assignment.routeId ||
                             !assignment.date ||
@@ -1521,73 +1573,58 @@
                         ) {
                             return false;
                         }
+                        // Only show assignments that haven't been completed yet
                         const status = assignment.status || "";
                         return status.trim().toLowerCase() !== "completed";
                     },
                 );
 
                 console.log(
-                    "Upcoming assignments:",
-                    upcomingAssignments.length,
+                    `📋 ${upcomingAssignments.length} upcoming assignments for ${worker}:`,
                 );
-                upcomingAssignments.forEach((a, i) => {
+                upcomingAssignments.forEach((assignment, i) => {
                     console.log(
-                        `  ${i}: ${a.routeId} - ${a.date} - ${a.market} - Status: "${a.status}"`,
+                        `  ${i + 1}: ${assignment.routeId} - ${assignment.date} - ${assignment.market}`,
                     );
                 });
 
-                // Sort by date chronologically and take only the next assignment
-                console.log(
-                    "Before sorting - upcoming assignments with dates:",
-                );
-                upcomingAssignments.forEach((a, i) => {
-                    const dateObj = new Date(a.date);
-                    console.log(
-                        `  ${i}: ${a.routeId} - "${a.date}" - Parsed: ${dateObj} - Valid: ${!isNaN(dateObj.getTime())}`,
-                    );
-                });
-
+                // Sort by date chronologically and show only the very next assignment
                 const nextAssignment = upcomingAssignments
                     .sort((a, b) => {
                         const dateA = new Date(a.date);
                         const dateB = new Date(b.date);
-                        console.log(
-                            `Comparing: ${a.date} (${dateA.getTime()}) vs ${b.date} (${dateB.getTime()})`,
-                        );
-                        return dateA - dateB;
+                        return dateA - dateB; // Earliest date first
                     })
-                    .slice(0, 1); // Only take the first (next) assignment
+                    .slice(0, 1); // Take only the first (next) assignment
 
-                console.log("After sorting - all assignments:");
-                upcomingAssignments.forEach((a, i) => {
-                    console.log(
-                        `${i}: ${a.routeId} - ${a.date} - ${new Date(a.date)}`,
-                    );
-                });
-                console.log("Next assignment selected:", nextAssignment.length);
+                console.log("🎯 Next assignment selected:");
                 if (nextAssignment.length > 0) {
                     console.log(
-                        `  Selected: ${nextAssignment[0].routeId} - ${nextAssignment[0].date} - ${nextAssignment[0].market}`,
+                        `  → ${nextAssignment[0].routeId} - ${nextAssignment[0].date} - ${nextAssignment[0].market}`,
                     );
+                } else {
+                    console.log("  → No upcoming assignments found");
                 }
 
                 const assignmentContainer = document.getElementById(
                     "assignmentContainer",
                 );
-                assignmentContainer.innerHTML = "";
+                assignmentContainer.innerHTML = ""; // Clear previous content
 
+                // Show message if no upcoming work found
                 if (nextAssignment.length === 0) {
                     assignmentContainer.innerHTML =
-                        '<div class="no-assignments">No upcoming assignments for this worker.</div>';
+                        '<div class="no-assignments">🎉 No upcoming assignments for this worker.</div>';
                     return;
                 }
 
+                // Display the next assignment for this worker
                 nextAssignment.forEach((assignment, index) => {
                     const card = document.createElement("div");
                     card.className = "assignment-card";
                     card.style.marginTop = index > 0 ? "20px" : "30px";
 
-                    // No market header needed since we're only showing next assignment
+                    // No market header needed since we only show one assignment per worker
                     const marketHeader = "";
 
                     card.innerHTML = `
@@ -1726,33 +1763,27 @@
                     assignmentContainer.appendChild(card);
                 });
 
-                // Make checkboxes interactive
+                // Make checkboxes interactive (visual only - no saving)
                 document.querySelectorAll(".task-checkbox").forEach((box) => {
-                    box.addEventListener("click", async () => {
+                    box.addEventListener("click", () => {
+                        // Simply toggle the visual state (checkmark appears/disappears)
                         box.classList.toggle("checked");
 
-                        // Save state to Google Sheets (or localStorage as backup)
+                        // Log for debugging (no actual saving occurs)
                         const taskText =
                             box.nextElementSibling?.textContent?.trim();
-                        const routeId =
-                            box.closest(".assignment-card")?.dataset?.routeId;
-                        const isChecked = box.classList.contains("checked");
-
-                        if (routeId && taskText) {
-                            await saveCheckboxState(
-                                routeId,
-                                taskText,
-                                isChecked,
-                            );
-                        }
+                        console.log(`✓ Checkbox toggled: ${taskText}`);
                     });
                 });
-
-                // Load saved checkbox states
-                loadCheckboxStates();
             }
 
+            // ========================================
+            // UTILITY FUNCTIONS
+            // ========================================
+            // Helper functions for formatting and display
+
             function getWorkerEmoji(workerName) {
+                // Return appropriate emoji for worker, or default person icon
                 if (!workerName || workerName.trim() === "") return "👤";
                 const workerIcon = Object.keys(workerIcons).find(
                     (key) =>
@@ -1762,11 +1793,12 @@
             }
 
             function formatDate(dateString) {
-                // If the date is already formatted (like "Sunday, August 3, 2025"), return as is
+                // Format dates consistently for display
+                // If already formatted (like "Sunday, August 3, 2025"), return as-is
                 if (dateString.includes(",")) {
                     return dateString;
                 }
-                // Otherwise, format from ISO date
+                // Otherwise, format from ISO date to readable format
                 const date = new Date(dateString);
                 const options = {
                     weekday: "long",
@@ -1777,17 +1809,22 @@
                 return date.toLocaleDateString("en-US", options);
             }
 
-            // Fetch inventory data from Inventory tab
+            // ========================================
+            // INVENTORY DATA FETCHING
+            // ========================================
+            // Fetch box inventory from separate sheet tab (optional feature)
+
             async function fetchInventoryData() {
                 try {
+                    // Try to fetch box inventory from the "Inventory" sheet tab
                     const inventoryRange = "Inventory!A:Z";
                     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${inventoryRange}?key=${API_KEY}`;
-                    console.log(`Fetching inventory from API`);
+                    console.log("📦 Attempting to fetch inventory data...");
 
                     const response = await fetch(url);
                     if (!response.ok) {
                         console.log(
-                            "Inventory fetch failed - inventory not available",
+                            "Inventory tab not found - skipping inventory display",
                         );
                         return;
                     }
@@ -1795,11 +1832,13 @@
                     const result = await response.json();
 
                     if (!result.values || result.values.length < 2) {
-                        console.log("No inventory data found");
+                        console.log(
+                            "Inventory tab is empty - skipping inventory display",
+                        );
                         return;
                     }
 
-                    // Convert rows to objects
+                    // Convert inventory rows to JavaScript objects
                     const headers = result.values[0];
                     inventoryData = result.values.slice(1).map((row) => {
                         const obj = {};
@@ -1810,23 +1849,31 @@
                     });
 
                     console.log(
-                        `Loaded ${inventoryData.length} inventory items`,
+                        `✅ Loaded ${inventoryData.length} inventory items`,
                     );
-                    renderInventory();
+                    renderInventory(); // Display the inventory box
                 } catch (error) {
-                    console.log("Inventory data not available:", error);
-                    // Don't show error for inventory - it's optional
+                    console.log(
+                        "Inventory data not available (this is optional):",
+                        error,
+                    );
+                    // Don't show error message - inventory is an optional feature
                 }
             }
 
+            // ========================================
+            // INVENTORY DISPLAY
+            // ========================================
+            // Shows current box inventory if available
+
             function renderInventory() {
-                if (inventoryData.length === 0) return;
+                if (inventoryData.length === 0) return; // Skip if no inventory data
 
                 const inventoryContent =
                     document.getElementById("inventoryContent");
                 const inventoryBox = document.getElementById("inventoryBox");
 
-                // Find box inventory items and verification date
+                // Find box inventory items (Large/Small boxes)
                 const boxItems = inventoryData.filter((item) => {
                     const firstColumn = Object.values(item)[0];
                     return (
@@ -1836,11 +1883,13 @@
                     );
                 });
 
+                // Find verification date entry
                 const verifiedItem = inventoryData.find((item) => {
                     const firstColumn = Object.values(item)[0];
                     return firstColumn && firstColumn.includes("Verified on");
                 });
 
+                // Create HTML for box inventory items
                 const boxesHtml = boxItems
                     .map((item) => {
                         const values = Object.values(item);
@@ -1856,6 +1905,7 @@
                     })
                     .join("");
 
+                // Create HTML for verification date (if available)
                 const verificationHtml = verifiedItem
                     ? `
                     <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; text-align: center;">
@@ -1865,9 +1915,15 @@
                 `
                     : "";
 
+                // Display the inventory box with current data
                 inventoryContent.innerHTML = boxesHtml + verificationHtml;
-                inventoryBox.style.display = "block";
+                inventoryBox.style.display = "block"; // Make inventory visible
             }
+
+            // ========================================
+            // PRINT FUNCTIONALITY
+            // ========================================
+            // Creates printer-friendly version of selected assignment
 
             function printAssignment() {
                 const assignmentContainer = document.getElementById(
@@ -1881,7 +1937,7 @@
                     return;
                 }
 
-                // Create print-friendly title
+                // Create print-friendly title based on current selection
                 const selectedWorker = document.querySelector(
                     ".worker-card.selected",
                 );
@@ -1899,25 +1955,38 @@
                     printTitle += " - " + dateText;
                 }
 
-                // Add print title to header temporarily
+                // Temporarily update header for printing
                 const originalHeaderContent =
                     document.querySelector(".header p").innerHTML;
                 document.querySelector(".header p").innerHTML = printTitle;
 
-                // Print
+                // Trigger browser's print dialog (creates PDF or sends to printer)
                 window.print();
 
-                // Restore original header
+                // Restore original header after brief delay
                 setTimeout(() => {
                     document.querySelector(".header p").innerHTML =
                         originalHeaderContent;
                 }, 100);
             }
 
-            // Initialize app by fetching data
+            // ========================================
+            // FINAL INITIALIZATION
+            // ========================================
+            // Start the application by loading data from Google Sheets
             fetchSheetData();
         </script>
 
+        <!--
+            ========================================
+            GOOGLE API SCRIPTS
+            ========================================
+            These load Google's official libraries for:
+            1. Reading Google Sheets data (apis.google.com)
+            2. Handling user sign-in (accounts.google.com)
+
+            Both connect directly to Google - no third-party servers involved
+        -->
         <script
             async
             defer
