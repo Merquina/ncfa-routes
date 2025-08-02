@@ -1433,9 +1433,6 @@
                         div.innerHTML = `
                             <h3>🚗 ${route.calculatedDate}</h3>
                             <div class="markets"><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</div>
-                            <div style="margin-top: 10px; font-size: 0.8rem;">
-                                Recovery route
-                            </div>
                         `;
                         div.onclick = () => {
                             selectRecoveryRoute(route, div);
