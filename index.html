@@ -1548,15 +1548,15 @@
                 <h2>${assignment.market} – ${assignment.date}</h2>
                 <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
                 <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
-                <p><strong>Address:</strong> ${(() => {
-                    const contactInfo = getAddressFromContacts(assignment.market);
-                    return contactInfo ? contactInfo.address : assignment.marketAddress;
-                })()}
+                <p>
                   <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((() => {
                     const contactInfo = getAddressFromContacts(assignment.market);
                     return contactInfo ? contactInfo.address : assignment.marketAddress;
                   })())}"
-                     target="_blank" class="directions-btn">📍 ${marketContact ? marketContact.address : assignment.marketAddress}</a>
+                     target="_blank" class="directions-btn">📍 ${(() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo ? contactInfo.address : assignment.marketAddress;
+                })()}</a>
                 </p>
                 ${(() => {
                     const contactInfo = getAddressFromContacts(assignment.market);
@@ -1650,10 +1650,7 @@
                         assignment.dropOff.trim() &&
                         assignment.dropOff !== "TBD"
                             ? `<p><strong>${assignment.dropOff}</strong></p>
-                       <p><strong>Address:</strong> ${(() => {
-                           const contactInfo = getAddressFromContacts(assignment.dropOff);
-                           return contactInfo ? contactInfo.address : assignment.dropOffAddress;
-                       })()}
+                       <p>
                          ${(() => {
                              const contactInfo = getAddressFromContacts(assignment.dropOff);
                              const address = contactInfo ? contactInfo.address : assignment.dropOffAddress;
@@ -1863,15 +1860,15 @@
                 <h2>${assignment.market} – ${assignment.date}</h2>
                 <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
                 <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
-                <p><strong>Address:</strong> ${(() => {
-                    const contactInfo = getAddressFromContacts(assignment.market);
-                    return contactInfo ? contactInfo.address : assignment.marketAddress;
-                })()}
+                <p>
                   <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((() => {
                     const contactInfo = getAddressFromContacts(assignment.market);
                     return contactInfo ? contactInfo.address : assignment.marketAddress;
                   })())}"
-                     target="_blank" class="directions-btn">📍 ${marketContact ? marketContact.address : assignment.marketAddress}</a>
+                     target="_blank" class="directions-btn">📍 ${(() => {
+                    const contactInfo = getAddressFromContacts(assignment.market);
+                    return contactInfo ? contactInfo.address : assignment.marketAddress;
+                })()}</a>
                 </p>
                 ${(() => {
                     const contactInfo = getAddressFromContacts(assignment.market);
@@ -1965,10 +1962,7 @@
                         assignment.dropOff.trim() &&
                         assignment.dropOff !== "TBD"
                             ? `<p><strong>${assignment.dropOff}</strong></p>
-                       <p><strong>Address:</strong> ${(() => {
-                           const contactInfo = getAddressFromContacts(assignment.dropOff);
-                           return contactInfo ? contactInfo.address : assignment.dropOffAddress;
-                       })()}
+                       <p>
                          ${(() => {
                              const contactInfo = getAddressFromContacts(assignment.dropOff);
                              const address = contactInfo ? contactInfo.address : assignment.dropOffAddress;
