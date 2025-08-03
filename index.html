@@ -1868,19 +1868,40 @@
                     return;
                 }
 
-                // Display SPFM assignment first (if exists)
-                nextSpfmAssignment.forEach((assignment, index) => {
+                // Determine which assignment comes next chronologically
+                let nextAssignment = null;
+                let assignmentType = null;
+
+                // Compare SPFM and Recovery dates to find the earliest
+                if (nextSpfmAssignment.length > 0 && nextRecoveryRoute.length > 0) {
+                    const spfmDate = new Date(nextSpfmAssignment[0].date);
+                    const recoveryDate = getNextDateObjectForDay(nextRecoveryRoute[0]["Recovery Routes"]);
+
+                    if (spfmDate <= recoveryDate) {
+                        nextAssignment = nextSpfmAssignment[0];
+                        assignmentType = 'SPFM';
+                    } else {
+                        nextAssignment = nextRecoveryRoute[0];
+                        assignmentType = 'Recovery';
+                    }
+                } else if (nextSpfmAssignment.length > 0) {
+                    nextAssignment = nextSpfmAssignment[0];
+                    assignmentType = 'SPFM';
+                } else if (nextRecoveryRoute.length > 0) {
+                    nextAssignment = nextRecoveryRoute[0];
+                    assignmentType = 'Recovery';
+                }
+
+                // Display the single next assignment
+                if (assignmentType === 'SPFM') {
+                    const assignment = nextAssignment;
                     const card = document.createElement("div");
                     card.className = "assignment-card";
-                    card.style.marginTop = index > 0 ? "8px" : "8px";
+                    card.style.marginTop = "8px";
 
-                    // Add header to distinguish SPFM vs Recovery
-                    const assignmentHeader =
-                        nextRecoveryRoute.length > 0
-                            ? `<div style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                    const assignmentHeader = `<div style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
                              🥕 SPFM Market Assignment
-                           </div>`
-                            : "";
+                           </div>`;
 
                     card.innerHTML = `
                       ${assignmentHeader}
@@ -2046,10 +2067,9 @@
             `;
                     card.dataset.routeId = assignment.routeId;
                     assignmentContainer.appendChild(card);
-                });
 
-                // Display Recovery route (if exists)
-                nextRecoveryRoute.forEach((route, index) => {
+                } else if (assignmentType === 'Recovery') {
+                    const route = nextAssignment;
                     const card = document.createElement("div");
                     card.className = "assignment-card";
                     card.style.marginTop = "8px";
@@ -2140,7 +2160,7 @@
                     `;
 
                     assignmentContainer.appendChild(card);
-                });
+                }
 
                 // Make checkboxes interactive (visual only - no saving)
                 document.querySelectorAll(".task-checkbox").forEach((box) => {
