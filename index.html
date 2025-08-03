@@ -204,6 +204,7 @@
             .task-text {
                 flex: 1;
                 color: #333;
+                text-align: left;
             }
 
             .team-info {
@@ -269,12 +270,15 @@
                 justify-content: center;
                 font-weight: bold;
                 font-size: 1.2rem;
+                text-align: center;
+                line-height: 1;
             }
 
             .step-header h3 {
                 color: #333;
                 margin: 0;
                 font-size: 1.3rem;
+                text-align: center;
             }
 
             .single-column {
@@ -2101,7 +2105,7 @@
                             <div class="step-section">
                                 <div class="step-header">
                                     <span class="step-number">${index + 1}</span>
-                                    <h3>📍 ${stop.name}</h3>
+                                    <h3>${stop.name}</h3>
                                 </div>
                                 <div class="single-column">
                                     ${
@@ -2282,7 +2286,7 @@
                         <div class="step-section">
                             <div class="step-header">
                                 <span class="step-number">${index + 1}</span>
-                                <h3>📍 ${stop.name}</h3>
+                                <h3>${stop.name}</h3>
                             </div>
                             <div class="single-column">
                                 ${
