@@ -1521,7 +1521,7 @@
 
                             return assignment.dropOff && assignment.dropOff.trim() && assignment.dropOff !== "TBD" && dropOffAddress && dropOffAddress.trim()
                                 ? `<br><a href="https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}"
-                                     target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Get Full Route</a>`
+                                     target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Open Full Route in Maps</a>`
                                 : "";
                         })()}
                       </div>
@@ -1543,18 +1543,7 @@
                     const contactInfo = getAddressFromContacts(assignment.market);
                     return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
                 })()}
-                ${
-                    assignment.dropOffAddress &&
-                    assignment.dropOffAddress.trim() !== "" &&
-                    assignment.dropOffAddress.trim().toUpperCase() !== "TBD"
-                        ? `
-                    <p><strong>Full Route:</strong>
-                        <a href="https://www.google.com/maps/dir/${encodeURIComponent(assignment.marketAddress)}/${encodeURIComponent(assignment.dropOffAddress.trim())}"
-                           target="_blank" class="directions-btn">🗺️ Market to Drop-off Route</a>
-                    </p>
-                `
-                        : ""
-                }
+
 
                 <div class="team-info-header">
                   <div>
@@ -1847,7 +1836,7 @@
 
                             return assignment.dropOff && assignment.dropOff.trim() && assignment.dropOff !== "TBD" && dropOffAddress && dropOffAddress.trim()
                                 ? `<br><a href="https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}"
-                                     target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Get Full Route</a>`
+                                     target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Open Full Route in Maps</a>`
                                 : "";
                         })()}
                       </div>
@@ -1869,18 +1858,7 @@
                     const contactInfo = getAddressFromContacts(assignment.market);
                     return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
                 })()}
-                ${
-                    assignment.dropOffAddress &&
-                    assignment.dropOffAddress.trim() !== "" &&
-                    assignment.dropOffAddress.trim().toUpperCase() !== "TBD"
-                        ? `
-                    <p><strong>Full Route:</strong>
-                        <a href="https://www.google.com/maps/dir/${encodeURIComponent(assignment.marketAddress)}/${encodeURIComponent(assignment.dropOffAddress.trim())}"
-                           target="_blank" class="directions-btn">🗺️ Market to Drop-off Route</a>
-                    </p>
-                `
-                        : ""
-                }
+
 
                 <div class="team-info-header">
                   <div>
@@ -2096,20 +2074,12 @@
                         ${recoveryHeader}
                         <div style="text-align: center; padding: 10px; background: white;">
                           <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                          ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Open Full Route in Maps</a>` : ""}
                         </div>
                         <div class="market-section">
                             <h2>🚗 Recovery Route</h2>
                             <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
                             <p><strong>Date:</strong> ${routeDate}</p>
-                            ${
-                                stops.length > 1
-                                    ? `
-                                <p><strong>Full Route:</strong>
-                                    <a href="${fullRouteUrl}" target="_blank" class="directions-btn">🗺️ Open Full Route in Maps</a>
-                                </p>
-                            `
-                                    : ""
-                            }
 
                         </div>
                         <div class="flow-section">
@@ -2285,18 +2255,12 @@
                     ${recoveryHeader}
                     <div style="text-align: center; padding: 10px; background: white;">
                       <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                      ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Open Full Route in Maps</a>` : ""}
                     </div>
                     <div class="market-section">
                         <h2>🚗 Recovery Route</h2>
                         <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
                         <p><strong>Date:</strong> ${routeDate}</p>
-                        ${
-                            stops.length > 1
-                                ? `<p><strong>Full Route:</strong>
-                                <a href="${fullRouteUrl}" target="_blank" class="directions-btn">🗺️ Open Full Route in Maps</a>
-                               </p>`
-                                : ""
-                        }
 
                     </div>
                     <div class="flow-section">
