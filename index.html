@@ -2060,7 +2060,7 @@
                         getNextDateForDay(route["Recovery Routes"]) ||
                         route["Recovery Routes"];
                     const recoveryHeader = `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
-                             ${getWorkerEmoji(route.Worker)} ${route.Worker} – ${routeDate}
+                             🚗 Recovery Assignment
                            </div>`;
 
                     // Build stops array from the route data
@@ -2131,9 +2131,8 @@
                           ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px;">🗺️ Open Full Route in Maps</a>` : ""}
                         </div>
                         <div class="market-section">
-                            <h2>🚗 Recovery Route</h2>
+                            <h2>${routeDate}</h2>
                             <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
-                            <p><strong>Date:</strong> ${routeDate}</p>
 
                         </div>
                         <div class="flow-section">
@@ -2241,7 +2240,7 @@
                 const routeDate =
                     route.calculatedDate || route["Recovery Routes"];
                 const recoveryHeader = `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
-                         ${getWorkerEmoji(route.Worker)} ${route.Worker} – ${routeDate}
+                         🚗 Recovery Assignment
                        </div>`;
 
                 // Build stops array
@@ -2310,9 +2309,8 @@
                       ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px;">🗺️ Open Full Route in Maps</a>` : ""}
                     </div>
                     <div class="market-section">
-                        <h2>🚗 Recovery Route</h2>
+                        <h2>${routeDate}</h2>
                         <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
-                        <p><strong>Date:</strong> ${routeDate}</p>
 
                     </div>
                     <div class="flow-section">
