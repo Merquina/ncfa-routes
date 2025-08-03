@@ -1513,6 +1513,17 @@
                       ${marketHeader}
                       <div style="text-align: center; padding: 10px; background: white;">
                         <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                        ${(() => {
+                            const marketContact = getAddressFromContacts(assignment.market);
+                            const dropOffContact = getAddressFromContacts(assignment.dropOff);
+                            const marketAddress = marketContact ? marketContact.address : assignment.marketAddress;
+                            const dropOffAddress = dropOffContact ? dropOffContact.address : assignment.dropOffAddress;
+
+                            return assignment.dropOff && assignment.dropOff.trim() && assignment.dropOff !== "TBD" && dropOffAddress && dropOffAddress.trim()
+                                ? `<br><a href="https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}"
+                                     target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Get Full Route</a>`
+                                : "";
+                        })()}
                       </div>
               <div class="market-section">
                 <h2>${assignment.market} – ${assignment.date}</h2>
@@ -1828,6 +1839,17 @@
                       ${assignmentHeader}
                       <div style="text-align: center; padding: 10px; background: white;">
                         <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
+                        ${(() => {
+                            const marketContact = getAddressFromContacts(assignment.market);
+                            const dropOffContact = getAddressFromContacts(assignment.dropOff);
+                            const marketAddress = marketContact ? marketContact.address : assignment.marketAddress;
+                            const dropOffAddress = dropOffContact ? dropOffContact.address : assignment.dropOffAddress;
+
+                            return assignment.dropOff && assignment.dropOff.trim() && assignment.dropOff !== "TBD" && dropOffAddress && dropOffAddress.trim()
+                                ? `<br><a href="https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}"
+                                     target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Get Full Route</a>`
+                                : "";
+                        })()}
                       </div>
               <div class="market-section">
                 <h2>${assignment.market} – ${assignment.date}</h2>
