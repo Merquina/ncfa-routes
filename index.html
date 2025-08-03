@@ -101,6 +101,7 @@
                 box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
                 margin: 0 auto;
                 max-width: 800px;
+                text-align: center;
             }
 
             .market-section,
@@ -109,6 +110,20 @@
                 padding: 8px;
                 color: white;
                 text-align: center;
+            }
+
+            .market-section h2,
+            .dropoff-section h2,
+            .final-section h2 {
+                text-align: center;
+                margin: 0 auto;
+            }
+
+            .market-section p,
+            .dropoff-section p,
+            .final-section p {
+                text-align: center;
+                margin: 8px auto;
             }
 
             .market-section {
@@ -207,11 +222,12 @@
 
             .team-info-header {
                 display: flex;
-                justify-content: flex-start;
-                align-items: flex-start;
+                justify-content: center;
+                align-items: center;
                 margin-top: 8px;
                 flex-wrap: wrap;
                 gap: 8px;
+                text-align: center;
             }
 
             .team-info-header h3 {
@@ -279,9 +295,10 @@
                 color: #333;
                 padding: 8px 8px;
                 border-radius: 8px;
-                margin-right: 8px;
+                margin: 0 4px 4px 0;
                 font-weight: 500;
                 border: 1px solid rgba(255,255,255,0.3);
+                text-align: center;
             }
 
             .van-badge {
@@ -290,9 +307,27 @@
                 color: #333;
                 padding: 8px 8px;
                 border-radius: 8px;
-                margin-right: 8px;
+                margin: 0 4px 4px 0;
                 font-weight: 500;
                 border: 1px solid rgba(255,255,255,0.3);
+                text-align: center;
+            }
+</end_text>
+
+<old_text line=406>
+            .directions-btn {
+                background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+                color: white;
+                border: none;
+                padding: 8px 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-left: 8px;
+                transition: all 0.2s ease;
+                text-decoration: none;
+                display: inline-block;
             }
 
             .no-assignments {
@@ -375,6 +410,7 @@
                 transition: all 0.3s ease;
                 border: 2px solid #ddd;
                 box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+                text-align: center;
             }
 
             .date-card:hover {
@@ -414,10 +450,11 @@
                 cursor: pointer;
                 font-size: 0.9rem;
                 font-weight: 500;
-                margin-left: 8px;
+                margin: 4px auto;
                 transition: all 0.2s ease;
                 text-decoration: none;
                 display: inline-block;
+                text-align: center;
             }
 
             .directions-btn:hover {
@@ -434,10 +471,11 @@
                 cursor: pointer;
                 font-size: 0.9rem;
                 font-weight: 500;
-                margin-left: 8px;
+                margin: 4px auto;
                 transition: all 0.2s ease;
                 text-decoration: none;
                 display: inline-block;
+                text-align: center;
             }
 
             .print-btn:hover {
