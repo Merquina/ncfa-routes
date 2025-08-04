@@ -3,128 +3,146 @@
    ======================================== */
 
 class WorkersManager {
-    constructor() {
-        this.currentWorker = null;
-        this.workerIcons = {
-            Samuel: "🐋",
-            Emmanuel: "🦁",
-            Irmydel: "🐸",
-            Tess: "🌟",
-            Ayoyo: "⚡",
-            Rosey: "🌹",
-            Boniat: "🌊",
-            Volunteer: "👤",
-        };
-    }
+  constructor() {
+    this.currentWorker = null;
+    this.workerIcons = {
+      Samuel: "🐋",
+      Emmanuel: "🦁",
+      Irmydel: "🐸",
+      Tess: "🌟",
+      Ayoyo: "⚡",
+      Rosey: "🌹",
+      Boniat: "🌊",
+      Volunteer: "👤",
+    };
+  }
 
-    // ========================================
-    // WORKER RENDERING
-    // ========================================
-    renderWorkers() {
-        const workersContainer = document.getElementById("workersContainer");
-        if (!workersContainer) return;
+  // ========================================
+  // WORKER RENDERING
+  // ========================================
+  renderWorkers() {
+    const workersContainer = document.getElementById("workersContainer");
+    if (!workersContainer) return;
 
-        const workers = sheetsAPI.getAllWorkers();
+    const workers = sheetsAPI.getAllWorkers();
 
-        if (workers.length === 0) {
-            workersContainer.innerHTML = `
+    if (workers.length === 0) {
+      workersContainer.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #666;">
                     <p>No workers found. Make sure your spreadsheet has worker data.</p>
                 </div>
             `;
-            return;
-        }
+      return;
+    }
 
-        workersContainer.innerHTML = workers
-            .map(worker => `
+    workersContainer.innerHTML = workers
+      .map(
+        (worker) => `
                 <div class="worker-card" onclick="selectWorker('${worker}')">
                     ${this.getWorkerEmoji(worker)} ${worker}
                 </div>
-            `)
-            .join("");
-    }
+            `,
+      )
+      .join("");
+  }
 
-    // ========================================
-    // WORKER SELECTION
-    // ========================================
-    selectWorker(worker) {
-        this.currentWorker = worker;
+  // ========================================
+  // WORKER SELECTION
+  // ========================================
+  selectWorker(worker) {
+    this.currentWorker = worker;
 
-        // Update UI
-        document.querySelectorAll(".worker-card").forEach(card => {
-            card.classList.remove("selected");
-        });
+    // Update UI
+    document.querySelectorAll(".worker-card").forEach((card) => {
+      card.classList.remove("selected");
+    });
 
-        event.target.classList.add("selected");
+    event.target.classList.add("selected");
 
-        // Get worker assignments
-        const assignments = sheetsAPI.getWorkerAssignments(worker);
-        this.renderWorkerAssignments(worker, assignments);
-    }
+    // Get worker assignments
+    const assignments = sheetsAPI.getWorkerAssignments(worker);
+    this.renderWorkerAssignments(worker, assignments);
+  }
 
-    // ========================================
-    // WORKER ASSIGNMENTS RENDERING
-    // ========================================
-    renderWorkerAssignments(worker, assignments) {
-        const assignmentsContainer = document.getElementById("assignmentsContainer");
-        if (!assignmentsContainer) return;
+  // ========================================
+  // WORKER ASSIGNMENTS RENDERING
+  // ========================================
+  renderWorkerAssignments(worker, assignments) {
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
+    if (!assignmentsContainer) return;
 
-        // Combine and sort assignments by date
-        const allAssignments = [
-            ...assignments.spfm.map(a => ({ ...a, type: 'spfm' })),
-            ...assignments.recovery.map(a => ({ ...a, type: 'recovery' }))
-        ];
+    // Combine and sort assignments by date
+    const allAssignments = [
+      ...assignments.spfm.map((a) => ({ ...a, type: "spfm" })),
+      ...assignments.recovery.map((a) => ({ ...a, type: "recovery" })),
+    ];
 
-        // Sort by date
-        allAssignments.sort((a, b) => {
-            const dateA = new Date(a.date || a["Recovery Routes"] || "1900-01-01");
-            const dateB = new Date(b.date || b["Recovery Routes"] || "1900-01-01");
-            return dateA - dateB;
-        });
+    // Sort by date
+    allAssignments.sort((a, b) => {
+      const dateA = new Date(a.date || a["Recovery Routes"] || "1900-01-01");
+      const dateB = new Date(b.date || b["Recovery Routes"] || "1900-01-01");
+      return dateA - dateB;
+    });
 
-        if (allAssignments.length === 0) {
-            assignmentsContainer.innerHTML = `
+    if (allAssignments.length === 0) {
+      assignmentsContainer.innerHTML = `
                 <div class="no-assignments">
                     <h3>${this.getWorkerEmoji(worker)} ${worker}</h3>
                     <p>No assignments found for this worker.</p>
                 </div>
             `;
-            return;
-        }
-
-        // Show only the next assignment (chronologically)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const nextAssignment = allAssignments.find(assignment => {
-            const assignmentDate = new Date(assignment.date || assignment["Recovery Routes"] || "1900-01-01");
-            assignmentDate.setHours(0, 0, 0, 0);
-            return assignmentDate >= today;
-        }) || allAssignments[0]; // Fallback to first assignment if none in future
-
-        if (nextAssignment.type === 'spfm') {
-            this.renderSPFMAssignment(nextAssignment);
-        } else {
-            this.renderRecoveryAssignment(nextAssignment);
-        }
+      return;
     }
 
-    // ========================================
-    // SPFM ASSIGNMENT RENDERING
-    // ========================================
-    renderSPFMAssignment(assignment) {
-        const assignmentsContainer = document.getElementById("assignmentsContainer");
+    // Show only the next assignment (chronologically)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-        const marketContact = sheetsAPI.getAddressFromContacts(assignment.market);
-        const dropOffContact = sheetsAPI.getAddressFromContacts(assignment.dropOff);
-        const marketAddress = marketContact ? marketContact.address : assignment.marketAddress;
-        const dropOffAddress = dropOffContact ? dropOffContact.address : assignment.dropOffAddress;
+    const nextAssignment =
+      allAssignments.find((assignment) => {
+        const assignmentDate = new Date(
+          assignment.date || assignment["Recovery Routes"] || "1900-01-01",
+        );
+        assignmentDate.setHours(0, 0, 0, 0);
+        return assignmentDate >= today;
+      }) || allAssignments[0]; // Fallback to first assignment if none in future
 
-        const fullRouteUrl = assignment.dropOff && assignment.dropOff.trim() && assignment.dropOff !== "TBD" && dropOffAddress && dropOffAddress.trim()
-            ? `https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}`
-            : "";
+    if (nextAssignment.type === "spfm") {
+      this.renderSPFMAssignment(nextAssignment);
+    } else {
+      this.renderRecoveryAssignment(nextAssignment);
+    }
+  }
 
-        assignmentsContainer.innerHTML = `
+  // ========================================
+  // SPFM ASSIGNMENT RENDERING
+  // ========================================
+  renderSPFMAssignment(assignment) {
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
+
+    const marketContact = sheetsAPI.getAddressFromContacts(assignment.market);
+    const dropOffContact = sheetsAPI.getAddressFromContacts(assignment.dropOff);
+    const marketAddress = marketContact
+      ? marketContact.address
+      : assignment.marketAddress;
+    const dropOffAddress = dropOffContact
+      ? dropOffContact.address
+      : assignment.dropOffAddress;
+
+    const fullRouteUrl =
+      assignment.dropOff &&
+      assignment.dropOff.trim() &&
+      assignment.dropOff !== "TBD" &&
+      dropOffAddress &&
+      dropOffAddress.trim()
+        ? `https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}`
+        : "";
+
+    assignmentsContainer.innerHTML = `
             <div class="assignment-card">
                 <div style="text-align: center; padding: 8px; background: white;">
                     <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
@@ -139,7 +157,7 @@ class WorkersManager {
                         <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
                            target="_blank" class="directions-btn">📍 ${marketAddress}</a>
                     </p>
-                    ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn">📞 ${marketContact.phone}</a></p>` : ''}
+                    ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn">📞 ${marketContact.phone}</a></p>` : ""}
                 </div>
 
                 <div class="single-column">
@@ -161,31 +179,42 @@ class WorkersManager {
 
                 ${this.renderSteps(assignment)}
 
-                ${assignment.dropOff && assignment.dropOff.trim() && assignment.dropOff !== "TBD"
-                    ? this.renderDropOffSection(assignment, dropOffContact, dropOffAddress)
+                ${
+                  assignment.dropOff &&
+                  assignment.dropOff.trim() &&
+                  assignment.dropOff !== "TBD"
+                    ? this.renderDropOffSection(
+                        assignment,
+                        dropOffContact,
+                        dropOffAddress,
+                      )
                     : ""
                 }
 
                 ${this.renderFinalSection(assignment)}
             </div>
         `;
-    }
+  }
 
-    // ========================================
-    // RECOVERY ASSIGNMENT RENDERING
-    // ========================================
-    renderRecoveryAssignment(route) {
-        const assignmentsContainer = document.getElementById("assignmentsContainer");
+  // ========================================
+  // RECOVERY ASSIGNMENT RENDERING
+  // ========================================
+  renderRecoveryAssignment(route) {
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
 
-        const routeDate = this.getNextDateForDay(route["Recovery Routes"]) || route["Recovery Routes"];
-        const startTime = route["Start Time"] || route.startTime || "TBD";
+    const routeDate =
+      this.getNextDateForDay(route["Recovery Routes"]) ||
+      route["Recovery Routes"];
+    const startTime = route["Start Time"] || route.startTime || "TBD";
 
-        const stops = this.buildRecoveryStops(route);
-        const fullRouteUrl = this.buildFullRouteUrl(stops);
+    const stops = this.buildRecoveryStops(route);
+    const fullRouteUrl = this.buildFullRouteUrl(stops);
 
-        const recoveryHeader = `<div class="recovery-header">🚗 Recovery Assignment</div>`;
+    const recoveryHeader = `<div class="recovery-header">🚗 Recovery Assignment</div>`;
 
-        assignmentsContainer.innerHTML = `
+    assignmentsContainer.innerHTML = `
             <div class="assignment-card">
                 ${recoveryHeader}
                 <div style="text-align: center; padding: 8px; background: white;">
@@ -199,95 +228,102 @@ class WorkersManager {
                     <p><strong>Worker:</strong> ${this.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
                 </div>
 
-                ${stops.map((stop, index) => `
+                ${stops
+                  .map(
+                    (stop, index) => `
                     <div class="step-header">
                         <span class="step-number">${index + 1}</span>
                         ${stop.name}
                     </div>
                     <div class="single-column">
-                        ${stop.address
+                        ${
+                          stop.address
                             ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn">📍 ${stop.address}</a>
-                               ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn">📞 ${stop.phone}</a></p>` : ''}`
+                               ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn">📞 ${stop.phone}</a></p>` : ""}`
                             : `<p><em>Address not specified</em></p>`
                         }
                     </div>
-                `).join("")}
+                `,
+                  )
+                  .join("")}
             </div>
         `;
+  }
+
+  // ========================================
+  // HELPER METHODS
+  // ========================================
+  getWorkerEmoji(workerName) {
+    if (!workerName || workerName.trim() === "") return "👤";
+
+    if (workerName.trim().toLowerCase().includes("volunteer")) {
+      return "👤";
     }
 
-    // ========================================
-    // HELPER METHODS
-    // ========================================
-    getWorkerEmoji(workerName) {
-        if (!workerName || workerName.trim() === "") return "👤";
+    const workerIcon = Object.keys(this.workerIcons).find(
+      (key) => key.toLowerCase() === workerName.trim().toLowerCase(),
+    );
 
-        if (workerName.trim().toLowerCase().includes("volunteer")) {
-            return "👤";
-        }
+    return workerIcon ? this.workerIcons[workerIcon] : "👤";
+  }
 
-        const workerIcon = Object.keys(this.workerIcons).find(
-            (key) => key.toLowerCase() === workerName.trim().toLowerCase()
-        );
+  buildRecoveryStops(route) {
+    const stops = [];
+    for (let i = 1; i <= 7; i++) {
+      const stopName = route[`Stop ${i}`];
+      const stopAddress = route[`Stop ${i} Address`];
 
-        return workerIcon ? this.workerIcons[workerIcon] : "👤";
+      if (stopName && stopName.trim() && stopName.toLowerCase() !== "stop") {
+        const contactInfo = sheetsAPI.getAddressFromContacts(stopName);
+        stops.push({
+          name: stopName,
+          address: contactInfo ? contactInfo.address : stopAddress || "",
+          phone: contactInfo ? contactInfo.phone : "",
+        });
+      }
+    }
+    return stops;
+  }
+
+  buildFullRouteUrl(stops) {
+    if (stops.length <= 1) return "";
+
+    const addresses = stops
+      .map((stop) => stop.address)
+      .filter((addr) => addr && addr.trim())
+      .map((addr) => encodeURIComponent(addr.trim()));
+
+    if (addresses.length <= 1) return "";
+
+    const origin = addresses[0];
+    const destination = addresses[addresses.length - 1];
+    const waypoints = addresses.slice(1, -1).join("|");
+
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}`;
+  }
+
+  renderSteps(assignment) {
+    const steps = [];
+
+    // Office Materials
+    if (assignment.officeMaterials && assignment.officeMaterials.trim()) {
+      steps.push({
+        title: "📋 Office Materials",
+        content: assignment.officeMaterials,
+      });
     }
 
-    buildRecoveryStops(route) {
-        const stops = [];
-        for (let i = 1; i <= 7; i++) {
-            const stopName = route[`Stop ${i}`];
-            const stopAddress = route[`Stop ${i} Address`];
-
-            if (stopName && stopName.trim() && stopName.toLowerCase() !== "stop") {
-                const contactInfo = sheetsAPI.getAddressFromContacts(stopName);
-                stops.push({
-                    name: stopName,
-                    address: contactInfo ? contactInfo.address : (stopAddress || ""),
-                    phone: contactInfo ? contactInfo.phone : "",
-                });
-            }
-        }
-        return stops;
+    // Storage Materials
+    if (assignment.storageMaterials && assignment.storageMaterials.trim()) {
+      steps.push({
+        title: "📦 Storage Materials",
+        content: assignment.storageMaterials,
+      });
     }
 
-    buildFullRouteUrl(stops) {
-        if (stops.length <= 1) return "";
-
-        const addresses = stops
-            .map(stop => stop.address)
-            .filter(addr => addr && addr.trim())
-            .map(addr => encodeURIComponent(addr.trim()));
-
-        if (addresses.length <= 1) return "";
-
-        const origin = addresses[0];
-        const destination = addresses[addresses.length - 1];
-        const waypoints = addresses.slice(1, -1).join("|");
-
-        return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}`;
-    }
-
-    renderSteps(assignment) {
-        const steps = [];
-
-        // Office Materials
-        if (assignment.officeMaterials && assignment.officeMaterials.trim()) {
-            steps.push({
-                title: "📋 Office Materials",
-                content: assignment.officeMaterials
-            });
-        }
-
-        // Storage Materials
-        if (assignment.storageMaterials && assignment.storageMaterials.trim()) {
-            steps.push({
-                title: "📦 Storage Materials",
-                content: assignment.storageMaterials
-            });
-        }
-
-        return steps.map((step, index) => `
+    return steps
+      .map(
+        (step, index) => `
             <div class="step-header">
                 <span class="step-number">${index + 1}</span>
                 ${step.title}
@@ -295,30 +331,35 @@ class WorkersManager {
             <div class="single-column">
                 <p>${step.content}</p>
             </div>
-        `).join("");
-    }
+        `,
+      )
+      .join("");
+  }
 
-    renderDropOffSection(assignment, dropOffContact, dropOffAddress) {
-        return `
+  renderDropOffSection(assignment, dropOffContact, dropOffAddress) {
+    return `
             <div class="dropoff-section">
                 <div class="step-header">
                     <span class="step-number">🚚</span>
                     Drop-off at ${assignment.dropOff}
                 </div>
                 <div class="single-column">
-                    ${dropOffAddress && dropOffAddress.trim() !== "" && dropOffAddress.trim() !== "TBD"
+                    ${
+                      dropOffAddress &&
+                      dropOffAddress.trim() !== "" &&
+                      dropOffAddress.trim() !== "TBD"
                         ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dropOffAddress.trim())}" target="_blank" class="directions-btn">📍 ${dropOffAddress}</a>`
                         : ""
                     }
                     <p><strong>Drop-off Amount:</strong> ${assignment.dropoffAmount || assignment["dropoffAmount "] || "TBD"}</p>
-                    ${dropOffContact && dropOffContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${dropOffContact.phone}" class="phone-btn">📞 ${dropOffContact.phone}</a></p>` : ''}
+                    ${dropOffContact && dropOffContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${dropOffContact.phone}" class="phone-btn">📞 ${dropOffContact.phone}</a></p>` : ""}
                 </div>
             </div>
         `;
-    }
+  }
 
-    renderFinalSection(assignment) {
-        return `
+  renderFinalSection(assignment) {
+    return `
             <div class="final-section">
                 <div class="step-header">
                     <span class="step-number">✅</span>
@@ -330,30 +371,46 @@ class WorkersManager {
                 </div>
             </div>
         `;
-    }
+  }
 
-    getNextDateForDay(dayName) {
-        if (!dayName) return null;
+  getNextDateForDay(dayName) {
+    if (!dayName) return null;
 
-        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const dayIndex = days.findIndex(day => day.toLowerCase() === dayName.toLowerCase());
+    const days = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+    const dayIndex = days.findIndex(
+      (day) => day.toLowerCase() === dayName.toLowerCase(),
+    );
 
-        if (dayIndex === -1) return null;
+    if (dayIndex === -1) return null;
 
-        const today = new Date();
-        const currentDay = today.getDay();
-        const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
-        const targetDate = new Date(today);
-        targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
+    const today = new Date();
+    const currentDay = today.getDay();
+    const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
+    const targetDate = new Date(today);
+    targetDate.setDate(
+      today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget),
+    );
 
-        return targetDate.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
+    return targetDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
 }
 
 // Export instance
 const workersManager = new WorkersManager();
+
+// Confirm this file loaded
+console.log("✅ workers.js loaded");
+window.workersManagerLoaded = true;

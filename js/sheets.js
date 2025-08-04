@@ -293,3 +293,7 @@ class SheetsAPI {
 
 // Export instance
 const sheetsAPI = new SheetsAPI();
+
+// Confirm this file loaded
+console.log("✅ sheets.js loaded");
+window.sheetsAPILoaded = true;

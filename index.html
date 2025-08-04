@@ -28,8 +28,7 @@
                     font-family: monospace;
                 "
             >
-                v2024.01.03 | Commit: e17676b | Simplified initialization -
-                remove Google API callback dependencies |
+                Deployment #007 | Fix app.js loading |
                 <span id="timestamp"></span> |
                 <span id="status">Loading...</span>
             </div>
@@ -77,11 +76,11 @@
             </div>
         </div>
 
-        <!-- Application Modules -->
-        <script src="js/sheets.js"></script>
-        <script src="js/workers.js"></script>
-        <script src="js/dates.js"></script>
-        <script src="js/app.js"></script>
+        <!-- Application Modules - Load synchronously to ensure order -->
+        <script src="js/sheets.js" type="text/javascript"></script>
+        <script src="js/workers.js" type="text/javascript"></script>
+        <script src="js/dates.js" type="text/javascript"></script>
+        <script src="js/app.js" type="text/javascript"></script>
 
         <!-- Initialize app directly -->
         <script>
@@ -127,7 +126,7 @@
 
                 // Start app initialization immediately
                 try {
-                    initializeApp();
+                    window.initializeApp();
                 } catch (error) {
                     updateStatus("❌ Init error: " + error.message);
                     console.error("Initialization error:", error);
@@ -144,11 +143,11 @@
                         "DOM event didn't fire, trying direct init...",
                     );
                     try {
-                        if (typeof initializeApp === "function") {
-                            initializeApp();
+                        if (typeof window.initializeApp === "function") {
+                            window.initializeApp();
                         } else {
                             updateStatus(
-                                "❌ initializeApp still not available",
+                                "❌ initializeApp still not available on window",
                             );
                         }
                     } catch (error) {

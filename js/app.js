@@ -246,3 +246,17 @@ window.selectRecoveryRoute = selectRecoveryRoute;
 window.printAssignment = printAssignment;
 window.initializeApp = initializeApp;
 window.updateVersionStatus = updateVersionStatus;
+window.showWorkerView = showWorkerView;
+window.showDateView = showDateView;
+window.clearAssignments = clearAssignments;
+window.showLoading = showLoading;
+window.showError = showError;
+
+// Also attach modules to window for debugging
+window.sheetsAPI = sheetsAPI;
+window.workersManager = workersManager;
+window.datesManager = datesManager;
+
+// Confirm this file loaded
+console.log("✅ app.js loaded");
+window.appLoaded = true;
