@@ -33,9 +33,9 @@ async function initializeApp() {
     console.log("✅ UI initialized");
 
     updateVersionStatus("Setting up views...");
-    // Set default view to boxes (no API needed)
-    switchTab("box");
-    console.log("✅ Default tab set");
+    // Initialize URL routing and set view based on URL
+    initializeRouting();
+    console.log("✅ Routing initialized");
 
     // Set up tab handlers after initialization
     setupTabHandlers();
@@ -68,8 +68,14 @@ function initializeUI() {
 // ========================================
 // TAB MANAGEMENT
 // ========================================
-function switchTab(tabName) {
+function switchTab(tabName, updateUrl = true) {
   currentTab = tabName;
+
+  // Update URL if requested
+  if (updateUrl) {
+    const newUrl = `#${tabName}`;
+    window.history.pushState({ tab: tabName }, "", newUrl);
+  }
 
   // Hide all tab contents
   document.querySelectorAll(".tab-content").forEach((tab) => {
@@ -370,7 +376,7 @@ function setupTabHandlers() {
             console.log(`${tabName} tab touched`);
           } else if (eventType === "click" || eventType === "touchend") {
             console.log(`${tabName} tab activated`);
-            switchTab(tabName);
+            switchTab(tabName, true);
           }
         },
         { passive: false },
@@ -381,7 +387,7 @@ function setupTabHandlers() {
     btn.onclick = function (e) {
       e.preventDefault();
       console.log(`${tabName} tab clicked (fallback)`);
-      switchTab(tabName);
+      switchTab(tabName, true);
     };
   }
 
@@ -390,6 +396,26 @@ function setupTabHandlers() {
   addMobileHandler(workerBtn, "worker");
 
   console.log("✅ Tab handlers set up with mobile support");
+}
+
+// ========================================
+// URL ROUTING
+// ========================================
+function initializeRouting() {
+  // Get current hash from URL
+  const hash = window.location.hash.slice(1); // Remove #
+  const validTabs = ["box", "date", "worker"];
+  const initialTab = validTabs.includes(hash) ? hash : "box";
+
+  // Set initial tab without updating URL (since URL already has it)
+  switchTab(initialTab, false);
+
+  // Listen for back/forward button
+  window.addEventListener("popstate", function (event) {
+    const hash = window.location.hash.slice(1);
+    const tab = validTabs.includes(hash) ? hash : "box";
+    switchTab(tab, false);
+  });
 }
 
 // Export to window
