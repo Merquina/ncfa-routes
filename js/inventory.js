@@ -44,7 +44,7 @@ class InventoryManager {
 
     inventoryContainer.innerHTML = `
       <!-- Section 1: Box Inventory -->
-      <div style="margin-bottom: 10px; margin-top: 0px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <div style="margin-bottom: 10px; margin-top: 0px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h3>📦 Box Inventory</h3>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
           <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
@@ -74,7 +74,7 @@ class InventoryManager {
       </div>
 
       <!-- Section 2: Box Calculator -->
-      <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h3>🧮 Box Calculator</h3>
         <div style="display: grid; gap: 15px; margin-top: 15px;">
           <div>
@@ -98,7 +98,7 @@ class InventoryManager {
       </div>
 
       <!-- Section 3: Update Inventory -->
-      <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>📝 Update Inventory</h4>
         <div style="display: grid; gap: 15px; margin-top: 15px;">
           <div>
@@ -172,8 +172,10 @@ class InventoryManager {
 
     const now = new Date();
     const timeString = now.toLocaleDateString("en-US", {
+      weekday: "long",
       month: "short",
       day: "numeric",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -273,8 +275,10 @@ class InventoryManager {
 
     const now = new Date();
     inventory.lastUpdated = now.toLocaleDateString("en-US", {
+      weekday: "long",
       month: "short",
       day: "numeric",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -301,8 +305,10 @@ class InventoryManager {
 
     const now = new Date();
     inventory.lastUpdated = now.toLocaleDateString("en-US", {
+      weekday: "long",
       month: "short",
       day: "numeric",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
