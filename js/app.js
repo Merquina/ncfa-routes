@@ -48,6 +48,9 @@ async function initializeApp() {
 
     console.log("✅ App initialized successfully");
     updateVersionStatus("✅ Working");
+
+    // Update last modified timestamp
+    updateLastModified();
   } catch (error) {
     console.error("❌ Application initialization failed:", error);
     console.error("Error details:", error.stack);
@@ -181,6 +184,22 @@ function updateVersionStatus(status) {
   }
 }
 
+function updateLastModified() {
+  const lastUpdatedEl = document.getElementById("lastUpdated");
+  if (lastUpdatedEl && sheetsAPI && sheetsAPI.data.length > 0) {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    lastUpdatedEl.textContent = `Last updated: ${dateStr}`;
+    console.log("✅ Last updated timestamp set");
+  }
+}
+
 // ========================================
 // UTILITY CLASSES
 // ========================================
@@ -256,6 +275,7 @@ window.assignmentsManager = assignmentsManager;
 window.inventoryManager = inventoryManager;
 window.workersManager = workersManager;
 window.datesManager = datesManager;
+window.updateLastModified = updateLastModified;
 
 // ========================================
 // TAB HANDLERS SETUP
