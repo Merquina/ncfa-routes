@@ -19,17 +19,6 @@ class InventoryManager {
       return;
     }
 
-    // Check if sheetsAPI exists and is properly initialized
-    if (!sheetsAPI) {
-      inventoryContainer.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <h3>📦 Box Inventory</h3>
-          <p>Loading system...</p>
-        </div>
-      `;
-      return;
-    }
-
     try {
       this.renderInventoryContent(inventoryContainer);
     } catch (error) {
@@ -37,8 +26,7 @@ class InventoryManager {
       inventoryContainer.innerHTML = `
         <div style="text-align: center; padding: 40px; color: #666;">
           <h3>📦 Box Inventory</h3>
-          <p>❌ Error loading inventory data.<br>Please try refreshing.</p>
-          <button class="directions-btn" onclick="refreshData()">🔄 Refresh</button>
+          <p>❌ Error loading inventory data.</p>
         </div>
       `;
     }
@@ -48,7 +36,9 @@ class InventoryManager {
   // INVENTORY CONTENT RENDERING
   // ========================================
   renderInventoryContent(inventoryContainer) {
-    console.log("🔍 Debug: renderInventoryContent called");
+    console.log(
+      "🔍 Debug: renderInventoryContent called - using local storage only",
+    );
 
     const inventory = this.getLocalInventory();
 

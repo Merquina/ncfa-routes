@@ -28,13 +28,13 @@ async function initializeApp() {
     console.log("🚀 Starting SPFM Routes app...");
     updateVersionStatus("Loading data...");
 
-    // Load data directly using fetch API (no Google API client needed)
+    // Load data for dates and workers tabs only (inventory uses local storage)
     console.log("📊 Fetching sheet data...");
     await sheetsAPI.fetchSheetData();
     console.log("✅ Sheet data loaded");
 
     updateVersionStatus("Initializing UI...");
-    // Initialize UI
+    // Initialize UI (inventory will use local storage)
     initializeUI();
     console.log("✅ UI initialized");
 
@@ -63,7 +63,7 @@ async function initializeApp() {
 // UI INITIALIZATION
 // ========================================
 function initializeUI() {
-  // Initialize inventory display
+  // Initialize inventory display (no API needed - uses local storage)
   if (window.inventoryManager) {
     window.inventoryManager.renderInventory();
   } else {
@@ -111,6 +111,7 @@ function switchTab(tabName) {
   switch (tabName) {
     case "box":
       if (window.inventoryManager) {
+        // Box inventory uses local storage - no API needed
         window.inventoryManager.renderInventory();
       } else {
         console.error("❌ inventoryManager not available");
