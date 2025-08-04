@@ -35,15 +35,19 @@ class WorkersManager {
       return;
     }
 
-    workersContainer.innerHTML = workers
-      .map(
-        (worker) => `
-                <div class="worker-card" onclick="selectWorker('${worker}')">
-                    ${this.getWorkerEmoji(worker)} ${worker}
-                </div>
+    workersContainer.innerHTML = `
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center;">
+        ${workers
+          .map(
+            (worker) => `
+              <div class="worker-card" onclick="selectWorker('${worker}')" style="display: inline-block; text-align: center;">
+                ${this.getWorkerEmoji(worker)} ${worker}
+              </div>
             `,
-      )
-      .join("");
+          )
+          .join("")}
+      </div>
+    `;
   }
 
   // ========================================
