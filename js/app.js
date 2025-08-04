@@ -64,7 +64,11 @@ async function initializeApp() {
 // ========================================
 function initializeUI() {
   // Initialize inventory display
-  window.inventoryManager.renderInventory();
+  if (window.inventoryManager) {
+    window.inventoryManager.renderInventory();
+  } else {
+    console.error("❌ inventoryManager not loaded yet");
+  }
 
   // Hide loading
   hideLoading();
@@ -106,13 +110,22 @@ function switchTab(tabName) {
   // Load content based on tab
   switch (tabName) {
     case "box":
-      window.inventoryManager.renderInventory();
+      if (window.inventoryManager) {
+        window.inventoryManager.renderInventory();
+      } else {
+        console.error("❌ inventoryManager not available");
+        setTimeout(() => switchTab("box"), 500); // Retry after delay
+      }
       break;
     case "date":
-      datesManager.renderDates();
+      if (window.datesManager) {
+        datesManager.renderDates();
+      }
       break;
     case "worker":
-      workersManager.renderWorkers();
+      if (window.workersManager) {
+        workersManager.renderWorkers();
+      }
       break;
   }
 }
@@ -275,6 +288,26 @@ window.assignmentsManager = assignmentsManager;
 window.workersManager = workersManager;
 window.datesManager = datesManager;
 window.updateLastModified = updateLastModified;
+
+// Wait for all modules to be available
+function waitForModules() {
+  const requiredModules = [
+    "inventoryManager",
+    "datesManager",
+    "workersManager",
+    "assignmentsManager",
+  ];
+  const missing = requiredModules.filter((module) => !window[module]);
+
+  if (missing.length > 0) {
+    console.log("⏳ Waiting for modules:", missing);
+    setTimeout(waitForModules, 100);
+  } else {
+    console.log("✅ All modules loaded");
+  }
+}
+
+setTimeout(waitForModules, 100);
 
 // ========================================
 // TAB HANDLERS SETUP
