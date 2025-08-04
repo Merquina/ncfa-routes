@@ -178,6 +178,13 @@ class DatesManager {
   // CHRONOLOGICAL RENDERING
   // ========================================
   renderChronologicalDates(container) {
+    console.log("🔍 Debug: renderChronologicalDates called");
+    console.log("🔍 Debug: sheetsAPI.data length:", sheetsAPI.data.length);
+    console.log(
+      "🔍 Debug: sheetsAPI.recoveryData length:",
+      sheetsAPI.recoveryData.length,
+    );
+
     // Get all SPFM dates
     const spfmDates = sheetsAPI.getAllDates().map((date) => ({
       date: date,
@@ -196,6 +203,9 @@ class DatesManager {
       }))
       .filter((item) => item.date);
 
+    console.log("🔍 Debug: spfmDates:", spfmDates);
+    console.log("🔍 Debug: recoveryDates:", recoveryDates);
+
     // Combine and sort chronologically
     const allDates = [...spfmDates, ...recoveryDates]
       .map((item) => ({
@@ -206,10 +216,12 @@ class DatesManager {
       .sort((a, b) => a.parsed - b.parsed)
       .slice(0, 8); // Show next 8 dates
 
+    console.log("🔍 Debug: allDates:", allDates);
+
     if (allDates.length === 0) {
       container.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-          <p>No upcoming dates found.</p>
+          <p>No upcoming dates found. Check console for debug info.</p>
         </div>
       `;
       return;
