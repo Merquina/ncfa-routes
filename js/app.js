@@ -19,24 +19,35 @@ let currentView = "worker"; // 'worker' or 'date'
 // APPLICATION INITIALIZATION
 // ========================================
 async function initializeApp() {
+  console.log("🚀 initializeApp called");
+  updateVersionStatus("initializeApp started");
+
   try {
+    updateVersionStatus("Showing loading...");
     showLoading();
     console.log("🚀 Starting SPFM Routes app...");
     updateVersionStatus("Loading data...");
 
     // Load data directly using fetch API (no Google API client needed)
+    console.log("📊 Fetching sheet data...");
     await sheetsAPI.fetchSheetData();
+    console.log("✅ Sheet data loaded");
 
+    updateVersionStatus("Initializing UI...");
     // Initialize UI
     initializeUI();
+    console.log("✅ UI initialized");
 
+    updateVersionStatus("Setting up views...");
     // Set default view
     showWorkerView();
+    console.log("✅ Worker view set");
 
     console.log("✅ App initialized successfully");
     updateVersionStatus("✅ Working");
   } catch (error) {
     console.error("❌ Application initialization failed:", error);
+    console.error("Error details:", error.stack);
     showError("Failed to initialize application: " + error.message);
     updateVersionStatus("❌ Error: " + error.message);
   }
@@ -159,9 +170,12 @@ function showError(message) {
 }
 
 function updateVersionStatus(status) {
+  console.log("Status update:", status);
   const statusEl = document.getElementById("status");
   if (statusEl) {
     statusEl.textContent = status;
+  } else {
+    console.log("Status element not found");
   }
 }
 

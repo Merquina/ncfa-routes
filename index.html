@@ -85,25 +85,77 @@
 
         <!-- Initialize app directly -->
         <script>
+            // Detailed debugging
+            function updateStatus(msg) {
+                const statusEl = document.getElementById("status");
+                if (statusEl) {
+                    statusEl.textContent = msg;
+                }
+                console.log("Status:", msg);
+            }
+
+            updateStatus("Script started");
+
             // Set timestamp
             document.addEventListener("DOMContentLoaded", function () {
+                updateStatus("DOM loaded");
+
                 const timestampEl = document.getElementById("timestamp");
                 if (timestampEl) {
                     timestampEl.textContent = new Date().toLocaleString();
                 }
 
+                // Check if modules loaded
+                if (typeof sheetsAPI === "undefined") {
+                    updateStatus("❌ sheetsAPI not loaded");
+                    return;
+                }
+                if (typeof workersManager === "undefined") {
+                    updateStatus("❌ workersManager not loaded");
+                    return;
+                }
+                if (typeof datesManager === "undefined") {
+                    updateStatus("❌ datesManager not loaded");
+                    return;
+                }
+                if (typeof initializeApp === "undefined") {
+                    updateStatus("❌ initializeApp not loaded");
+                    return;
+                }
+
+                updateStatus("All modules loaded, starting app...");
+
                 // Start app initialization immediately
-                if (typeof initializeApp === "function") {
+                try {
                     initializeApp();
-                } else {
-                    // Fallback if function not loaded yet
-                    setTimeout(() => {
-                        if (typeof initializeApp === "function") {
-                            initializeApp();
-                        }
-                    }, 1000);
+                } catch (error) {
+                    updateStatus("❌ Init error: " + error.message);
+                    console.error("Initialization error:", error);
                 }
             });
+
+            // Also try without waiting for DOM
+            setTimeout(() => {
+                if (
+                    document.getElementById("status").textContent ===
+                    "Script started"
+                ) {
+                    updateStatus(
+                        "DOM event didn't fire, trying direct init...",
+                    );
+                    try {
+                        if (typeof initializeApp === "function") {
+                            initializeApp();
+                        } else {
+                            updateStatus(
+                                "❌ initializeApp still not available",
+                            );
+                        }
+                    } catch (error) {
+                        updateStatus("❌ Direct init error: " + error.message);
+                    }
+                }
+            }, 2000);
         </script>
     </body>
 </html>
