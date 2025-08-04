@@ -11,16 +11,13 @@ class DatesManager {
   // DATES RENDERING
   // ========================================
   renderDates() {
-    const datesContainer = document.getElementById("datesContainer");
-    const recoveryContainer = document.getElementById("recoveryDates");
+    const chronologicalContainer =
+      document.getElementById("chronologicalDates");
 
-    if (!datesContainer || !recoveryContainer) return;
+    if (!chronologicalContainer) return;
 
-    // Render SPFM dates
-    this.renderSPFMDates(datesContainer);
-
-    // Render Recovery dates
-    this.renderRecoveryDates(recoveryContainer);
+    // Render all dates chronologically
+    this.renderChronologicalDates(chronologicalContainer);
   }
 
   renderSPFMDates(container) {
@@ -175,6 +172,77 @@ class DatesManager {
   renderRecoveryRouteAssignment(route) {
     // Delegate to assignments manager
     assignmentsManager.renderRecoveryRouteAssignment(route);
+  }
+
+  // ========================================
+  // CHRONOLOGICAL RENDERING
+  // ========================================
+  renderChronologicalDates(container) {
+    // Get all SPFM dates
+    const spfmDates = sheetsAPI.getAllDates().map((date) => ({
+      date: date,
+      type: "spfm",
+      emoji: "👨‍🌾",
+      color: "#28a745", // green
+    }));
+
+    // Get all recovery dates
+    const recoveryDates = sheetsAPI.recoveryData
+      .map((route) => ({
+        date: route.Date || route.date,
+        type: "recovery",
+        emoji: "🛒",
+        color: "#ff8c00", // orange
+      }))
+      .filter((item) => item.date);
+
+    // Combine and sort chronologically
+    const allDates = [...spfmDates, ...recoveryDates]
+      .map((item) => ({
+        ...item,
+        parsed: new Date(item.date),
+      }))
+      .filter((item) => !isNaN(item.parsed.getTime()))
+      .sort((a, b) => a.parsed - b.parsed)
+      .slice(0, 8); // Show next 8 dates
+
+    if (allDates.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+          <p>No upcoming dates found.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = allDates
+      .map((dateItem) => {
+        const formattedDate = this.formatDate(dateItem.parsed);
+        const routes =
+          dateItem.type === "spfm"
+            ? sheetsAPI.getRoutesByDate(dateItem.date)
+            : sheetsAPI.recoveryData.filter(
+                (r) => (r.Date || r.date) === dateItem.date,
+              );
+
+        const workers =
+          dateItem.type === "spfm"
+            ? routes
+                .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
+                .filter(Boolean)
+                .filter((w) => w.toLowerCase() !== "cancelled")
+            : routes.map((r) => r.Worker).filter(Boolean);
+
+        return `
+          <div class="date-card" onclick="selectDate('${dateItem.date}')"
+               style="border: 2px solid ${dateItem.color}; border-radius: 8px;">
+            <div style="font-size: 1.5rem; margin-bottom: 5px;">${dateItem.emoji}</div>
+            <div class="date-card-date">${formattedDate}</div>
+            <div class="date-card-workers">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>
+          </div>
+        `;
+      })
+      .join("");
   }
 
   // ========================================
