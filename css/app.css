@@ -81,6 +81,9 @@ body {
     flex: 1;
     overflow-y: auto;
     padding-bottom: var(--tab-height);
+    /* Mobile scroll fixes */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 .tab-content {
@@ -419,6 +422,9 @@ body {
 #assignmentsContainer {
     transition: all 0.3s ease;
     margin-top: 8px;
+    /* Mobile scroll padding */
+    padding-bottom: calc(var(--tab-height) + 20px);
+    scroll-margin-top: 20px;
 }
 
 #assignmentsContainer .assignment-card {
@@ -534,6 +540,15 @@ body {
 
     .tab-content {
         padding: 6px;
+    }
+
+    /* Mobile scroll behavior */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    #assignmentsContainer {
+        padding-bottom: calc(var(--tab-height) + 40px);
     }
 }
 
