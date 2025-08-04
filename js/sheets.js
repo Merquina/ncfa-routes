@@ -24,8 +24,8 @@ class SheetsAPI {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/SPFM!A:T?key=${API_KEY}&_=${timestamp}`;
       console.log("Fetching fresh data from Google Sheets...");
 
-      // Make the API call directly to Google
-      const response = await fetch(url);
+      // Make the API call with retry for 429 errors
+      const response = await this.fetchWithRetry(url);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -82,7 +82,7 @@ class SheetsAPI {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${recoveryRange}?key=${API_KEY}`;
       console.log("🚗 Attempting to fetch recovery routes...");
 
-      const response = await fetch(url);
+      const response = await this.fetchWithRetry(url);
       if (!response.ok) {
         console.log("Recovery tab not found - skipping recovery routes");
         return;
@@ -121,7 +121,7 @@ class SheetsAPI {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${inventoryRange}?key=${API_KEY}`;
       console.log("📦 Attempting to fetch inventory data...");
 
-      const response = await fetch(url);
+      const response = await this.fetchWithRetry(url);
       if (!response.ok) {
         console.log("Inventory tab not found - skipping inventory display");
         return;
@@ -159,7 +159,7 @@ class SheetsAPI {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${contactsRange}?key=${API_KEY}`;
       console.log("📞 Attempting to fetch contacts data...");
 
-      const response = await fetch(url);
+      const response = await this.fetchWithRetry(url);
       if (!response.ok) {
         console.log("Contacts tab not found - using original addresses");
         return;
@@ -189,6 +189,34 @@ class SheetsAPI {
       );
     } catch (error) {
       console.error("❌ Error fetching contacts data:", error);
+    }
+  }
+
+  // ========================================
+  // FETCH WITH RETRY FOR RATE LIMITS
+  // ========================================
+  async fetchWithRetry(url, maxRetries = 3, delay = 2000) {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const response = await fetch(url);
+
+        if (response.status === 429) {
+          console.log(
+            `Rate limited (429), waiting ${delay}ms before retry ${i + 1}/${maxRetries}`,
+          );
+          if (i < maxRetries - 1) {
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            delay *= 2; // Exponential backoff
+            continue;
+          }
+        }
+
+        return response;
+      } catch (error) {
+        if (i === maxRetries - 1) throw error;
+        console.log(`Request failed, retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
   }
 
