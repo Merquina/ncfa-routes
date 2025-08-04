@@ -84,27 +84,15 @@
 
             <!-- Bottom Tab Navigation -->
             <div class="bottom-tabs">
-                <button
-                    id="boxTabBtn"
-                    class="tab-btn active"
-                    onclick="switchTab('box')"
-                >
+                <button id="boxTabBtn" class="tab-btn active" data-tab="box">
                     <div class="tab-icon">📦</div>
                     <div class="tab-label">Boxes</div>
                 </button>
-                <button
-                    id="dateTabBtn"
-                    class="tab-btn"
-                    onclick="switchTab('date')"
-                >
+                <button id="dateTabBtn" class="tab-btn" data-tab="date">
                     <div class="tab-icon">📅</div>
                     <div class="tab-label">By Date</div>
                 </button>
-                <button
-                    id="workerTabBtn"
-                    class="tab-btn"
-                    onclick="switchTab('worker')"
-                >
+                <button id="workerTabBtn" class="tab-btn" data-tab="worker">
                     <div class="tab-icon">👥</div>
                     <div class="tab-label">By Worker</div>
                 </button>
@@ -191,19 +179,21 @@
                 }
             }, 2000);
 
-            // Simple tab switching function for mobile compatibility
-            function switchTab(tabName) {
-                if (typeof window.switchTab === "function") {
-                    window.switchTab(tabName);
-                } else {
-                    console.log("switchTab not available yet, trying later...");
-                    setTimeout(() => {
-                        if (typeof window.switchTab === "function") {
-                            window.switchTab(tabName);
-                        }
-                    }, 500);
-                }
-            }
+            // Set up tab click handlers
+            document.addEventListener("DOMContentLoaded", function () {
+                setTimeout(() => {
+                    document.querySelectorAll(".tab-btn").forEach((btn) => {
+                        btn.addEventListener("click", function () {
+                            const tabName = this.getAttribute("data-tab");
+                            if (typeof window.switchTab === "function") {
+                                window.switchTab(tabName);
+                            } else {
+                                console.log("switchTab not ready yet");
+                            }
+                        });
+                    });
+                }, 1000);
+            });
         </script>
     </body>
 </html>
