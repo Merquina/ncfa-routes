@@ -40,6 +40,9 @@ class InventoryManager {
       "🔍 Debug: renderInventoryContent called - using local storage only",
     );
 
+    // Refresh timestamp format for existing data
+    this.refreshTimestampFormat();
+
     const inventory = this.getLocalInventory();
 
     inventoryContainer.innerHTML = `
@@ -333,6 +336,27 @@ class InventoryManager {
         }
       });
     }, 100);
+  }
+
+  // ========================================
+  // REFRESH TIMESTAMP FORMAT
+  // ========================================
+  refreshTimestampFormat() {
+    const inventory = this.getLocalInventory();
+    if (inventory.lastUpdated && inventory.updatedBy) {
+      // Regenerate timestamp with new format
+      const now = new Date();
+      inventory.lastUpdated = now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      this.saveLocalInventory(inventory);
+      console.log("✅ Refreshed timestamp format");
+    }
   }
 }
 
