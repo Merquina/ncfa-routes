@@ -46,9 +46,13 @@ class InventoryManager {
   // INVENTORY CONTENT RENDERING
   // ========================================
   renderInventoryContent(inventoryContainer) {
+    console.log("🔍 Debug: renderInventoryContent called");
+    console.log("🔍 Debug: sheetsAPI.isLoading =", sheetsAPI.isLoading);
+    console.log("🔍 Debug: sheetsAPI.inventoryData =", sheetsAPI.inventoryData);
 
     // Check if data is still loading
     if (sheetsAPI.isLoading) {
+      console.log("🔍 Debug: Still loading, showing loading message");
       inventoryContainer.innerHTML = `
         <div style="text-align: center; padding: 40px; color: #666;">
           <h3>📦 Box Inventory</h3>
@@ -60,12 +64,38 @@ class InventoryManager {
 
     // Check if inventoryData exists and has data
     if (!sheetsAPI.inventoryData || sheetsAPI.inventoryData.length === 0) {
+      console.log("🔍 Debug: No inventory data, rendering calculator anyway");
       inventoryContainer.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
+        <div style="text-align: center; padding: 40px; color: #666; margin-bottom: 30px;">
           <h3>📦 Box Inventory</h3>
           <p>No inventory data available.<br>Make sure your spreadsheet has an "Inventory" tab.</p>
         </div>
+
+        <!-- Section 2: Box Calculator -->
+        <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h3>🧮 Box Calculator</h3>
+          <div style="display: grid; gap: 15px; margin-top: 15px;">
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: bold;">How many farmers:</label>
+              <input type="number" id="farmersInput" min="1" value="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: bold;">How many small boxes:</label>
+              <input type="number" id="smallBoxesInput" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: bold;">How many large boxes:</label>
+              <input type="number" id="largeBoxesInput" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 10px;">Calculate Distribution</button>
+            <div id="calculationResult" style="padding: 15px; background: #e8f5e8; border-radius: 4px; margin-top: 10px; display: none;">
+              <h4>Give to each farmer:</h4>
+              <div id="distributionText"></div>
+            </div>
+          </div>
+        </div>
       `;
+      this.setupCalculatorListeners();
       return;
     }
 
@@ -165,16 +195,8 @@ class InventoryManager {
       </div>
     `;
 
-    // Add event listeners for real-time calculation
-    setTimeout(() => {
-      const inputs = ['farmersInput', 'smallBoxesInput', 'largeBoxesInput'];
-      inputs.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-          input.addEventListener('input', () => this.calculateDistribution());
-        }
-      });
-    }, 100);
+    console.log("🔍 Debug: Full inventory rendered, setting up calculator listeners");
+    this.setupCalculatorListeners();
   }
 
   // ========================================
@@ -266,6 +288,23 @@ class InventoryManager {
 
   removeBoxes() {
     alert('Remove boxes feature coming soon!');
+  }
+
+  // ========================================
+  // CALCULATOR SETUP
+  // ========================================
+  setupCalculatorListeners() {
+    setTimeout(() => {
+      console.log("🔍 Debug: Setting up calculator listeners");
+      const inputs = ['farmersInput', 'smallBoxesInput', 'largeBoxesInput'];
+      inputs.forEach(id => {
+        const input = document.getElementById(id);
+        console.log(`🔍 Debug: Setting up listener for ${id}:`, input);
+        if (input) {
+          input.addEventListener('input', () => this.calculateDistribution());
+        }
+      });
+    }, 100);
   }
 }
 
