@@ -60,7 +60,13 @@
             </div>
         </div>
 
-        <!-- Google API Scripts -->
+        <!-- Application Modules (Load first so callbacks are available) -->
+        <script src="js/sheets.js"></script>
+        <script src="js/workers.js"></script>
+        <script src="js/dates.js"></script>
+        <script src="js/app.js"></script>
+
+        <!-- Google API Scripts (Load after callbacks are defined) -->
         <script
             async
             defer
@@ -73,11 +79,5 @@
             src="https://accounts.google.com/gsi/client"
             onload="gsiLoaded()"
         ></script>
-
-        <!-- Application Modules -->
-        <script src="js/sheets.js"></script>
-        <script src="js/workers.js"></script>
-        <script src="js/dates.js"></script>
-        <script src="js/app.js"></script>
     </body>
 </html>

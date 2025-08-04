@@ -20,19 +20,8 @@ let currentView = "worker"; // 'worker' or 'date'
 // ========================================
 function gapiLoaded() {
   console.log("✅ Google API loaded");
-  gapi.load("client", initializeGapiClient);
-}
-
-async function initializeGapiClient() {
-  try {
-    await gapi.client.init({
-      apiKey: API_KEY,
-      discoveryDocs: DISCOVERY_DOCS,
-    });
-    console.log("✅ Google API client initialized");
-  } catch (error) {
-    console.error("❌ Error initializing Google API client:", error);
-  }
+  // API is loaded, start app initialization
+  initializeApp();
 }
 
 function gsiLoaded() {
@@ -43,14 +32,11 @@ function gsiLoaded() {
 // ========================================
 // APPLICATION INITIALIZATION
 // ========================================
-document.addEventListener("DOMContentLoaded", async function () {
+async function initializeApp() {
   try {
     showLoading();
 
-    // Wait for Google API to be ready
-    await waitForGoogleAPI();
-
-    // Load data directly using gapi.client
+    // Load data directly using fetch API (no gapi.client needed)
     await sheetsAPI.fetchSheetData();
 
     // Initialize UI
@@ -62,21 +48,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.error("❌ Application initialization failed:", error);
     showError("Failed to initialize application: " + error.message);
   }
-});
-
-// Wait for Google API to be initialized
-function waitForGoogleAPI() {
-  return new Promise((resolve) => {
-    const checkAPI = () => {
-      if (typeof gapi !== "undefined" && gapi.client) {
-        resolve();
-      } else {
-        setTimeout(checkAPI, 100);
-      }
-    };
-    checkAPI();
-  });
 }
+
+// Fallback initialization if Google API doesn't load
+document.addEventListener("DOMContentLoaded", function () {
+  // Wait 3 seconds, then try to initialize anyway
+  setTimeout(() => {
+    if (!document.querySelector(".loading")) {
+      return; // Already initialized
+    }
+    console.log("Initializing without Google API...");
+    initializeApp();
+  }, 3000);
+});
 
 // ========================================
 // UI INITIALIZATION
@@ -259,3 +243,5 @@ window.selectWorker = selectWorker;
 window.selectDate = selectDate;
 window.selectRecoveryRoute = selectRecoveryRoute;
 window.printAssignment = printAssignment;
+window.gapiLoaded = gapiLoaded;
+window.gsiLoaded = gsiLoaded;
