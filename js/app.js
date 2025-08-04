@@ -16,27 +16,14 @@ const SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
 let currentView = "worker"; // 'worker' or 'date'
 
 // ========================================
-// GOOGLE API CALLBACK FUNCTIONS
-// ========================================
-function gapiLoaded() {
-  console.log("✅ Google API loaded");
-  // API is loaded, start app initialization
-  initializeApp();
-}
-
-function gsiLoaded() {
-  console.log("✅ Google Sign-In loaded");
-  // GSI is loaded and ready
-}
-
-// ========================================
 // APPLICATION INITIALIZATION
 // ========================================
 async function initializeApp() {
   try {
     showLoading();
+    console.log("🚀 Starting SPFM Routes app...");
 
-    // Load data directly using fetch API (no gapi.client needed)
+    // Load data directly using fetch API (no Google API client needed)
     await sheetsAPI.fetchSheetData();
 
     // Initialize UI
@@ -44,23 +31,13 @@ async function initializeApp() {
 
     // Set default view
     showWorkerView();
+
+    console.log("✅ App initialized successfully");
   } catch (error) {
     console.error("❌ Application initialization failed:", error);
     showError("Failed to initialize application: " + error.message);
   }
 }
-
-// Fallback initialization if Google API doesn't load
-document.addEventListener("DOMContentLoaded", function () {
-  // Wait 3 seconds, then try to initialize anyway
-  setTimeout(() => {
-    if (!document.querySelector(".loading")) {
-      return; // Already initialized
-    }
-    console.log("Initializing without Google API...");
-    initializeApp();
-  }, 3000);
-});
 
 // ========================================
 // UI INITIALIZATION
@@ -243,5 +220,4 @@ window.selectWorker = selectWorker;
 window.selectDate = selectDate;
 window.selectRecoveryRoute = selectRecoveryRoute;
 window.printAssignment = printAssignment;
-window.gapiLoaded = gapiLoaded;
-window.gsiLoaded = gsiLoaded;
+window.initializeApp = initializeApp;
