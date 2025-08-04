@@ -1,5 +1,6 @@
 /* ========================================
    SPFM Routes - Inventory Management
+   Fixed syntax error - ready for deployment
    ======================================== */
 
 class InventoryManager {
