@@ -39,40 +39,75 @@
                 <p>SPFM Route Management System</p>
             </div>
 
-            <!-- View Toggle -->
-            <div class="view-toggle">
-                <button id="workerViewBtn" class="view-btn active">
-                    👥 By Worker
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <!-- Box Management Tab -->
+                <div id="boxTab" class="tab-content active">
+                    <div class="section-title">📦 Box Management</div>
+                    <div id="inventoryContainer">
+                        <!-- Box inventory will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- By Date Tab -->
+                <div id="dateTab" class="tab-content hidden">
+                    <div class="section-title">📅 By Date</div>
+                    <!-- SPFM Dates -->
+                    <div class="dates-section">
+                        <h3>📦 SPFM Routes</h3>
+                        <div id="datesContainer" class="date-grid">
+                            <!-- SPFM dates will be loaded here -->
+                        </div>
+                    </div>
+                    <!-- Recovery Dates -->
+                    <div class="dates-section">
+                        <h3>🚗 Recovery Routes</h3>
+                        <div id="recoveryDates" class="date-grid">
+                            <!-- Recovery dates will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- By Worker Tab -->
+                <div id="workerTab" class="tab-content hidden">
+                    <div class="section-title">👥 By Worker</div>
+                    <div id="workersContainer" class="worker-grid">
+                        <!-- Workers will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Assignments Display -->
+                <div id="assignmentsContainer">
+                    <!-- Assignment details will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Bottom Tab Navigation -->
+            <div class="bottom-tabs">
+                <button
+                    id="boxTabBtn"
+                    class="tab-btn active"
+                    onclick="switchTab('box')"
+                >
+                    <div class="tab-icon">📦</div>
+                    <div class="tab-label">Boxes</div>
                 </button>
-                <button id="dateViewBtn" class="view-btn">📅 By Date</button>
-            </div>
-
-            <!-- Worker View -->
-            <div id="workerViewContainer">
-                <div class="section-title">Select a Worker</div>
-                <div id="workersContainer" class="worker-grid">
-                    <!-- Workers will be loaded here -->
-                </div>
-            </div>
-
-            <!-- Date View -->
-            <div id="dateViewContainer" class="hidden">
-                <!-- SPFM Dates -->
-                <div class="section-title">📦 SPFM Routes</div>
-                <div id="datesContainer" class="date-grid">
-                    <!-- SPFM dates will be loaded here -->
-                </div>
-
-                <!-- Recovery Dates -->
-                <div class="section-title">🚗 Recovery Routes</div>
-                <div id="recoveryDates" class="date-grid">
-                    <!-- Recovery dates will be loaded here -->
-                </div>
-            </div>
-
-            <!-- Assignments Display -->
-            <div id="assignmentsContainer">
-                <!-- Assignment details will be loaded here -->
+                <button
+                    id="dateTabBtn"
+                    class="tab-btn"
+                    onclick="switchTab('date')"
+                >
+                    <div class="tab-icon">📅</div>
+                    <div class="tab-label">By Date</div>
+                </button>
+                <button
+                    id="workerTabBtn"
+                    class="tab-btn"
+                    onclick="switchTab('worker')"
+                >
+                    <div class="tab-icon">👥</div>
+                    <div class="tab-label">By Worker</div>
+                </button>
             </div>
         </div>
 

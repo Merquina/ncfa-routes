@@ -13,7 +13,7 @@ const DISCOVERY_DOCS = [
 const SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
 
 // Current view state
-let currentView = "worker"; // 'worker' or 'date'
+let currentTab = "box"; // 'box', 'date', or 'worker'
 
 // ========================================
 // APPLICATION INITIALIZATION
@@ -40,7 +40,7 @@ async function initializeApp() {
 
     updateVersionStatus("Setting up views...");
     // Set default view
-    showWorkerView();
+    switchTab("box");
     console.log("✅ Worker view set");
 
     console.log("✅ App initialized successfully");
@@ -57,59 +57,58 @@ async function initializeApp() {
 // UI INITIALIZATION
 // ========================================
 function initializeUI() {
-  // Set up view toggle buttons
-  const workerViewBtn = document.getElementById("workerViewBtn");
-  const dateViewBtn = document.getElementById("dateViewBtn");
-
-  if (workerViewBtn) {
-    workerViewBtn.addEventListener("click", showWorkerView);
-  }
-
-  if (dateViewBtn) {
-    dateViewBtn.addEventListener("click", showDateView);
-  }
+  // Initialize inventory display
+  renderInventory();
 
   // Hide loading
   hideLoading();
 }
 
 // ========================================
-// VIEW MANAGEMENT
+// TAB MANAGEMENT
 // ========================================
-function showWorkerView() {
-  currentView = "worker";
+function switchTab(tabName) {
+  currentTab = tabName;
 
-  // Update button states
-  document.getElementById("workerViewBtn")?.classList.add("active");
-  document.getElementById("dateViewBtn")?.classList.remove("active");
+  // Hide all tab contents
+  document.querySelectorAll(".tab-content").forEach((tab) => {
+    tab.classList.add("hidden");
+    tab.classList.remove("active");
+  });
 
-  // Show/hide containers
-  document.getElementById("workerViewContainer")?.classList.remove("hidden");
-  document.getElementById("dateViewContainer")?.classList.add("hidden");
+  // Remove active class from all tab buttons
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.classList.remove("active");
+  });
 
-  // Clear assignments
+  // Show selected tab content
+  const selectedTab = document.getElementById(tabName + "Tab");
+  if (selectedTab) {
+    selectedTab.classList.remove("hidden");
+    selectedTab.classList.add("active");
+  }
+
+  // Activate selected tab button
+  const selectedBtn = document.getElementById(tabName + "TabBtn");
+  if (selectedBtn) {
+    selectedBtn.classList.add("active");
+  }
+
+  // Clear assignments when switching tabs
   clearAssignments();
 
-  // Render workers
-  workersManager.renderWorkers();
-}
-
-function showDateView() {
-  currentView = "date";
-
-  // Update button states
-  document.getElementById("dateViewBtn")?.classList.add("active");
-  document.getElementById("workerViewBtn")?.classList.remove("active");
-
-  // Show/hide containers
-  document.getElementById("dateViewContainer")?.classList.remove("hidden");
-  document.getElementById("workerViewContainer")?.classList.add("hidden");
-
-  // Clear assignments
-  clearAssignments();
-
-  // Render dates
-  datesManager.renderDates();
+  // Load content based on tab
+  switch (tabName) {
+    case "box":
+      renderInventory();
+      break;
+    case "date":
+      datesManager.renderDates();
+      break;
+    case "worker":
+      workersManager.renderWorkers();
+      break;
+  }
 }
 
 // ========================================
@@ -221,11 +220,8 @@ async function refreshData() {
     showLoading();
     await sheetsAPI.fetchSheetData();
 
-    if (currentView === "worker") {
-      workersManager.renderWorkers();
-    } else {
-      datesManager.renderDates();
-    }
+    // Refresh current tab
+    switchTab(currentTab);
 
     clearAssignments();
   } catch (error) {
@@ -246,8 +242,7 @@ window.selectRecoveryRoute = selectRecoveryRoute;
 window.printAssignment = printAssignment;
 window.initializeApp = initializeApp;
 window.updateVersionStatus = updateVersionStatus;
-window.showWorkerView = showWorkerView;
-window.showDateView = showDateView;
+window.switchTab = switchTab;
 window.clearAssignments = clearAssignments;
 window.showLoading = showLoading;
 window.showError = showError;
@@ -256,6 +251,72 @@ window.showError = showError;
 window.sheetsAPI = sheetsAPI;
 window.workersManager = workersManager;
 window.datesManager = datesManager;
+
+// ========================================
+// INVENTORY/BOX MANAGEMENT
+// ========================================
+function renderInventory() {
+  const inventoryContainer = document.getElementById("inventoryContainer");
+  if (!inventoryContainer) return;
+
+  if (sheetsAPI.inventoryData.length === 0) {
+    inventoryContainer.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #666;">
+        <h3>📦 Box Inventory</h3>
+        <p>No inventory data available.<br>Make sure your spreadsheet has an "Inventory" tab.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Find box inventory items
+  const boxItems = sheetsAPI.inventoryData.filter((item) => {
+    const firstColumn = Object.values(item)[0];
+    return (
+      firstColumn &&
+      (firstColumn.includes("Large") || firstColumn.includes("Small"))
+    );
+  });
+
+  // Find verification date
+  const verifiedItem = sheetsAPI.inventoryData.find((item) => {
+    const firstColumn = Object.values(item)[0];
+    return firstColumn && firstColumn.includes("Verified on");
+  });
+
+  const boxesHtml = boxItems
+    .map((item) => {
+      const values = Object.values(item);
+      const boxType = values[0] || "Unknown";
+      const quantity = values[1] || "0";
+      return `
+        <div class="inventory-item">
+          <div class="inventory-count">${quantity}</div>
+          <div class="inventory-label">${boxType}</div>
+        </div>
+      `;
+    })
+    .join("");
+
+  const verificationHtml = verifiedItem
+    ? `
+      <div class="inventory-item">
+        <div class="inventory-count">📅</div>
+        <div class="inventory-label">Last Updated<br>${Object.values(verifiedItem)[1]}</div>
+      </div>
+    `
+    : "";
+
+  inventoryContainer.innerHTML = `
+    <div class="inventory-grid">
+      ${boxesHtml}
+      ${verificationHtml}
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="directions-btn" onclick="refreshData()">🔄 Refresh Inventory</button>
+    </div>
+  `;
+}
 
 // Confirm this file loaded
 console.log("✅ app.js loaded");
