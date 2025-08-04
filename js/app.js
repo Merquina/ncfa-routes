@@ -227,12 +227,7 @@ function showError(message) {
 
 function updateVersionStatus(status) {
   console.log("Status update:", status);
-  const statusEl = document.getElementById("status");
-  if (statusEl) {
-    statusEl.textContent = status;
-  } else {
-    console.log("Status element not found");
-  }
+  // Status element was removed - just log the status
 }
 
 function updateLastModified() {
