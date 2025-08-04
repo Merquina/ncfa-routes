@@ -3,265 +3,292 @@
    ======================================== */
 
 class SheetsAPI {
-    constructor() {
-        this.data = [];
-        this.recoveryData = [];
-        this.inventoryData = [];
-        this.contactsData = [];
-        this.isLoading = false;
+  constructor() {
+    this.data = [];
+    this.recoveryData = [];
+    this.inventoryData = [];
+    this.contactsData = [];
+    this.isLoading = false;
+  }
+
+  // ========================================
+  // MAIN DATA FETCHING
+  // ========================================
+  async fetchSheetData() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+
+    try {
+      // Add timestamp to prevent browser caching old data
+      const timestamp = new Date().getTime();
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/SPFM!A:T?key=${API_KEY}&_=${timestamp}`;
+      console.log("Fetching fresh data from Google Sheets...");
+
+      // Make the API call directly to Google
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Raw data received from Google");
+
+      if (!result.values || result.values.length < 2) {
+        throw new Error("No data found in the spreadsheet");
+      }
+
+      // Convert spreadsheet rows into JavaScript objects for easier use
+      const headers = result.values[0]; // First row contains column names
+      this.data = result.values
+        .slice(1) // Skip the header row
+        .filter((row) => row && row.length > 0 && row[0]) // Remove empty rows
+        .map((row) => {
+          // Create an object for each row using headers as keys
+          const obj = {};
+          headers.forEach((header, index) => {
+            obj[header] = row[index] || ""; // Use empty string if cell is blank
+          });
+          return obj;
+        });
+
+      console.log(`✅ Processed ${this.data.length} routes from spreadsheet`);
+      console.log("Sample route data:", this.data[0]);
+      console.log("Available columns:", headers);
+
+      // Also fetch recovery routes, box inventory, and contacts data
+      await Promise.all([
+        this.fetchRecoveryData(),
+        this.fetchInventoryData(),
+        this.fetchContactsData(),
+      ]);
+
+      return this.data;
+    } catch (error) {
+      console.error("❌ Error loading spreadsheet data:", error);
+      throw error;
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // ========================================
+  // RECOVERY ROUTES DATA
+  // ========================================
+  async fetchRecoveryData() {
+    try {
+      // Try to fetch recovery routes from the "Recovery" sheet tab
+      const recoveryRange = "Recovery!A:P";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${recoveryRange}?key=${API_KEY}`;
+      console.log("🚗 Attempting to fetch recovery routes...");
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.log("Recovery tab not found - skipping recovery routes");
+        return;
+      }
+
+      const result = await response.json();
+
+      if (!result.values || result.values.length < 2) {
+        console.log("Recovery tab is empty - skipping recovery routes");
+        return;
+      }
+
+      // Convert recovery rows to JavaScript objects
+      const headers = result.values[0];
+      this.recoveryData = result.values.slice(1).map((row) => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
+
+      console.log(`✅ Loaded ${this.recoveryData.length} recovery routes`);
+    } catch (error) {
+      console.log("Recovery data not available (this is optional):", error);
+    }
+  }
+
+  // ========================================
+  // INVENTORY DATA
+  // ========================================
+  async fetchInventoryData() {
+    try {
+      // Try to fetch box inventory from the "Inventory" sheet tab
+      const inventoryRange = "Inventory!A:Z";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${inventoryRange}?key=${API_KEY}`;
+      console.log("📦 Attempting to fetch inventory data...");
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.log("Inventory tab not found - skipping inventory display");
+        return;
+      }
+
+      const result = await response.json();
+
+      if (!result.values || result.values.length < 2) {
+        console.log("Inventory tab is empty - skipping inventory display");
+        return;
+      }
+
+      // Convert inventory rows to JavaScript objects
+      const headers = result.values[0];
+      this.inventoryData = result.values.slice(1).map((row) => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
+
+      console.log(`✅ Loaded ${this.inventoryData.length} inventory items`);
+    } catch (error) {
+      console.log("Inventory data not available (this is optional):", error);
+    }
+  }
+
+  // ========================================
+  // CONTACTS DATA
+  // ========================================
+  async fetchContactsData() {
+    try {
+      const contactsRange = "Contacts!A:Z";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${contactsRange}?key=${API_KEY}`;
+      console.log("📞 Attempting to fetch contacts data...");
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.log("Contacts tab not found - using original addresses");
+        return;
+      }
+
+      const result = await response.json();
+      const values = result.values;
+
+      if (!values || values.length === 0) {
+        console.log("No contacts data found.");
+        return;
+      }
+
+      const headers = values[0];
+      this.contactsData = values.slice(1).map((row) => {
+        const contact = {};
+        headers.forEach((header, index) => {
+          contact[header] = row[index] || "";
+        });
+        return contact;
+      });
+
+      console.log(
+        "✅ Contacts data loaded:",
+        this.contactsData.length,
+        "contacts",
+      );
+    } catch (error) {
+      console.error("❌ Error fetching contacts data:", error);
+    }
+  }
+
+  // ========================================
+  // HELPER METHODS
+  // ========================================
+  getAddressFromContacts(name) {
+    if (!this.contactsData || this.contactsData.length === 0) {
+      return null;
     }
 
-    // ========================================
-    // MAIN DATA FETCHING
-    // ========================================
-    async fetchSheetData() {
-        if (this.isLoading) return;
-        this.isLoading = true;
+    const contact = this.contactsData.find(
+      (contact) =>
+        contact.Location &&
+        contact.Location.toLowerCase().trim() === name.toLowerCase().trim(),
+    );
 
-        try {
-            const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: SPREADSHEET_ID,
-                range: "Routes!A:Z",
-            });
-
-            if (!response.result.values || response.result.values.length === 0) {
-                throw new Error("No data found in the spreadsheet");
-            }
-
-            const headers = response.result.values[0];
-            this.data = response.result.values.slice(1).map((row) => {
-                const obj = {};
-                headers.forEach((header, index) => {
-                    obj[header] = row[index] || "";
-                });
-                return obj;
-            });
-
-            console.log(`✅ Loaded ${this.data.length} routes`);
-            console.log("Available columns:", headers);
-
-            // Fetch additional data sheets
-            await Promise.all([
-                this.fetchRecoveryData(),
-                this.fetchInventoryData(),
-                this.fetchContactsData()
-            ]);
-
-            return this.data;
-
-        } catch (error) {
-            console.error("❌ Error loading spreadsheet data:", error);
-            throw error;
-        } finally {
-            this.isLoading = false;
+    return contact
+      ? {
+          address: contact.Address || "",
+          phone: contact.Phone || "",
+          contactName: contact["Contact Name"] || contact.Location || "",
         }
-    }
+      : null;
+  }
 
-    // ========================================
-    // RECOVERY ROUTES DATA
-    // ========================================
-    async fetchRecoveryData() {
-        try {
-            const result = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: SPREADSHEET_ID,
-                range: "Recovery!A:Z",
-            });
+  getAllWorkers() {
+    const workers = new Set();
 
-            if (result.values && result.values.length > 1) {
-                const headers = result.values[0];
-                this.recoveryData = result.values.slice(1).map((row) => {
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        obj[header] = row[index] || "";
-                    });
-                    return obj;
-                });
-
-                console.log(`✅ Loaded ${this.recoveryData.length} recovery routes`);
+    // Get workers from SPFM data
+    this.data.forEach((route) => {
+      [route.worker1, route.worker2, route.worker3, route.worker4].forEach(
+        (worker) => {
+          if (worker && typeof worker === "string") {
+            const normalized = worker.trim();
+            if (normalized !== "" && normalized.toUpperCase() !== "CANCELLED") {
+              workers.add(normalized);
             }
-        } catch (error) {
-            console.log("Recovery data not available (this is optional):", error);
+          }
+        },
+      );
+    });
+
+    // Get workers from Recovery data
+    this.recoveryData.forEach((route) => {
+      const worker = route.Worker;
+      if (worker && typeof worker === "string") {
+        const normalized = worker.trim();
+        if (normalized !== "" && normalized.toLowerCase() !== "worker") {
+          workers.add(normalized);
         }
-    }
+      }
+    });
 
-    // ========================================
-    // INVENTORY DATA
-    // ========================================
-    async fetchInventoryData() {
-        try {
-            const result = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: SPREADSHEET_ID,
-                range: "Inventory!A:Z",
-            });
+    return Array.from(workers).sort();
+  }
 
-            if (result.values && result.values.length > 1) {
-                const headers = result.values[0];
-                this.inventoryData = result.values.slice(1).map((row) => {
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        obj[header] = row[index] || "";
-                    });
-                    return obj;
-                });
+  getWorkerAssignments(workerName) {
+    const normalizedWorker = workerName.trim().toLowerCase();
 
-                console.log(`✅ Loaded ${this.inventoryData.length} inventory items`);
-            }
-        } catch (error) {
-            console.log("Inventory data not available (this is optional):", error);
-        }
-    }
+    // Get SPFM assignments
+    const spfmAssignments = this.data.filter((route) => {
+      const worker1 = (route.worker1 || "").trim().toLowerCase();
+      const worker2 = (route.worker2 || "").trim().toLowerCase();
+      const worker3 = (route.worker3 || "").trim().toLowerCase();
+      const worker4 = (route.worker4 || "").trim().toLowerCase();
 
-    // ========================================
-    // CONTACTS DATA
-    // ========================================
-    async fetchContactsData() {
-        try {
-            const result = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: SPREADSHEET_ID,
-                range: "Contacts!A:Z",
-            });
+      return (
+        worker1 === normalizedWorker ||
+        worker2 === normalizedWorker ||
+        worker3 === normalizedWorker ||
+        worker4 === normalizedWorker
+      );
+    });
 
-            if (result.values && result.values.length > 1) {
-                const headers = result.values[0];
-                this.contactsData = result.values.slice(1).map((row) => {
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        obj[header] = row[index] || "";
-                    });
-                    return obj;
-                });
+    // Get recovery assignments
+    const recoveryAssignments = this.recoveryData.filter((route) => {
+      const routeWorker = (route.Worker || "").trim().toLowerCase();
+      return routeWorker === normalizedWorker;
+    });
 
-                console.log(`✅ Loaded ${this.contactsData.length} contacts`);
-            }
-        } catch (error) {
-            console.log("Contacts data not available (this is optional):", error);
-        }
-    }
+    return {
+      spfm: spfmAssignments,
+      recovery: recoveryAssignments,
+    };
+  }
 
-    // ========================================
-    // HELPER METHODS
-    // ========================================
-    getAddressFromContacts(name) {
-        if (!name || !this.contactsData.length) return null;
+  getRoutesByDate(date) {
+    return this.data.filter((route) => route.date === date);
+  }
 
-        const contact = this.contactsData.find(contact =>
-            contact.Name && contact.Name.toLowerCase() === name.toLowerCase()
-        );
-
-        return contact ? {
-            address: contact.Address || contact.address || "",
-            phone: contact.Phone || contact.phone || ""
-        } : null;
-    }
-
-    getAllWorkers() {
-        const workers = new Set();
-
-        // Get workers from SPFM data
-        this.data.forEach((route) => {
-            [route.worker1, route.worker2, route.worker3, route.worker4].forEach((worker) => {
-                if (worker && typeof worker === "string") {
-                    const normalized = worker.trim();
-                    if (normalized !== "" && normalized.toUpperCase() !== "CANCELLED") {
-                        workers.add(normalized);
-                    }
-                }
-            });
-        });
-
-        // Get workers from Recovery data
-        this.recoveryData.forEach((route) => {
-            const worker = route.Worker;
-            if (worker && typeof worker === "string") {
-                const normalized = worker.trim();
-                if (normalized !== "" && normalized.toLowerCase() !== "worker") {
-                    workers.add(normalized);
-                }
-            }
-        });
-
-        return Array.from(workers).sort();
-    }
-
-    getWorkerAssignments(workerName) {
-        const normalizedWorker = workerName.trim().toLowerCase();
-
-        // Get SPFM assignments
-        const spfmAssignments = this.data.filter((route) => {
-            const worker1 = (route.worker1 || "").trim().toLowerCase();
-            const worker2 = (route.worker2 || "").trim().toLowerCase();
-            const worker3 = (route.worker3 || "").trim().toLowerCase();
-            const worker4 = (route.worker4 || "").trim().toLowerCase();
-
-            return (
-                worker1 === normalizedWorker ||
-                worker2 === normalizedWorker ||
-                worker3 === normalizedWorker ||
-                worker4 === normalizedWorker
-            );
-        });
-
-        // Get recovery assignments
-        const recoveryAssignments = this.recoveryData.filter((route) => {
-            const routeWorker = (route.Worker || "").trim().toLowerCase();
-            return routeWorker === normalizedWorker;
-        });
-
-        return {
-            spfm: spfmAssignments,
-            recovery: recoveryAssignments
-        };
-    }
-
-    getRoutesByDate(date) {
-        return this.data.filter(route => route.date === date);
-    }
-
-    getAllDates() {
-        const dates = new Set();
-        this.data.forEach(route => {
-            if (route.date) {
-                dates.add(route.date);
-            }
-        });
-        return Array.from(dates).sort();
-    }
-
-    // ========================================
-    // GOOGLE API INITIALIZATION
-    // ========================================
-    async initializeGoogleAPI() {
-        return new Promise((resolve, reject) => {
-            gapi.load("client:auth2", async () => {
-                try {
-                    await gapi.client.init({
-                        apiKey: API_KEY,
-                        clientId: CLIENT_ID,
-                        discoveryDocs: DISCOVERY_DOCS,
-                        scope: SCOPES,
-                    });
-
-                    console.log("✅ Google API initialized");
-                    resolve();
-                } catch (error) {
-                    console.error("❌ Error initializing Google API:", error);
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    async signIn() {
-        const authInstance = gapi.auth2.getAuthInstance();
-        if (!authInstance.isSignedIn.get()) {
-            await authInstance.signIn();
-        }
-    }
-
-    isSignedIn() {
-        const authInstance = gapi.auth2.getAuthInstance();
-        return authInstance && authInstance.isSignedIn.get();
-    }
+  getAllDates() {
+    const dates = new Set();
+    this.data.forEach((route) => {
+      if (route.date) {
+        dates.add(route.date);
+      }
+    });
+    return Array.from(dates).sort();
+  }
 }
 
 // Export instance

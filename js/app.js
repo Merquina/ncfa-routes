@@ -4,149 +4,185 @@
 
 // Configuration
 const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
-const API_KEY = "your-api-key-here";
-const CLIENT_ID = "your-client-id-here";
-const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+const API_KEY = "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s";
+const CLIENT_ID =
+  "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com";
+const DISCOVERY_DOCS = [
+  "https://sheets.googleapis.com/$discovery/rest?version=v4",
+];
 const SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
 
 // Current view state
 let currentView = "worker"; // 'worker' or 'date'
 
 // ========================================
+// GOOGLE API CALLBACK FUNCTIONS
+// ========================================
+function gapiLoaded() {
+  console.log("✅ Google API loaded");
+  gapi.load("client", initializeGapiClient);
+}
+
+async function initializeGapiClient() {
+  try {
+    await gapi.client.init({
+      apiKey: API_KEY,
+      discoveryDocs: DISCOVERY_DOCS,
+    });
+    console.log("✅ Google API client initialized");
+  } catch (error) {
+    console.error("❌ Error initializing Google API client:", error);
+  }
+}
+
+function gsiLoaded() {
+  console.log("✅ Google Sign-In loaded");
+  // GSI is loaded and ready
+}
+
+// ========================================
 // APPLICATION INITIALIZATION
 // ========================================
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        showLoading();
+document.addEventListener("DOMContentLoaded", async function () {
+  try {
+    showLoading();
 
-        // Initialize Google API
-        await sheetsAPI.initializeGoogleAPI();
+    // Wait for Google API to be ready
+    await waitForGoogleAPI();
 
-        // Sign in if needed
-        if (!sheetsAPI.isSignedIn()) {
-            await sheetsAPI.signIn();
-        }
+    // Load data directly using gapi.client
+    await sheetsAPI.fetchSheetData();
 
-        // Load data
-        await sheetsAPI.fetchSheetData();
+    // Initialize UI
+    initializeUI();
 
-        // Initialize UI
-        initializeUI();
-
-        // Set default view
-        showWorkerView();
-
-    } catch (error) {
-        console.error("❌ Application initialization failed:", error);
-        showError("Failed to initialize application: " + error.message);
-    }
+    // Set default view
+    showWorkerView();
+  } catch (error) {
+    console.error("❌ Application initialization failed:", error);
+    showError("Failed to initialize application: " + error.message);
+  }
 });
+
+// Wait for Google API to be initialized
+function waitForGoogleAPI() {
+  return new Promise((resolve) => {
+    const checkAPI = () => {
+      if (typeof gapi !== "undefined" && gapi.client) {
+        resolve();
+      } else {
+        setTimeout(checkAPI, 100);
+      }
+    };
+    checkAPI();
+  });
+}
 
 // ========================================
 // UI INITIALIZATION
 // ========================================
 function initializeUI() {
-    // Set up view toggle buttons
-    const workerViewBtn = document.getElementById('workerViewBtn');
-    const dateViewBtn = document.getElementById('dateViewBtn');
+  // Set up view toggle buttons
+  const workerViewBtn = document.getElementById("workerViewBtn");
+  const dateViewBtn = document.getElementById("dateViewBtn");
 
-    if (workerViewBtn) {
-        workerViewBtn.addEventListener('click', showWorkerView);
-    }
+  if (workerViewBtn) {
+    workerViewBtn.addEventListener("click", showWorkerView);
+  }
 
-    if (dateViewBtn) {
-        dateViewBtn.addEventListener('click', showDateView);
-    }
+  if (dateViewBtn) {
+    dateViewBtn.addEventListener("click", showDateView);
+  }
 
-    // Hide loading
-    hideLoading();
+  // Hide loading
+  hideLoading();
 }
 
 // ========================================
 // VIEW MANAGEMENT
 // ========================================
 function showWorkerView() {
-    currentView = "worker";
+  currentView = "worker";
 
-    // Update button states
-    document.getElementById('workerViewBtn')?.classList.add('active');
-    document.getElementById('dateViewBtn')?.classList.remove('active');
+  // Update button states
+  document.getElementById("workerViewBtn")?.classList.add("active");
+  document.getElementById("dateViewBtn")?.classList.remove("active");
 
-    // Show/hide containers
-    document.getElementById('workerViewContainer')?.classList.remove('hidden');
-    document.getElementById('dateViewContainer')?.classList.add('hidden');
+  // Show/hide containers
+  document.getElementById("workerViewContainer")?.classList.remove("hidden");
+  document.getElementById("dateViewContainer")?.classList.add("hidden");
 
-    // Clear assignments
-    clearAssignments();
+  // Clear assignments
+  clearAssignments();
 
-    // Render workers
-    workersManager.renderWorkers();
+  // Render workers
+  workersManager.renderWorkers();
 }
 
 function showDateView() {
-    currentView = "date";
+  currentView = "date";
 
-    // Update button states
-    document.getElementById('dateViewBtn')?.classList.add('active');
-    document.getElementById('workerViewBtn')?.classList.remove('active');
+  // Update button states
+  document.getElementById("dateViewBtn")?.classList.add("active");
+  document.getElementById("workerViewBtn")?.classList.remove("active");
 
-    // Show/hide containers
-    document.getElementById('dateViewContainer')?.classList.remove('hidden');
-    document.getElementById('workerViewContainer')?.classList.add('hidden');
+  // Show/hide containers
+  document.getElementById("dateViewContainer")?.classList.remove("hidden");
+  document.getElementById("workerViewContainer")?.classList.add("hidden");
 
-    // Clear assignments
-    clearAssignments();
+  // Clear assignments
+  clearAssignments();
 
-    // Render dates
-    datesManager.renderDates();
+  // Render dates
+  datesManager.renderDates();
 }
 
 // ========================================
 // GLOBAL FUNCTIONS (called from HTML)
 // ========================================
 function selectWorker(worker) {
-    workersManager.selectWorker(worker);
+  workersManager.selectWorker(worker);
 }
 
 function selectDate(date) {
-    datesManager.selectDate(date);
+  datesManager.selectDate(date);
 }
 
 function selectRecoveryRoute(worker, dayName) {
-    datesManager.selectRecoveryRoute(worker, dayName);
+  datesManager.selectRecoveryRoute(worker, dayName);
 }
 
 function printAssignment() {
-    window.print();
+  window.print();
 }
 
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
 function clearAssignments() {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
-    if (assignmentsContainer) {
-        assignmentsContainer.innerHTML = "";
-    }
+  const assignmentsContainer = document.getElementById("assignmentsContainer");
+  if (assignmentsContainer) {
+    assignmentsContainer.innerHTML = "";
+  }
 }
 
 function showLoading() {
-    const loadingHTML = `
+  const loadingHTML = `
         <div class="loading">
             <h3>🔄 Loading SPFM Routes...</h3>
             <p>Connecting to Google Sheets...</p>
         </div>
     `;
 
-    document.getElementById("assignmentsContainer").innerHTML = loadingHTML;
+  document.getElementById("assignmentsContainer").innerHTML = loadingHTML;
 }
 
 function hideLoading() {
-    // Loading will be replaced by actual content
+  // Loading will be replaced by actual content
 }
 
 function showError(message) {
-    const errorHTML = `
+  const errorHTML = `
         <div class="error">
             <h3>❌ Error</h3>
             <p><strong>Technical Error:</strong> ${message}</p>
@@ -155,63 +191,62 @@ function showError(message) {
         </div>
     `;
 
-    document.getElementById("assignmentsContainer").innerHTML = errorHTML;
+  document.getElementById("assignmentsContainer").innerHTML = errorHTML;
 }
 
 // ========================================
 // UTILITY CLASSES
 // ========================================
 function addClass(element, className) {
-    if (element && !element.classList.contains(className)) {
-        element.classList.add(className);
-    }
+  if (element && !element.classList.contains(className)) {
+    element.classList.add(className);
+  }
 }
 
 function removeClass(element, className) {
-    if (element && element.classList.contains(className)) {
-        element.classList.remove(className);
-    }
+  if (element && element.classList.contains(className)) {
+    element.classList.remove(className);
+  }
 }
 
 function toggleClass(element, className) {
-    if (element) {
-        element.classList.toggle(className);
-    }
+  if (element) {
+    element.classList.toggle(className);
+  }
 }
 
 // ========================================
 // ERROR HANDLING
 // ========================================
-window.addEventListener('error', function(e) {
-    console.error('Global error caught:', e.error);
-    showError('An unexpected error occurred: ' + e.error.message);
+window.addEventListener("error", function (e) {
+  console.error("Global error caught:", e.error);
+  showError("An unexpected error occurred: " + e.error.message);
 });
 
-window.addEventListener('unhandledrejection', function(e) {
-    console.error('Unhandled promise rejection:', e.reason);
-    showError('An unexpected error occurred: ' + e.reason);
+window.addEventListener("unhandledrejection", function (e) {
+  console.error("Unhandled promise rejection:", e.reason);
+  showError("An unexpected error occurred: " + e.reason);
 });
 
 // ========================================
 // REFRESH DATA
 // ========================================
 async function refreshData() {
-    try {
-        showLoading();
-        await sheetsAPI.fetchSheetData();
+  try {
+    showLoading();
+    await sheetsAPI.fetchSheetData();
 
-        if (currentView === "worker") {
-            workersManager.renderWorkers();
-        } else {
-            datesManager.renderDates();
-        }
-
-        clearAssignments();
-
-    } catch (error) {
-        console.error("❌ Error refreshing data:", error);
-        showError("Failed to refresh data: " + error.message);
+    if (currentView === "worker") {
+      workersManager.renderWorkers();
+    } else {
+      datesManager.renderDates();
     }
+
+    clearAssignments();
+  } catch (error) {
+    console.error("❌ Error refreshing data:", error);
+    showError("Failed to refresh data: " + error.message);
+  }
 }
 
 // Make refresh available globally

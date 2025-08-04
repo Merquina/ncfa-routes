@@ -20,7 +20,8 @@
 
 /* Base Styles */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: var(--light-gray);
     min-height: 100vh;
     margin: 0;
@@ -396,6 +397,11 @@ body {
 }
 
 /* Print Styles */
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
 @media print {
     .view-toggle,
     .worker-grid,
