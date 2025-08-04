@@ -308,12 +308,31 @@ class InventoryManager {
   }
 }
 
-// Export instance
-const inventoryManager = new InventoryManager();
+// Export instance with error handling
+console.log("🔍 Creating inventoryManager...");
+let inventoryManager;
+try {
+  inventoryManager = new InventoryManager();
+  console.log("✅ inventoryManager created successfully");
 
-// Make it globally available
-window.inventoryManager = inventoryManager;
+  // Make it globally available
+  window.inventoryManager = inventoryManager;
+  console.log("✅ inventoryManager attached to window");
+
+} catch (error) {
+  console.error("❌ Error creating inventoryManager:", error);
+  console.error("Error stack:", error.stack);
+}
 
 // Confirm this file loaded
 console.log("✅ inventory.js loaded");
 window.inventoryManagerLoaded = true;
+
+// Verify it's accessible
+setTimeout(() => {
+  if (window.inventoryManager) {
+    console.log("✅ inventoryManager confirmed accessible on window");
+  } else {
+    console.error("❌ inventoryManager NOT accessible on window");
+  }
+}, 10);
