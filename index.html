@@ -17,6 +17,23 @@
 
     <body>
         <div class="container">
+            <!-- Version Info Banner -->
+            <div
+                style="
+                    background: #333;
+                    color: #ccc;
+                    padding: 4px 8px;
+                    font-size: 0.7rem;
+                    text-align: center;
+                    font-family: monospace;
+                "
+            >
+                v2024.01.03 | Commit: e17676b | Simplified initialization -
+                remove Google API callback dependencies |
+                <span id="timestamp"></span> |
+                <span id="status">Loading...</span>
+            </div>
+
             <!-- Header -->
             <div class="header">
                 <h1>🍎 Market Recovery Routes</h1>
@@ -68,8 +85,13 @@
 
         <!-- Initialize app directly -->
         <script>
-            // Simple initialization without Google API callbacks
+            // Set timestamp
             document.addEventListener("DOMContentLoaded", function () {
+                const timestampEl = document.getElementById("timestamp");
+                if (timestampEl) {
+                    timestampEl.textContent = new Date().toLocaleString();
+                }
+
                 // Start app initialization immediately
                 if (typeof initializeApp === "function") {
                     initializeApp();

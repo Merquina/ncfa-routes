@@ -22,6 +22,7 @@ async function initializeApp() {
   try {
     showLoading();
     console.log("🚀 Starting SPFM Routes app...");
+    updateVersionStatus("Loading data...");
 
     // Load data directly using fetch API (no Google API client needed)
     await sheetsAPI.fetchSheetData();
@@ -33,9 +34,11 @@ async function initializeApp() {
     showWorkerView();
 
     console.log("✅ App initialized successfully");
+    updateVersionStatus("✅ Working");
   } catch (error) {
     console.error("❌ Application initialization failed:", error);
     showError("Failed to initialize application: " + error.message);
+    updateVersionStatus("❌ Error: " + error.message);
   }
 }
 
@@ -155,6 +158,13 @@ function showError(message) {
   document.getElementById("assignmentsContainer").innerHTML = errorHTML;
 }
 
+function updateVersionStatus(status) {
+  const statusEl = document.getElementById("status");
+  if (statusEl) {
+    statusEl.textContent = status;
+  }
+}
+
 // ========================================
 // UTILITY CLASSES
 // ========================================
@@ -221,3 +231,4 @@ window.selectDate = selectDate;
 window.selectRecoveryRoute = selectRecoveryRoute;
 window.printAssignment = printAssignment;
 window.initializeApp = initializeApp;
+window.updateVersionStatus = updateVersionStatus;
