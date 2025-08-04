@@ -2,7 +2,13 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="format-detection" content="telephone=no" />
         <title>Market Recovery Routes</title>
 
         <!-- Font Awesome Icons -->
@@ -28,7 +34,7 @@
                     font-family: monospace;
                 "
             >
-                Deployment #011 | Fix tab button clicks |
+                Deployment #012 | iPhone touch fixes |
                 <span id="timestamp"></span> |
                 <span id="status">Loading...</span>
             </div>
@@ -212,6 +218,28 @@
 
             // Call setup after a delay to ensure functions are loaded
             setTimeout(setupTabHandlers, 2000);
+
+            // Additional iPhone-specific setup
+            setTimeout(() => {
+                // Force touch event setup for iPhone
+                document.querySelectorAll(".tab-btn").forEach((btn) => {
+                    btn.style.cursor = "pointer";
+                    btn.addEventListener(
+                        "touchstart",
+                        function (e) {
+                            this.style.opacity = "0.7";
+                        },
+                        { passive: true },
+                    );
+                    btn.addEventListener(
+                        "touchend",
+                        function (e) {
+                            this.style.opacity = "1";
+                        },
+                        { passive: true },
+                    );
+                });
+            }, 3000);
         </script>
     </body>
 </html>

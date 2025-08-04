@@ -331,28 +331,42 @@ function setupTabHandlers() {
   const dateBtn = document.getElementById("dateTabBtn");
   const workerBtn = document.getElementById("workerTabBtn");
 
-  if (boxBtn) {
-    boxBtn.onclick = function () {
-      console.log("Box tab clicked");
-      switchTab("box");
+  // iPhone/mobile-specific event handling
+  function addMobileHandler(btn, tabName) {
+    if (!btn) return;
+
+    // Multiple event types for better mobile compatibility
+    ["click", "touchend", "touchstart"].forEach((eventType) => {
+      btn.addEventListener(
+        eventType,
+        function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (eventType === "touchstart") {
+            console.log(`${tabName} tab touched`);
+          } else if (eventType === "click" || eventType === "touchend") {
+            console.log(`${tabName} tab activated`);
+            switchTab(tabName);
+          }
+        },
+        { passive: false },
+      );
+    });
+
+    // Fallback onclick for desktop
+    btn.onclick = function (e) {
+      e.preventDefault();
+      console.log(`${tabName} tab clicked (fallback)`);
+      switchTab(tabName);
     };
   }
 
-  if (dateBtn) {
-    dateBtn.onclick = function () {
-      console.log("Date tab clicked");
-      switchTab("date");
-    };
-  }
+  addMobileHandler(boxBtn, "box");
+  addMobileHandler(dateBtn, "date");
+  addMobileHandler(workerBtn, "worker");
 
-  if (workerBtn) {
-    workerBtn.onclick = function () {
-      console.log("Worker tab clicked");
-      switchTab("worker");
-    };
-  }
-
-  console.log("✅ Tab handlers set up");
+  console.log("✅ Tab handlers set up with mobile support");
 }
 
 // Export to window
