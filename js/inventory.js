@@ -6,6 +6,7 @@
 class InventoryManager {
   constructor() {
     this.inventoryData = [];
+    this.loadLocalInventory();
   }
 
   // ========================================
@@ -48,123 +49,36 @@ class InventoryManager {
   // ========================================
   renderInventoryContent(inventoryContainer) {
     console.log("🔍 Debug: renderInventoryContent called");
-    console.log("🔍 Debug: sheetsAPI.isLoading =", sheetsAPI.isLoading);
-    console.log("🔍 Debug: sheetsAPI.inventoryData =", sheetsAPI.inventoryData);
 
-    // Check if data is still loading
-    if (sheetsAPI.isLoading) {
-      console.log("🔍 Debug: Still loading, showing loading message");
-      inventoryContainer.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <h3>📦 Box Inventory</h3>
-          <p>🔄 Loading inventory data...</p>
-        </div>
-      `;
-      return;
-    }
-
-    // Check if inventoryData exists and has data
-    if (!sheetsAPI.inventoryData || sheetsAPI.inventoryData.length === 0) {
-      console.log("🔍 Debug: No inventory data, rendering calculator anyway");
-      inventoryContainer.innerHTML = `
-        <div style="margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <h4>📦 Box Inventory</h4>
-          <div style="text-align: center; padding: 20px; color: #666;">
-            <p>No inventory data available</p>
-          </div>
-        </div>
-
-        <!-- Section 2: Box Calculator -->
-        <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <h3>🧮 Box Calculator</h3>
-          <div style="display: grid; gap: 15px; margin-top: 15px;">
-            <div>
-              <label style="display: block; margin-bottom: 5px; font-weight: bold;">How many farmers:</label>
-              <input type="number" id="farmersInput" min="1" value="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-            </div>
-            <div>
-              <label style="display: block; margin-bottom: 5px; font-weight: bold;">How many small boxes:</label>
-              <input type="number" id="smallBoxesInput" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-            </div>
-            <div>
-              <label style="display: block; margin-bottom: 5px; font-weight: bold;">How many large boxes:</label>
-              <input type="number" id="largeBoxesInput" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-            </div>
-            <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 10px;">Calculate Distribution</button>
-            <div id="calculationResult" style="padding: 15px; background: #e8f5e8; border-radius: 4px; margin-top: 10px; display: none;">
-              <h4>Give to each farmer:</h4>
-              <div id="distributionText"></div>
-            </div>
-          </div>
-        </div>
-      `;
-      this.setupCalculatorListeners();
-      return;
-    }
-
-    // Find box inventory items with safety checks
-    const boxItems = sheetsAPI.inventoryData.filter((item) => {
-      if (!item || typeof item !== "object") return false;
-      const values = Object.values(item);
-      const firstColumn = values[0];
-      return (
-        firstColumn &&
-        typeof firstColumn === "string" &&
-        (firstColumn.includes("Large") || firstColumn.includes("Small"))
-      );
-    });
-
-    // Find verification date with safety checks
-    const verifiedItem = sheetsAPI.inventoryData.find((item) => {
-      if (!item || typeof item !== "object") return false;
-      const values = Object.values(item);
-      const firstColumn = values[0];
-      return (
-        firstColumn &&
-        typeof firstColumn === "string" &&
-        firstColumn.includes("Verified on")
-      );
-    });
-
-    const boxesHtml = boxItems
-      .map((item) => {
-        try {
-          const values = Object.values(item);
-          const boxType = values[0] || "Unknown";
-          const quantity = values[1] || "0";
-          return `
-            <div class="inventory-item">
-              <div class="inventory-count">${quantity}</div>
-              <div class="inventory-label">${boxType}</div>
-            </div>
-          `;
-        } catch (error) {
-          console.error("Error processing inventory item:", item, error);
-          return "";
-        }
-      })
-      .join("");
-
-    const verificationHtml = verifiedItem
-      ? `
-        <div class="inventory-item">
-          <div class="inventory-count">📅</div>
-          <div class="inventory-label">Last Updated<br>${Object.values(verifiedItem)[1] || "Unknown"}</div>
-        </div>
-      `
-      : "";
+    const inventory = this.getLocalInventory();
 
     inventoryContainer.innerHTML = `
       <!-- Section 1: Box Inventory -->
       <div style="margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <h4>📦 Box Inventory</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">
-          ${this.renderQuickStats(boxItems)}
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+          <div style="text-align: center; padding: 20px; background: #ffc107; border-radius: 8px; color: white;">
+            <div style="font-size: 2rem; font-weight: bold;">${inventory.smallBoxes}</div>
+            <div style="font-size: 0.9rem;">Small Boxes</div>
+          </div>
+          <div style="text-align: center; padding: 20px; background: #28a745; border-radius: 8px; color: white;">
+            <div style="font-size: 2rem; font-weight: bold;">${inventory.largeBoxes}</div>
+            <div style="font-size: 0.9rem;">Large Boxes</div>
+          </div>
         </div>
+        ${
+          inventory.lastUpdated
+            ? `
+          <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.8rem;">
+            Last updated by ${inventory.updatedBy} at ${inventory.lastUpdated}
+          </div>
+        `
+            : ""
+        }
       </div>
 
       <!-- Section 2: Box Calculator -->
-      <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <div style="margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <h3>🧮 Box Calculator</h3>
         <div style="display: grid; gap: 15px; margin-top: 15px;">
           <div>
@@ -186,78 +100,141 @@ class InventoryManager {
           </div>
         </div>
       </div>
+
+      <!-- Section 3: Update Inventory -->
+      <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3>📝 Update Inventory</h3>
+        <div style="display: grid; gap: 15px; margin-top: 15px;">
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Small boxes:</label>
+            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Large boxes:</label>
+            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Your name:</label>
+            <input type="text" id="updateName" placeholder="Enter your name" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+          <button class="directions-btn" onclick="inventoryManager.updateInventory()" style="margin-top: 10px; background: #007bff;">Update Inventory</button>
+        </div>
+      </div>
     `;
 
-    console.log(
-      "🔍 Debug: Full inventory rendered, setting up calculator listeners",
-    );
+    console.log("🔍 Debug: Local inventory rendered, setting up listeners");
     this.setupCalculatorListeners();
   }
 
   // ========================================
-  // HELPER METHODS
+  // LOCAL STORAGE METHODS
   // ========================================
-  renderQuickStats(boxItems) {
-    try {
-      const totalBoxes = boxItems.reduce((sum, item) => {
-        const values = Object.values(item);
-        const quantity = parseInt(values[1]) || 0;
-        return sum + quantity;
-      }, 0);
-
-      const largeBoxes = boxItems
-        .filter((item) => {
-          const values = Object.values(item);
-          return values[0] && values[0].includes("Large");
-        })
-        .reduce((sum, item) => {
-          const values = Object.values(item);
-          return sum + (parseInt(values[1]) || 0);
-        }, 0);
-
-      const smallBoxes = boxItems
-        .filter((item) => Object.values(item)[0].includes("Small"))
-        .reduce(
-          (sum, item) => sum + (parseInt(Object.values(item)[1]) || 0),
-          0,
-        );
-
-      return `
-        <div style="text-align: center;">
-          <div style="font-size: 1.5rem; font-weight: bold; color: #007bff;">${totalBoxes}</div>
-          <div style="font-size: 0.8rem; color: #666;">Total Boxes</div>
-        </div>
-        <div style="text-align: center;">
-          <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">${largeBoxes}</div>
-          <div style="font-size: 0.8rem; color: #666;">Large Boxes</div>
-        </div>
-        <div style="text-align: center;">
-          <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107;">${smallBoxes}</div>
-          <div style="font-size: 0.8rem; color: #666;">Small Boxes</div>
-        </div>
-      `;
-    } catch (error) {
-      console.error("Error in renderQuickStats:", error);
-      return "<div>Error loading stats</div>";
+  loadLocalInventory() {
+    const stored = localStorage.getItem("spfm_inventory");
+    if (stored) {
+      try {
+        const inventory = JSON.parse(stored);
+        console.log("✅ Loaded inventory from localStorage:", inventory);
+        return inventory;
+      } catch (error) {
+        console.error("Error parsing stored inventory:", error);
+      }
     }
+
+    // Default inventory
+    const defaultInventory = {
+      smallBoxes: 0,
+      largeBoxes: 0,
+      lastUpdated: null,
+      updatedBy: null,
+    };
+
+    this.saveLocalInventory(defaultInventory);
+    return defaultInventory;
+  }
+
+  getLocalInventory() {
+    return this.loadLocalInventory();
+  }
+
+  saveLocalInventory(inventory) {
+    localStorage.setItem("spfm_inventory", JSON.stringify(inventory));
+    console.log("✅ Saved inventory to localStorage:", inventory);
+  }
+
+  updateInventory() {
+    const smallBoxes =
+      parseInt(document.getElementById("updateSmallBoxes")?.value) || 0;
+    const largeBoxes =
+      parseInt(document.getElementById("updateLargeBoxes")?.value) || 0;
+    const name = document.getElementById("updateName")?.value?.trim();
+
+    if (!name) {
+      alert("Please enter your name");
+      return;
+    }
+
+    const now = new Date();
+    const timeString = now.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const inventory = {
+      smallBoxes: smallBoxes,
+      largeBoxes: largeBoxes,
+      lastUpdated: timeString,
+      updatedBy: name,
+    };
+
+    this.saveLocalInventory(inventory);
+
+    // Clear the name field
+    const nameField = document.getElementById("updateName");
+    if (nameField) nameField.value = "";
+
+    // Refresh the display
+    this.renderInventory();
+
+    console.log("✅ Inventory updated by", name);
   }
 
   // ========================================
-  // INVENTORY UPDATES (FUTURE FEATURE)
+  // INVENTORY UPDATES
   // ========================================
   updateInventoryCount(itemType, newCount) {
-    // Placeholder for future inventory update functionality
-    console.log(`Update ${itemType} to ${newCount}`);
+    const inventory = this.getLocalInventory();
+    if (itemType === "small") {
+      inventory.smallBoxes = newCount;
+    } else if (itemType === "large") {
+      inventory.largeBoxes = newCount;
+    }
+    this.saveLocalInventory(inventory);
+    this.renderInventory();
   }
 
   addInventoryItem(itemType, count) {
-    // Placeholder for future add inventory functionality
-    console.log(`Add ${count} ${itemType}`);
+    const inventory = this.getLocalInventory();
+    if (itemType === "small") {
+      inventory.smallBoxes += count;
+    } else if (itemType === "large") {
+      inventory.largeBoxes += count;
+    }
+    this.saveLocalInventory(inventory);
+    this.renderInventory();
   }
 
   removeInventoryItem(itemType, count) {
-    // Placeholder for future remove inventory functionality
-    console.log(`Remove ${count} ${itemType}`);
+    const inventory = this.getLocalInventory();
+    if (itemType === "small") {
+      inventory.smallBoxes = Math.max(0, inventory.smallBoxes - count);
+    } else if (itemType === "large") {
+      inventory.largeBoxes = Math.max(0, inventory.largeBoxes - count);
+    }
+    this.saveLocalInventory(inventory);
+    this.renderInventory();
   }
 
   // ========================================
@@ -288,11 +265,55 @@ class InventoryManager {
   }
 
   addBoxes() {
-    alert("Add boxes feature coming soon!");
+    const smallToAdd = parseInt(prompt("How many small boxes to add?") || "0");
+    const largeToAdd = parseInt(prompt("How many large boxes to add?") || "0");
+    const name = prompt("Your name:");
+
+    if (!name) return;
+
+    const inventory = this.getLocalInventory();
+    inventory.smallBoxes += smallToAdd;
+    inventory.largeBoxes += largeToAdd;
+
+    const now = new Date();
+    inventory.lastUpdated = now.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    inventory.updatedBy = name;
+
+    this.saveLocalInventory(inventory);
+    this.renderInventory();
   }
 
   removeBoxes() {
-    alert("Remove boxes feature coming soon!");
+    const smallToRemove = parseInt(
+      prompt("How many small boxes to remove?") || "0",
+    );
+    const largeToRemove = parseInt(
+      prompt("How many large boxes to remove?") || "0",
+    );
+    const name = prompt("Your name:");
+
+    if (!name) return;
+
+    const inventory = this.getLocalInventory();
+    inventory.smallBoxes = Math.max(0, inventory.smallBoxes - smallToRemove);
+    inventory.largeBoxes = Math.max(0, inventory.largeBoxes - largeToRemove);
+
+    const now = new Date();
+    inventory.lastUpdated = now.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    inventory.updatedBy = name;
+
+    this.saveLocalInventory(inventory);
+    this.renderInventory();
   }
 
   // ========================================
