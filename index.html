@@ -102,10 +102,6 @@
         <script>
             // Detailed debugging
             function updateStatus(msg) {
-                const statusEl = document.getElementById("status");
-                if (statusEl) {
-                    statusEl.textContent = msg;
-                }
                 console.log("Status:", msg);
             }
 
@@ -164,24 +160,18 @@
 
             // Also try without waiting for DOM
             setTimeout(() => {
-                if (
-                    document.getElementById("status").textContent ===
-                    "Script started"
-                ) {
-                    updateStatus(
-                        "DOM event didn't fire, trying direct init...",
-                    );
-                    try {
-                        if (typeof window.initializeApp === "function") {
-                            window.initializeApp();
-                        } else {
-                            updateStatus(
-                                "❌ initializeApp still not available on window",
-                            );
-                        }
-                    } catch (error) {
-                        updateStatus("❌ Direct init error: " + error.message);
+                // Backup initialization - DOM event didn't fire
+                updateStatus("DOM event didn't fire, trying direct init...");
+                try {
+                    if (typeof window.initializeApp === "function") {
+                        window.initializeApp();
+                    } else {
+                        updateStatus(
+                            "❌ initializeApp still not available on window",
+                        );
                     }
+                } catch (error) {
+                    updateStatus("❌ Direct init error: " + error.message);
                 }
             }, 2000);
 
