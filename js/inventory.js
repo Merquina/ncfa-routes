@@ -55,7 +55,7 @@ class InventoryManager {
     inventoryContainer.innerHTML = `
       <!-- Section 1: Box Inventory -->
       <div style="margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h4>📦 Box Inventory</h4>
+        <h3>📦 Box Inventory</h3>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
           <div style="text-align: center; padding: 20px; background: #ffc107; border-radius: 8px; color: white;">
             <div style="font-size: 2rem; font-weight: bold;">${inventory.smallBoxes}</div>
@@ -103,7 +103,7 @@ class InventoryManager {
 
       <!-- Section 3: Update Inventory -->
       <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h3>📝 Update Inventory</h3>
+        <h4>📝 Update Inventory</h4>
         <div style="display: grid; gap: 15px; margin-top: 15px;">
           <div>
             <label style="display: block; margin-bottom: 5px; font-weight: bold;">Small boxes:</label>
