@@ -67,9 +67,11 @@ class InventoryManager {
     if (!sheetsAPI.inventoryData || sheetsAPI.inventoryData.length === 0) {
       console.log("🔍 Debug: No inventory data, rendering calculator anyway");
       inventoryContainer.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666; margin-bottom: 30px;">
-          <h3>📦 Box Inventory</h3>
-          <p>No inventory data available.<br>Make sure your spreadsheet has an "Inventory" tab.</p>
+        <div style="margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h4>📦 Box Inventory</h4>
+          <div style="text-align: center; padding: 20px; color: #666;">
+            <p>No inventory data available</p>
+          </div>
         </div>
 
         <!-- Section 2: Box Calculator -->
@@ -155,21 +157,9 @@ class InventoryManager {
     inventoryContainer.innerHTML = `
       <!-- Section 1: Box Inventory -->
       <div style="margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h3>📦 Box Inventory</h3>
-        <div class="inventory-grid">
-          ${boxesHtml}
-          ${verificationHtml}
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-          <button class="directions-btn" onclick="refreshData()">🔄 Refresh</button>
-          <button class="directions-btn" onclick="inventoryManager.addBoxes()">➕ Add</button>
-          <button class="directions-btn" onclick="inventoryManager.removeBoxes()">➖ Remove</button>
-        </div>
-        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-          <h4>📊 Quick Stats</h4>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">
-            ${this.renderQuickStats(boxItems)}
-          </div>
+        <h4>📦 Box Inventory</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">
+          ${this.renderQuickStats(boxItems)}
         </div>
       </div>
 
