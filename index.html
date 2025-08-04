@@ -34,7 +34,7 @@
                     font-family: monospace;
                 "
             >
-                Deployment #012 | iPhone touch fixes |
+                Deployment #016 | Refactored modules |
                 <span id="timestamp"></span> |
                 <span id="status">Loading...</span>
             </div>
@@ -107,6 +107,8 @@
 
         <!-- Application Modules - Load synchronously to ensure order -->
         <script src="js/sheets.js" type="text/javascript"></script>
+        <script src="js/assignments.js" type="text/javascript"></script>
+        <script src="js/inventory.js" type="text/javascript"></script>
         <script src="js/workers.js" type="text/javascript"></script>
         <script src="js/dates.js" type="text/javascript"></script>
         <script src="js/app.js" type="text/javascript"></script>
@@ -136,6 +138,14 @@
                 // Check if modules loaded
                 if (typeof sheetsAPI === "undefined") {
                     updateStatus("❌ sheetsAPI not loaded");
+                    return;
+                }
+                if (typeof assignmentsManager === "undefined") {
+                    updateStatus("❌ assignmentsManager not loaded");
+                    return;
+                }
+                if (typeof inventoryManager === "undefined") {
+                    updateStatus("❌ inventoryManager not loaded");
                     return;
                 }
                 if (typeof workersManager === "undefined") {

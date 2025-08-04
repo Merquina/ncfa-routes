@@ -61,7 +61,7 @@ async function initializeApp() {
 // ========================================
 function initializeUI() {
   // Initialize inventory display
-  renderInventory();
+  inventoryManager.renderInventory();
 
   // Hide loading
   hideLoading();
@@ -103,7 +103,7 @@ function switchTab(tabName) {
   // Load content based on tab
   switch (tabName) {
     case "box":
-      renderInventory();
+      inventoryManager.renderInventory();
       break;
     case "date":
       datesManager.renderDates();
@@ -252,74 +252,10 @@ window.showError = showError;
 
 // Also attach modules to window for debugging
 window.sheetsAPI = sheetsAPI;
+window.assignmentsManager = assignmentsManager;
+window.inventoryManager = inventoryManager;
 window.workersManager = workersManager;
 window.datesManager = datesManager;
-
-// ========================================
-// INVENTORY/BOX MANAGEMENT
-// ========================================
-function renderInventory() {
-  const inventoryContainer = document.getElementById("inventoryContainer");
-  if (!inventoryContainer) return;
-
-  if (sheetsAPI.inventoryData.length === 0) {
-    inventoryContainer.innerHTML = `
-      <div style="text-align: center; padding: 40px; color: #666;">
-        <h3>📦 Box Inventory</h3>
-        <p>No inventory data available.<br>Make sure your spreadsheet has an "Inventory" tab.</p>
-      </div>
-    `;
-    return;
-  }
-
-  // Find box inventory items
-  const boxItems = sheetsAPI.inventoryData.filter((item) => {
-    const firstColumn = Object.values(item)[0];
-    return (
-      firstColumn &&
-      (firstColumn.includes("Large") || firstColumn.includes("Small"))
-    );
-  });
-
-  // Find verification date
-  const verifiedItem = sheetsAPI.inventoryData.find((item) => {
-    const firstColumn = Object.values(item)[0];
-    return firstColumn && firstColumn.includes("Verified on");
-  });
-
-  const boxesHtml = boxItems
-    .map((item) => {
-      const values = Object.values(item);
-      const boxType = values[0] || "Unknown";
-      const quantity = values[1] || "0";
-      return `
-        <div class="inventory-item">
-          <div class="inventory-count">${quantity}</div>
-          <div class="inventory-label">${boxType}</div>
-        </div>
-      `;
-    })
-    .join("");
-
-  const verificationHtml = verifiedItem
-    ? `
-      <div class="inventory-item">
-        <div class="inventory-count">📅</div>
-        <div class="inventory-label">Last Updated<br>${Object.values(verifiedItem)[1]}</div>
-      </div>
-    `
-    : "";
-
-  inventoryContainer.innerHTML = `
-    <div class="inventory-grid">
-      ${boxesHtml}
-      ${verificationHtml}
-    </div>
-    <div style="text-align: center; margin-top: 20px;">
-      <button class="directions-btn" onclick="refreshData()">🔄 Refresh Inventory</button>
-    </div>
-  `;
-}
 
 // ========================================
 // TAB HANDLERS SETUP

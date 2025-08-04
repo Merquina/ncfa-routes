@@ -148,7 +148,7 @@ class DatesManager {
 
     // Get routes for this date
     const routes = sheetsAPI.getRoutesByDate(date);
-    this.renderDateAssignments(date, routes);
+    assignmentsManager.renderDateAssignments(date, routes);
   }
 
   selectRecoveryRoute(worker, dayName) {
@@ -161,152 +161,20 @@ class DatesManager {
     const calculatedDate = this.getNextDateForDay(dayName);
     route.calculatedDate = calculatedDate;
 
-    this.renderRecoveryRouteAssignment(route);
+    assignmentsManager.renderRecoveryRouteAssignment(route);
   }
 
   // ========================================
   // DATE ASSIGNMENTS RENDERING
   // ========================================
   renderDateAssignments(date, routes) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
-    if (!assignmentsContainer) return;
-
-    if (routes.length === 0) {
-      assignmentsContainer.innerHTML = `
-                <div class="no-assignments">
-                    <h3>📅 ${date}</h3>
-                    <p>No routes scheduled for this date.</p>
-                </div>
-            `;
-      return;
-    }
-
-    assignmentsContainer.innerHTML = routes
-      .map((assignment) => this.renderSingleDateAssignment(assignment))
-      .join("");
-  }
-
-  renderSingleDateAssignment(assignment) {
-    const marketContact = sheetsAPI.getAddressFromContacts(assignment.market);
-    const dropOffContact = sheetsAPI.getAddressFromContacts(assignment.dropOff);
-    const marketAddress = marketContact
-      ? marketContact.address
-      : assignment.marketAddress;
-    const dropOffAddress = dropOffContact
-      ? dropOffContact.address
-      : assignment.dropOffAddress;
-
-    const fullRouteUrl =
-      assignment.dropOff &&
-      assignment.dropOff.trim() &&
-      assignment.dropOff !== "TBD" &&
-      dropOffAddress &&
-      dropOffAddress.trim()
-        ? `https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}`
-        : "";
-
-    return `
-            <div class="assignment-card">
-                <div style="text-align: center; padding: 8px; background: white;">
-                    <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-                    ${fullRouteUrl ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Open Full Route in Maps</a>` : ""}
-                </div>
-
-                <div class="market-section">
-                    <h2>${assignment.market} – ${assignment.date}</h2>
-                    <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
-                    <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
-                    <p>
-                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
-                           target="_blank" class="directions-btn">📍 ${marketAddress}</a>
-                    </p>
-                    ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn">📞 ${marketContact.phone}</a></p>` : ""}
-                </div>
-
-                <div class="single-column">
-                    <div>
-                        <h3>👥 Team</h3>
-                        ${assignment.worker1 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker1)} ${assignment.worker1}</span>` : ""}
-                        ${assignment.worker2 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker2)} ${assignment.worker2}</span>` : ""}
-                        ${assignment.worker3 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker3)} ${assignment.worker3}</span>` : ""}
-                        ${assignment.worker4 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker4)} ${assignment.worker4}</span>` : ""}
-                    </div>
-                    <div>
-                        <h3>🚐 Vans</h3>
-                        ${assignment.van1 ? `<div class="van-info">Van 1: ${assignment.van1}</div>` : ""}
-                        ${assignment.van2 ? `<div class="van-info">Van 2: ${assignment.van2}</div>` : ""}
-                        ${assignment.van3 ? `<div class="van-info">Van 3: ${assignment.van3}</div>` : ""}
-                        ${assignment.van4 ? `<div class="van-info">Van 4: ${assignment.van4}</div>` : ""}
-                    </div>
-                </div>
-
-                ${this.renderSteps(assignment)}
-
-                ${
-                  assignment.dropOff &&
-                  assignment.dropOff.trim() &&
-                  assignment.dropOff !== "TBD"
-                    ? this.renderDropOffSection(
-                        assignment,
-                        dropOffContact,
-                        dropOffAddress,
-                      )
-                    : ""
-                }
-
-                ${this.renderFinalSection(assignment)}
-            </div>
-        `;
+    // Delegate to assignments manager
+    assignmentsManager.renderDateAssignments(date, routes);
   }
 
   renderRecoveryRouteAssignment(route) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
-    if (!assignmentsContainer) return;
-
-    const routeDate = route.calculatedDate || route["Recovery Routes"];
-    const startTime = route["Start Time"] || route.startTime || "TBD";
-
-    const stops = this.buildRecoveryStops(route);
-    const fullRouteUrl = this.buildFullRouteUrl(stops);
-
-    assignmentsContainer.innerHTML = `
-            <div class="assignment-card">
-                <div class="recovery-header">🚗 Recovery Assignment</div>
-                <div style="text-align: center; padding: 8px; background: white;">
-                    <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-                    ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px;">🗺️ Open Full Route in Maps</a>` : ""}
-                </div>
-
-                <div class="market-section">
-                    <h2>${routeDate}</h2>
-                    <p><strong>Start Time:</strong> ${startTime}</p>
-                    <p><strong>Worker:</strong> ${workersManager.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
-                </div>
-
-                ${stops
-                  .map(
-                    (stop, index) => `
-                    <div class="step-header">
-                        <span class="step-number">${index + 1}</span>
-                        ${stop.name}
-                    </div>
-                    <div class="single-column">
-                        ${
-                          stop.address
-                            ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn">📍 ${stop.address}</a>
-                               ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn">📞 ${stop.phone}</a></p>` : ""}`
-                            : `<p><em>Address not specified</em></p>`
-                        }
-                    </div>
-                `,
-                  )
-                  .join("")}
-            </div>
-        `;
+    // Delegate to assignments manager
+    assignmentsManager.renderRecoveryRouteAssignment(route);
   }
 
   // ========================================
@@ -352,112 +220,6 @@ class DatesManager {
       month: "long",
       day: "numeric",
     });
-  }
-
-  buildRecoveryStops(route) {
-    const stops = [];
-    for (let i = 1; i <= 7; i++) {
-      const stopName = route[`Stop ${i}`];
-      const stopAddress = route[`Stop ${i} Address`];
-
-      if (stopName && stopName.trim() && stopName.toLowerCase() !== "stop") {
-        const contactInfo = sheetsAPI.getAddressFromContacts(stopName);
-        stops.push({
-          name: stopName,
-          address: contactInfo ? contactInfo.address : stopAddress || "",
-          phone: contactInfo ? contactInfo.phone : "",
-        });
-      }
-    }
-    return stops;
-  }
-
-  buildFullRouteUrl(stops) {
-    if (stops.length <= 1) return "";
-
-    const addresses = stops
-      .map((stop) => stop.address)
-      .filter((addr) => addr && addr.trim())
-      .map((addr) => encodeURIComponent(addr.trim()));
-
-    if (addresses.length <= 1) return "";
-
-    const origin = addresses[0];
-    const destination = addresses[addresses.length - 1];
-    const waypoints = addresses.slice(1, -1).join("|");
-
-    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}`;
-  }
-
-  renderSteps(assignment) {
-    const steps = [];
-
-    // Office Materials
-    if (assignment.officeMaterials && assignment.officeMaterials.trim()) {
-      steps.push({
-        title: "📋 Office Materials",
-        content: assignment.officeMaterials,
-      });
-    }
-
-    // Storage Materials
-    if (assignment.storageMaterials && assignment.storageMaterials.trim()) {
-      steps.push({
-        title: "📦 Storage Materials",
-        content: assignment.storageMaterials,
-      });
-    }
-
-    return steps
-      .map(
-        (step, index) => `
-            <div class="step-header">
-                <span class="step-number">${index + 1}</span>
-                ${step.title}
-            </div>
-            <div class="single-column">
-                <p>${step.content}</p>
-            </div>
-        `,
-      )
-      .join("");
-  }
-
-  renderDropOffSection(assignment, dropOffContact, dropOffAddress) {
-    return `
-            <div class="dropoff-section">
-                <div class="step-header">
-                    <span class="step-number">🚚</span>
-                    Drop-off at ${assignment.dropOff}
-                </div>
-                <div class="single-column">
-                    <p><strong>Drop-off Amount:</strong> ${assignment.dropoffAmount || assignment["dropoffAmount "] || "TBD"}</p>
-                    ${
-                      dropOffAddress &&
-                      dropOffAddress.trim() !== "" &&
-                      dropOffAddress.trim() !== "TBD"
-                        ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dropOffAddress.trim())}" target="_blank" class="directions-btn">📍 ${dropOffAddress}</a>`
-                        : ""
-                    }
-                    ${dropOffContact && dropOffContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${dropOffContact.phone}" class="phone-btn">📞 ${dropOffContact.phone}</a></p>` : ""}
-                </div>
-            </div>
-        `;
-  }
-
-  renderFinalSection(assignment) {
-    return `
-            <div class="final-section">
-                <div class="step-header">
-                    <span class="step-number">✅</span>
-                    Final Steps
-                </div>
-                <div class="single-column">
-                    <p><strong>Return Time:</strong> ${assignment.returnTime || "TBD"}</p>
-                    <p><strong>Notes:</strong> ${assignment.notes || "None"}</p>
-                </div>
-            </div>
-        `;
   }
 }
 
