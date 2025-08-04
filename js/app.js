@@ -64,7 +64,7 @@ async function initializeApp() {
 // ========================================
 function initializeUI() {
   // Initialize inventory display
-  inventoryManager.renderInventory();
+  window.inventoryManager.renderInventory();
 
   // Hide loading
   hideLoading();
@@ -106,7 +106,7 @@ function switchTab(tabName) {
   // Load content based on tab
   switch (tabName) {
     case "box":
-      inventoryManager.renderInventory();
+      window.inventoryManager.renderInventory();
       break;
     case "date":
       datesManager.renderDates();
@@ -272,7 +272,6 @@ window.showError = showError;
 // Also attach modules to window for debugging
 window.sheetsAPI = sheetsAPI;
 window.assignmentsManager = assignmentsManager;
-window.inventoryManager = inventoryManager;
 window.workersManager = workersManager;
 window.datesManager = datesManager;
 window.updateLastModified = updateLastModified;

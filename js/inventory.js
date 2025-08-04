@@ -311,6 +311,9 @@ class InventoryManager {
 // Export instance
 const inventoryManager = new InventoryManager();
 
+// Make it globally available
+window.inventoryManager = inventoryManager;
+
 // Confirm this file loaded
 console.log("✅ inventory.js loaded");
 window.inventoryManagerLoaded = true;
