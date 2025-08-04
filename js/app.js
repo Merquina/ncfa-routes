@@ -195,8 +195,8 @@ function updateLastModified() {
       hour: "2-digit",
       minute: "2-digit",
     });
-    lastUpdatedEl.textContent = `Last updated: ${dateStr}`;
-    console.log("✅ Last updated timestamp set");
+    lastUpdatedEl.textContent = `Data loaded: ${dateStr}`;
+    console.log("✅ Data loaded timestamp set");
   }
 }
 
