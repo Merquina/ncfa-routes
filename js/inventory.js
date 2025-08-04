@@ -49,11 +49,13 @@ class InventoryManager {
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
           <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
             <div style="font-size: 2rem; font-weight: bold; color: #333;">${inventory.smallBoxes}</div>
-            <div style="font-size: 0.9rem; color: #666;">Small Boxes</div>
+            <div style="font-size: 0.9rem; color: #666;">small</div>
+            <div style="font-size: 0.7rem; color: #999;">5/9 bushel</div>
           </div>
           <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
             <div style="font-size: 2rem; font-weight: bold; color: #333;">${inventory.largeBoxes}</div>
-            <div style="font-size: 0.9rem; color: #666;">Large Boxes</div>
+            <div style="font-size: 0.9rem; color: #666;">LARGE</div>
+            <div style="font-size: 0.7rem; color: #999;">1 1/9 bushel</div>
           </div>
         </div>
         ${
