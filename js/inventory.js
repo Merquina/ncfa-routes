@@ -101,24 +101,26 @@ class InventoryManager {
 
     // Find box inventory items with safety checks
     const boxItems = sheetsAPI.inventoryData.filter((item) => {
-      if (!item || typeof item !== 'object') return false;
+      if (!item || typeof item !== "object") return false;
       const values = Object.values(item);
       const firstColumn = values[0];
       return (
         firstColumn &&
-        typeof firstColumn === 'string' &&
+        typeof firstColumn === "string" &&
         (firstColumn.includes("Large") || firstColumn.includes("Small"))
       );
     });
 
     // Find verification date with safety checks
     const verifiedItem = sheetsAPI.inventoryData.find((item) => {
-      if (!item || typeof item !== 'object') return false;
+      if (!item || typeof item !== "object") return false;
       const values = Object.values(item);
       const firstColumn = values[0];
-      return firstColumn &&
-             typeof firstColumn === 'string' &&
-             firstColumn.includes("Verified on");
+      return (
+        firstColumn &&
+        typeof firstColumn === "string" &&
+        firstColumn.includes("Verified on")
+      );
     });
 
     const boxesHtml = boxItems
@@ -135,7 +137,7 @@ class InventoryManager {
           `;
         } catch (error) {
           console.error("Error processing inventory item:", item, error);
-          return '';
+          return "";
         }
       })
       .join("");
@@ -144,7 +146,7 @@ class InventoryManager {
       ? `
         <div class="inventory-item">
           <div class="inventory-count">📅</div>
-          <div class="inventory-label">Last Updated<br>${Object.values(verifiedItem)[1] || 'Unknown'}</div>
+          <div class="inventory-label">Last Updated<br>${Object.values(verifiedItem)[1] || "Unknown"}</div>
         </div>
       `
       : "";
@@ -195,7 +197,9 @@ class InventoryManager {
       </div>
     `;
 
-    console.log("🔍 Debug: Full inventory rendered, setting up calculator listeners");
+    console.log(
+      "🔍 Debug: Full inventory rendered, setting up calculator listeners",
+    );
     this.setupCalculatorListeners();
   }
 
@@ -211,7 +215,7 @@ class InventoryManager {
       }, 0);
 
       const largeBoxes = boxItems
-        .filter(item => {
+        .filter((item) => {
           const values = Object.values(item);
           return values[0] && values[0].includes("Large");
         })
@@ -221,23 +225,30 @@ class InventoryManager {
         }, 0);
 
       const smallBoxes = boxItems
-        .filter(item => Object.values(item)[0].includes("Small"))
-      .reduce((sum, item) => sum + (parseInt(Object.values(item)[1]) || 0), 0);
+        .filter((item) => Object.values(item)[0].includes("Small"))
+        .reduce(
+          (sum, item) => sum + (parseInt(Object.values(item)[1]) || 0),
+          0,
+        );
 
-    return `
-      <div style="text-align: center;">
-        <div style="font-size: 1.5rem; font-weight: bold; color: #007bff;">${totalBoxes}</div>
-        <div style="font-size: 0.8rem; color: #666;">Total Boxes</div>
-      </div>
-      <div style="text-align: center;">
-        <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">${largeBoxes}</div>
-        <div style="font-size: 0.8rem; color: #666;">Large Boxes</div>
-      </div>
-      <div style="text-align: center;">
-        <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107;">${smallBoxes}</div>
-        <div style="font-size: 0.8rem; color: #666;">Small Boxes</div>
-      </div>
-    `;
+      return `
+        <div style="text-align: center;">
+          <div style="font-size: 1.5rem; font-weight: bold; color: #007bff;">${totalBoxes}</div>
+          <div style="font-size: 0.8rem; color: #666;">Total Boxes</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">${largeBoxes}</div>
+          <div style="font-size: 0.8rem; color: #666;">Large Boxes</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107;">${smallBoxes}</div>
+          <div style="font-size: 0.8rem; color: #666;">Small Boxes</div>
+        </div>
+      `;
+    } catch (error) {
+      console.error("Error in renderQuickStats:", error);
+      return "<div>Error loading stats</div>";
+    }
   }
 
   // ========================================
@@ -262,32 +273,35 @@ class InventoryManager {
   // BOX CALCULATOR
   // ========================================
   calculateDistribution() {
-    const farmers = parseInt(document.getElementById('farmersInput')?.value) || 1;
-    const smallBoxes = parseInt(document.getElementById('smallBoxesInput')?.value) || 0;
-    const largeBoxes = parseInt(document.getElementById('largeBoxesInput')?.value) || 0;
+    const farmers =
+      parseInt(document.getElementById("farmersInput")?.value) || 1;
+    const smallBoxes =
+      parseInt(document.getElementById("smallBoxesInput")?.value) || 0;
+    const largeBoxes =
+      parseInt(document.getElementById("largeBoxesInput")?.value) || 0;
 
     const smallPerFarmer = Math.floor(smallBoxes / farmers);
     const largePerFarmer = Math.floor(largeBoxes / farmers);
 
-    const resultDiv = document.getElementById('calculationResult');
-    const distributionText = document.getElementById('distributionText');
+    const resultDiv = document.getElementById("calculationResult");
+    const distributionText = document.getElementById("distributionText");
 
     if (resultDiv && distributionText) {
       distributionText.innerHTML = `
         <strong>Small: ${smallPerFarmer}</strong> | <strong>Large: ${largePerFarmer}</strong>
-        ${smallBoxes % farmers > 0 ? `<br><small>Remaining small boxes: ${smallBoxes % farmers}</small>` : ''}
-        ${largeBoxes % farmers > 0 ? `<br><small>Remaining large boxes: ${largeBoxes % farmers}</small>` : ''}
+        ${smallBoxes % farmers > 0 ? `<br><small>Remaining small boxes: ${smallBoxes % farmers}</small>` : ""}
+        ${largeBoxes % farmers > 0 ? `<br><small>Remaining large boxes: ${largeBoxes % farmers}</small>` : ""}
       `;
-      resultDiv.style.display = 'block';
+      resultDiv.style.display = "block";
     }
   }
 
   addBoxes() {
-    alert('Add boxes feature coming soon!');
+    alert("Add boxes feature coming soon!");
   }
 
   removeBoxes() {
-    alert('Remove boxes feature coming soon!');
+    alert("Remove boxes feature coming soon!");
   }
 
   // ========================================
@@ -296,12 +310,12 @@ class InventoryManager {
   setupCalculatorListeners() {
     setTimeout(() => {
       console.log("🔍 Debug: Setting up calculator listeners");
-      const inputs = ['farmersInput', 'smallBoxesInput', 'largeBoxesInput'];
-      inputs.forEach(id => {
+      const inputs = ["farmersInput", "smallBoxesInput", "largeBoxesInput"];
+      inputs.forEach((id) => {
         const input = document.getElementById(id);
         console.log(`🔍 Debug: Setting up listener for ${id}:`, input);
         if (input) {
-          input.addEventListener('input', () => this.calculateDistribution());
+          input.addEventListener("input", () => this.calculateDistribution());
         }
       });
     }, 100);
@@ -318,7 +332,6 @@ try {
   // Make it globally available
   window.inventoryManager = inventoryManager;
   console.log("✅ inventoryManager attached to window");
-
 } catch (error) {
   console.error("❌ Error creating inventoryManager:", error);
   console.error("Error stack:", error.stack);
