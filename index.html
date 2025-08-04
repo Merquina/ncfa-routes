@@ -28,7 +28,7 @@
                     font-family: monospace;
                 "
             >
-                Deployment #007 | Fix app.js loading |
+                Deployment #008 | Mobile bottom tabs |
                 <span id="timestamp"></span> |
                 <span id="status">Loading...</span>
             </div>
@@ -190,6 +190,20 @@
                     }
                 }
             }, 2000);
+
+            // Simple tab switching function for mobile compatibility
+            function switchTab(tabName) {
+                if (typeof window.switchTab === "function") {
+                    window.switchTab(tabName);
+                } else {
+                    console.log("switchTab not available yet, trying later...");
+                    setTimeout(() => {
+                        if (typeof window.switchTab === "function") {
+                            window.switchTab(tabName);
+                        }
+                    }, 500);
+                }
+            }
         </script>
     </body>
 </html>
