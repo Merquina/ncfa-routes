@@ -26,20 +26,14 @@ async function initializeApp() {
     updateVersionStatus("Showing loading...");
     showLoading();
     console.log("🚀 Starting SPFM Routes app...");
-    updateVersionStatus("Loading data...");
-
-    // Load data for dates and workers tabs only (inventory uses local storage)
-    console.log("📊 Fetching sheet data...");
-    await sheetsAPI.fetchSheetData();
-    console.log("✅ Sheet data loaded");
-
     updateVersionStatus("Initializing UI...");
-    // Initialize UI (inventory will use local storage)
+
+    // Initialize UI (no API needed - only inventory uses local storage)
     initializeUI();
     console.log("✅ UI initialized");
 
     updateVersionStatus("Setting up views...");
-    // Set default view
+    // Set default view to boxes (no API needed)
     switchTab("box");
     console.log("✅ Default tab set");
 
@@ -47,10 +41,7 @@ async function initializeApp() {
     setupTabHandlers();
 
     console.log("✅ App initialized successfully");
-    updateVersionStatus("✅ Working");
-
-    // Update last modified timestamp
-    updateLastModified();
+    updateVersionStatus("✅ Ready - API loads on demand");
   } catch (error) {
     console.error("❌ Application initialization failed:", error);
     console.error("Error details:", error.stack);
@@ -120,14 +111,39 @@ function switchTab(tabName) {
       break;
     case "date":
       if (window.datesManager) {
-        datesManager.renderDates();
+        // Load API data when date tab is clicked
+        loadApiDataIfNeeded().then(() => {
+          datesManager.renderDates();
+        });
       }
       break;
     case "worker":
       if (window.workersManager) {
-        workersManager.renderWorkers();
+        // Load API data when worker tab is clicked
+        loadApiDataIfNeeded().then(() => {
+          workersManager.renderWorkers();
+        });
       }
       break;
+  }
+}
+
+// ========================================
+// API LOADING ON DEMAND
+// ========================================
+async function loadApiDataIfNeeded() {
+  if (sheetsAPI.data.length === 0) {
+    console.log("📊 Loading API data on demand...");
+    updateVersionStatus("Loading sheet data...");
+    try {
+      await sheetsAPI.fetchSheetData();
+      console.log("✅ API data loaded");
+      updateVersionStatus("✅ Ready");
+    } catch (error) {
+      console.error("❌ Error loading API data:", error);
+      updateVersionStatus("❌ API Error");
+      throw error;
+    }
   }
 }
 
@@ -135,15 +151,36 @@ function switchTab(tabName) {
 // GLOBAL FUNCTIONS (called from HTML)
 // ========================================
 function selectWorker(worker) {
-  workersManager.selectWorker(worker);
+  // Load API data when worker is selected
+  loadApiDataIfNeeded()
+    .then(() => {
+      workersManager.selectWorker(worker);
+    })
+    .catch((error) => {
+      showError("Failed to load worker data: " + error.message);
+    });
 }
 
 function selectDate(date) {
-  datesManager.selectDate(date);
+  // Load API data when date is selected
+  loadApiDataIfNeeded()
+    .then(() => {
+      datesManager.selectDate(date);
+    })
+    .catch((error) => {
+      showError("Failed to load date data: " + error.message);
+    });
 }
 
 function selectRecoveryRoute(worker, dayName) {
-  datesManager.selectRecoveryRoute(worker, dayName);
+  // Load API data when recovery route is selected
+  loadApiDataIfNeeded()
+    .then(() => {
+      datesManager.selectRecoveryRoute(worker, dayName);
+    })
+    .catch((error) => {
+      showError("Failed to load recovery route data: " + error.message);
+    });
 }
 
 function printAssignment() {
@@ -254,7 +291,9 @@ window.addEventListener("unhandledrejection", function (e) {
 async function refreshData() {
   try {
     showLoading();
-    await sheetsAPI.fetchSheetData();
+    // Force refresh API data
+    sheetsAPI.data = []; // Clear cache to force reload
+    await loadApiDataIfNeeded();
 
     // Refresh current tab
     switchTab(currentTab);
