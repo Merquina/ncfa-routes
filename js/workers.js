@@ -59,17 +59,25 @@ class WorkersManager {
 
     event.target.classList.add("selected");
 
-    // Add visual separator before assignments
+    // Add visual separator and loading state
     const assignmentsContainer = document.getElementById(
       "assignmentsContainer",
     );
     if (assignmentsContainer) {
       assignmentsContainer.innerHTML = `
-        <div style="text-align: center; padding: 20px; color: #666;">
-          <div style="border-top: 2px solid #ddd; margin: 0 20px 20px 20px;"></div>
-          <p>Loading assignment for ${this.getWorkerEmoji(worker)} ${worker}...</p>
+        <div style="text-align: center; padding: 20px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px; border: 2px solid #007bff;">
+          <div style="font-size: 2rem; margin-bottom: 10px;">📋</div>
+          <div style="border-top: 2px solid #ddd; margin: 0 20px 15px 20px;"></div>
+          <p style="font-weight: bold; color: #007bff;">Loading assignment for ${this.getWorkerEmoji(worker)} ${worker}...</p>
+          <div style="font-size: 0.8rem; color: #999; margin-top: 10px;">Scrolling to assignment view...</div>
         </div>
       `;
+
+      // Immediately scroll to show the loading state
+      assignmentsContainer.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
     }
 
     // Get worker assignments and slide to assignments view
@@ -79,67 +87,40 @@ class WorkersManager {
     setTimeout(() => {
       this.renderWorkerAssignments(worker, assignments);
 
-      // Add scroll indicator for mobile feedback
-      const scrollIndicator = document.createElement("div");
-      scrollIndicator.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.7);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 20px;
-        z-index: 9999;
-        font-size: 14px;
-      `;
-      scrollIndicator.textContent = "📋 Viewing Assignment";
-      document.body.appendChild(scrollIndicator);
-
-      // Mobile-friendly scroll to assignments
+      // Simple, direct mobile scrolling
       setTimeout(() => {
         if (assignmentsContainer) {
-          // Simple mobile scroll approach
+          // Force scroll to bottom of page to ensure assignment is visible
           const isMobile = /iPhone|iPad|iPod|Android/i.test(
             navigator.userAgent,
           );
 
           if (isMobile) {
-            // Mobile: scroll to element with more aggressive approach
-            assignmentsContainer.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-              inline: "nearest",
-            });
-
-            // Fallback: force scroll after delay
-            setTimeout(() => {
-              const rect = assignmentsContainer.getBoundingClientRect();
-              const scrollTop = window.pageYOffset + rect.top - 100;
-              window.scrollTo({ top: scrollTop, behavior: "smooth" });
-            }, 300);
-          } else {
-            // Desktop: use original method
-            const rect = assignmentsContainer.getBoundingClientRect();
-            const currentScroll =
-              window.pageYOffset || document.documentElement.scrollTop;
-            const targetScroll = currentScroll + rect.top - 20;
+            // Mobile: scroll to bottom of document
+            const documentHeight = Math.max(
+              document.body.scrollHeight,
+              document.body.offsetHeight,
+              document.documentElement.clientHeight,
+              document.documentElement.scrollHeight,
+              document.documentElement.offsetHeight,
+            );
 
             window.scrollTo({
-              top: targetScroll,
+              top: documentHeight,
               behavior: "smooth",
+            });
+
+            console.log("Mobile scroll triggered to:", documentHeight);
+          } else {
+            // Desktop: scroll to assignment
+            assignmentsContainer.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
             });
           }
         }
-
-        // Remove scroll indicator
-        setTimeout(() => {
-          if (scrollIndicator && scrollIndicator.parentNode) {
-            scrollIndicator.parentNode.removeChild(scrollIndicator);
-          }
-        }, 1500);
-      }, 100);
-    }, 200);
+      }, 300);
+    }, 100);
   }
 
   // ========================================
