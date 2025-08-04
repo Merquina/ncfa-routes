@@ -14,7 +14,7 @@
                 font-family:
                     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                     sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: #f5f5f5;
                 min-height: 100vh;
                 margin: 0;
                 padding: 8px;
@@ -31,7 +31,7 @@
             }
 
             .header {
-                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                background: #4a4a4a;
                 padding: 8px;
                 text-align: center;
                 color: white;
@@ -81,16 +81,16 @@
             }
 
             .worker-card:hover {
-                border-color: #56ab2f;
+                border-color: #4a4a4a;
                 box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
                 transform: translateY(-2px);
             }
 
             .worker-card.selected {
-                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                background: #4a4a4a;
                 color: white;
-                border-color: #56ab2f;
-                box-shadow: 0 8px 16px rgba(86, 171, 47, 0.3);
+                border-color: #4a4a4a;
+                box-shadow: 0 8px 16px rgba(74, 74, 74, 0.3);
                 transform: translateY(-3px);
             }
 
@@ -131,7 +131,7 @@
             }
 
             .dropoff-section {
-                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                background: #f0f0f0;
             }
 
             .final-section {
@@ -386,15 +386,32 @@
             }
 
             .view-btn:hover {
-                border-color: #56ab2f;
+                border-color: #4a4a4a;
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             }
 
             .view-btn.active {
-                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                background: #4a4a4a;
                 color: white;
-                border-color: #56ab2f;
-                box-shadow: 0 4px 12px rgba(86, 171, 47, 0.3);
+                border-color: #4a4a4a;
+                box-shadow: 0 4px 12px rgba(74, 74, 74, 0.3);
+            }
+
+            .phone-btn {
+                display: inline-block;
+                background: #28a745;
+                color: white;
+                text-decoration: none;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.9em;
+                transition: background-color 0.3s ease;
+            }
+
+            .phone-btn:hover {
+                background: #218838;
+                text-decoration: none;
+                color: white;
             }
 
             .date-grid {
@@ -418,16 +435,16 @@
             }
 
             .date-card:hover {
-                border-color: #56ab2f;
+                border-color: #4a4a4a;
                 box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
                 transform: translateY(-2px);
             }
 
             .date-card.selected {
-                background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                background: #4a4a4a;
                 color: white;
-                border-color: #56ab2f;
-                box-shadow: 0 8px 16px rgba(86, 171, 47, 0.3);
+                border-color: #4a4a4a;
+                box-shadow: 0 8px 16px rgba(74, 74, 74, 0.3);
                 transform: translateY(-3px);
             }
 
@@ -1270,8 +1287,8 @@
 
                 // Get workers from SPFM data
                 data.forEach((route) => {
-                    // Each route can have up to 3 workers assigned
-                    [route.worker1, route.worker2, route.worker3].forEach(
+                    // Each route can have up to 4 workers assigned
+                    [route.worker1, route.worker2, route.worker3, route.worker4].forEach(
                         (worker) => {
                             if (worker && typeof worker === "string") {
                                 const normalized = worker.trim();
@@ -1410,7 +1427,7 @@
 
                         // Get worker names for this date
                         const workers = routes
-                            .flatMap((r) => [r.worker1, r.worker2, r.worker3])
+                            .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
                             .filter(Boolean)
                             .filter((w) => w.toLowerCase() !== "cancelled")
                             .map((w) => `${getWorkerEmoji(w)} ${w}`)
@@ -1602,7 +1619,7 @@
                 </p>
                 ${(() => {
                     const contactInfo = getAddressFromContacts(assignment.market);
-                    return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                    return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> <a href="tel:${contactInfo.phone}" class="phone-btn">📞 ${contactInfo.phone}</a></p>` : '';
                 })()}
 
 
@@ -1612,6 +1629,7 @@
                     ${assignment.worker1 ? `<span class="team-member">${getWorkerEmoji(assignment.worker1)} ${assignment.worker1}</span>` : ""}
                     ${assignment.worker2 ? `<span class="team-member">${getWorkerEmoji(assignment.worker2)} ${assignment.worker2}</span>` : ""}
                     ${assignment.worker3 ? `<span class="team-member">${getWorkerEmoji(assignment.worker3)} ${assignment.worker3}</span>` : ""}
+                    ${assignment.worker4 ? `<span class="team-member">${getWorkerEmoji(assignment.worker4)} ${assignment.worker4}</span>` : ""}
                   </div>
                   <div>
                     <h3>🚐 Vans</h3>
@@ -1704,7 +1722,7 @@
                        </p>
                        ${(() => {
                            const contactInfo = getAddressFromContacts(assignment.dropOff);
-                           return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                           return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> <a href="tel:${contactInfo.phone}" class="phone-btn">📞 ${contactInfo.phone}</a></p>` : '';
                        })()}`
                             : "<p><strong>Drop-off location TBD</strong></p>"
                     }
@@ -1768,11 +1786,13 @@
                     const worker1 = (route.worker1 || "").trim().toLowerCase();
                     const worker2 = (route.worker2 || "").trim().toLowerCase();
                     const worker3 = (route.worker3 || "").trim().toLowerCase();
-                    // Check if worker appears in any of the three worker slots
+                    const worker4 = (route.worker4 || "").trim().toLowerCase();
+                    // Check if worker appears in any of the four worker slots
                     return (
                         worker1 === normalizedWorker ||
                         worker2 === normalizedWorker ||
-                        worker3 === normalizedWorker
+                        worker3 === normalizedWorker ||
+                        worker4 === normalizedWorker
                     );
                 });
 
@@ -1935,7 +1955,7 @@
                 </p>
                 ${(() => {
                     const contactInfo = getAddressFromContacts(assignment.market);
-                    return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                    return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> <a href="tel:${contactInfo.phone}" class="phone-btn">📞 ${contactInfo.phone}</a></p>` : '';
                 })()}
 
 
@@ -1945,6 +1965,7 @@
                     ${assignment.worker1 ? `<span class="team-member">${getWorkerEmoji(assignment.worker1)} ${assignment.worker1}</span>` : ""}
                     ${assignment.worker2 ? `<span class="team-member">${getWorkerEmoji(assignment.worker2)} ${assignment.worker2}</span>` : ""}
                     ${assignment.worker3 ? `<span class="team-member">${getWorkerEmoji(assignment.worker3)} ${assignment.worker3}</span>` : ""}
+                    ${assignment.worker4 ? `<span class="team-member">${getWorkerEmoji(assignment.worker4)} ${assignment.worker4}</span>` : ""}
                   </div>
                   <div>
                     <h3>🚐 Vans</h3>
@@ -2037,7 +2058,7 @@
                        </p>
                        ${(() => {
                            const contactInfo = getAddressFromContacts(assignment.dropOff);
-                           return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> ${contactInfo.phone}</p>` : '';
+                           return contactInfo && contactInfo.phone ? `<p><strong>Phone:</strong> <a href="tel:${contactInfo.phone}" class="phone-btn">📞 ${contactInfo.phone}</a></p>` : '';
                        })()}`
                             : "<p><strong>Drop-off location TBD</strong></p>"
                     }
@@ -2078,9 +2099,11 @@
                     const routeDate =
                         getNextDateForDay(route["Recovery Routes"]) ||
                         route["Recovery Routes"];
-                    const recoveryHeader = `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                    const recoveryHeader = `<div style="background: #dc3545; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
                              🚗 Recovery Assignment
                            </div>`;
+
+                    const startTime = route["Start Time"] || route.startTime || "TBD";
 
                     // Build stops array from the route data
                     const stops = [];
@@ -2132,7 +2155,7 @@
                                         stop.address
                                             ? `
                                         <a href="${directionUrl}" target="_blank" class="directions-btn">📍 ${stop.address}</a>
-                                        ${stop.phone ? `<p><strong>Phone:</strong> ${stop.phone}</p>` : ''}
+                                        ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn">📞 ${stop.phone}</a></p>` : ''}
                                     `
                                             : `<p><em>Address not specified</em></p>`
                                     }
@@ -2151,6 +2174,7 @@
                         </div>
                         <div class="market-section">
                             <h2>${routeDate}</h2>
+                            <p><strong>Start Time:</strong> ${startTime}</p>
                             <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
 
                         </div>
@@ -2258,9 +2282,11 @@
 
                 const routeDate =
                     route.calculatedDate || route["Recovery Routes"];
-                const recoveryHeader = `<div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                const recoveryHeader = `<div style="background: #dc3545; color: white; padding: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
                          🚗 Recovery Assignment
                        </div>`;
+
+                const startTime = route["Start Time"] || route.startTime || "TBD";
 
                 // Build stops array
                 const stops = [];
@@ -2311,7 +2337,7 @@
                                 ${
                                     stop.address
                                         ? `<a href="${directionUrl}" target="_blank" class="directions-btn">📍 ${stop.address}</a>
-                                       ${stop.phone ? `<p><strong>Phone:</strong> ${stop.phone}</p>` : ''}`
+                                        ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn">📞 ${stop.phone}</a></p>` : ''}`
                                         : `<p><em>Address not specified</em></p>`
                                 }
                             </div>
@@ -2329,6 +2355,7 @@
                     </div>
                     <div class="market-section">
                         <h2>${routeDate}</h2>
+                        <p><strong>Start Time:</strong> ${startTime}</p>
                         <p><strong>Worker:</strong> ${getWorkerEmoji(route.Worker)} ${route.Worker}</p>
 
                     </div>
