@@ -59,9 +59,36 @@ class WorkersManager {
 
     event.target.classList.add("selected");
 
-    // Get worker assignments
+    // Add visual separator before assignments
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
+    if (assignmentsContainer) {
+      assignmentsContainer.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: #666;">
+          <div style="border-top: 2px solid #ddd; margin: 0 20px 20px 20px;"></div>
+          <p>Loading assignment for ${this.getWorkerEmoji(worker)} ${worker}...</p>
+        </div>
+      `;
+    }
+
+    // Get worker assignments and slide to assignments view
     const assignments = sheetsAPI.getWorkerAssignments(worker);
-    this.renderWorkerAssignments(worker, assignments);
+
+    // Small delay for loading effect
+    setTimeout(() => {
+      this.renderWorkerAssignments(worker, assignments);
+
+      // Smooth slide down to assignments
+      setTimeout(() => {
+        if (assignmentsContainer) {
+          assignmentsContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100);
+    }, 200);
   }
 
   // ========================================

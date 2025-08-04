@@ -415,6 +415,28 @@ body {
     border: 1px solid #f5c6cb;
 }
 
+/* Assignment Container Animation */
+#assignmentsContainer {
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+#assignmentsContainer .assignment-card {
+    animation: slideInUp 0.4s ease-out;
+    transform-origin: top;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Box Management Styles */
 #inventoryContainer {
     padding: 16px;
