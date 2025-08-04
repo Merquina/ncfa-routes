@@ -233,12 +233,31 @@ class DatesManager {
                 .filter((w) => w.toLowerCase() !== "cancelled")
             : routes.map((r) => r.Worker).filter(Boolean);
 
+        const routeQty = routes.length;
+        const locations =
+          dateItem.type === "spfm"
+            ? routes
+                .map((r) => r.location || r.Location)
+                .filter(Boolean)
+                .slice(0, 2)
+            : routes
+                .map((r) => r.Location || r.location)
+                .filter(Boolean)
+                .slice(0, 2);
+        const locationsText =
+          locations.join(", ") +
+          (locations.length < routes.length ? "..." : "");
+        const routeType =
+          dateItem.type === "spfm" ? "SPFM Routes" : "Recovery Routes";
+
         return `
           <div class="date-card" onclick="selectDate('${dateItem.date}')"
-               style="border: 2px solid ${dateItem.color}; border-radius: 8px;">
-            <div style="font-size: 1.5rem; margin-bottom: 5px;">${dateItem.emoji}</div>
-            <div class="date-card-date">${formattedDate}</div>
-            <div class="date-card-workers">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>
+               style="border: 2px solid ${dateItem.color}; border-radius: 8px; padding: 10px; text-align: left;">
+            <div style="font-size: 1.2rem; margin-bottom: 3px;">${dateItem.emoji} ${routeType}</div>
+            <div style="margin-bottom: 3px; font-weight: bold;">${routeQty} route${routeQty > 1 ? "s" : ""}</div>
+            <div style="margin-bottom: 3px; color: #666;">${locationsText || "No locations"}</div>
+            <div style="margin-bottom: 3px; font-weight: bold;">${formattedDate}</div>
+            ${routeQty < 2 ? `<div style="color: #888; font-size: 0.9rem;">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>` : ""}
           </div>
         `;
       })
