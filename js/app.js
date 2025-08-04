@@ -41,7 +41,10 @@ async function initializeApp() {
     updateVersionStatus("Setting up views...");
     // Set default view
     switchTab("box");
-    console.log("✅ Worker view set");
+    console.log("✅ Default tab set");
+
+    // Set up tab handlers after initialization
+    setupTabHandlers();
 
     console.log("✅ App initialized successfully");
     updateVersionStatus("✅ Working");
@@ -317,6 +320,43 @@ function renderInventory() {
     </div>
   `;
 }
+
+// ========================================
+// TAB HANDLERS SETUP
+// ========================================
+function setupTabHandlers() {
+  console.log("Setting up tab handlers...");
+
+  const boxBtn = document.getElementById("boxTabBtn");
+  const dateBtn = document.getElementById("dateTabBtn");
+  const workerBtn = document.getElementById("workerTabBtn");
+
+  if (boxBtn) {
+    boxBtn.onclick = function () {
+      console.log("Box tab clicked");
+      switchTab("box");
+    };
+  }
+
+  if (dateBtn) {
+    dateBtn.onclick = function () {
+      console.log("Date tab clicked");
+      switchTab("date");
+    };
+  }
+
+  if (workerBtn) {
+    workerBtn.onclick = function () {
+      console.log("Worker tab clicked");
+      switchTab("worker");
+    };
+  }
+
+  console.log("✅ Tab handlers set up");
+}
+
+// Export to window
+window.setupTabHandlers = setupTabHandlers;
 
 // Confirm this file loaded
 console.log("✅ app.js loaded");
