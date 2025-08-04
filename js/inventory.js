@@ -47,29 +47,29 @@ class InventoryManager {
 
     inventoryContainer.innerHTML = `
       <!-- Section 1: Box Inventory -->
-      <div style="margin-bottom: 10px; margin-top: 0px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
+      <div style="margin-bottom: 10px; margin-top: 10px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h3>📦 Box Inventory</h3>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
-          <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
-            <div style="font-size: 2rem; font-weight: bold; color: #333;">${inventory.smallBoxes}</div>
-            <div style="font-size: 0.9rem; color: #666;">small</div>
-            <div style="font-size: 0.7rem; color: #999;">5/9 bushel</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+          <div style="text-align: center; padding: 12px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
+            <div style="font-size: 1.6rem; font-weight: bold; color: #333;">${inventory.smallBoxes}</div>
+            <div style="font-size: 0.8rem; color: #666;">small</div>
+            <div style="font-size: 0.65rem; color: #999;">5/9 bushel</div>
           </div>
-          <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
-            <div style="font-size: 2rem; font-weight: bold; color: #333;">${inventory.largeBoxes}</div>
-            <div style="font-size: 0.9rem; color: #666;">LARGE</div>
-            <div style="font-size: 0.7rem; color: #999;">1 1/9 bushel</div>
+          <div style="text-align: center; padding: 12px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
+            <div style="font-size: 1.6rem; font-weight: bold; color: #333;">${inventory.largeBoxes}</div>
+            <div style="font-size: 0.8rem; color: #666;">LARGE</div>
+            <div style="font-size: 0.65rem; color: #999;">1 1/9 bushel</div>
           </div>
         </div>
         ${
           inventory.lastUpdated
             ? `
-          <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.8rem;">
+          <div style="text-align: center; margin-top: 10px; color: #666; font-size: 0.75rem;">
             Last updated by ${inventory.updatedBy} at ${inventory.lastUpdated}
           </div>
         `
             : `
-          <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.8rem;">
+          <div style="text-align: center; margin-top: 10px; color: #666; font-size: 0.75rem;">
             No updates yet
           </div>
         `
@@ -77,9 +77,9 @@ class InventoryManager {
       </div>
 
       <!-- Section 2: Box Calculator -->
-      <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
+      <div style="margin-bottom: 10px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h3>🧮 Box Calculator</h3>
-        <div style="display: grid; gap: 15px; margin-top: 15px;">
+        <div style="display: grid; gap: 10px; margin-top: 10px;">
           <div>
             <label style="display: block; margin-bottom: 5px; font-weight: bold;">How many farmers:</label>
             <input type="number" id="farmersInput" min="1" value="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
@@ -101,9 +101,9 @@ class InventoryManager {
       </div>
 
       <!-- Section 3: Update Inventory -->
-      <div style="padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
+      <div style="padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>📝 Update Inventory</h4>
-        <div style="display: grid; gap: 15px; margin-top: 15px;">
+        <div style="display: grid; gap: 10px; margin-top: 10px;">
           <div>
             <label style="display: block; margin-bottom: 5px; font-weight: bold;">Small boxes:</label>
             <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
