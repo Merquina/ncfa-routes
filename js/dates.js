@@ -232,11 +232,22 @@ class DatesManager {
     console.log("🔍 Debug: allDates:", allDates);
 
     if (allDates.length === 0) {
-      container.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-          <p>No upcoming dates found. Check console for debug info.</p>
-        </div>
-      `;
+      // Check if API data hasn't loaded yet
+      if (sheetsAPI.data.length === 0 && sheetsAPI.recoveryData.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+            <p>🔄 Loading route data...</p>
+            <p style="font-size: 0.8rem; margin-top: 10px;">Click to load Google Sheets data</p>
+            <button class="directions-btn" onclick="loadApiDataIfNeeded().then(() => datesManager.renderDates())" style="margin-top: 15px;">Load Routes</button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+            <p>No upcoming dates found.</p>
+          </div>
+        `;
+      }
       return;
     }
 
