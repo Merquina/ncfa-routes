@@ -16,6 +16,23 @@ class DatesManager {
 
     if (!chronologicalContainer) return;
 
+    // Check if API data is loaded
+    if (sheetsAPI.data.length === 0) {
+      // Show loading state while waiting for API data
+      const assignmentsContainer = document.getElementById(
+        "assignmentsContainer",
+      );
+      if (assignmentsContainer) {
+        assignmentsContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">📅</div>
+            <p style="font-weight: bold; color: #007bff;">Loading upcoming routes...</p>
+          </div>
+        `;
+      }
+      return;
+    }
+
     // Clear the dates container and show assignments like worker selection
     chronologicalContainer.innerHTML = "";
 
@@ -306,7 +323,7 @@ class DatesManager {
       emoji: "📅",
       color: "#007bff",
       groupByMarket: false,
-      printButtonText: "Print Routes",
+      showPrintButton: false,
     });
   }
 

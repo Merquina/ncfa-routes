@@ -19,6 +19,7 @@ class AssignmentsManager {
       color = "#007bff",
       groupByMarket = false,
       printButtonText = "Print Assignment",
+      showPrintButton = true,
     } = config;
 
     const assignmentsContainer = document.getElementById(
@@ -52,13 +53,15 @@ class AssignmentsManager {
     });
 
     // Add single print button (same for both screens for now)
-    html += `
-      <div style="text-align: center; margin-top: 20px;">
-        <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
-          🖨️ ${printButtonText}
-        </button>
-      </div>
-    `;
+    if (showPrintButton) {
+      html += `
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
+            🖨️ ${printButtonText}
+          </button>
+        </div>
+      `;
+    }
 
     html += `</div>`;
     assignmentsContainer.innerHTML = html;
