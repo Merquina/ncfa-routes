@@ -82,15 +82,15 @@ class InventoryManager {
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="font-weight: bold; line-height: 1; flex: 1;">How many farmers:</label>
-            <input type="number" id="farmersInput" min="1" value="1" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+            <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="font-weight: bold; line-height: 1; flex: 1;">How many small boxes:</label>
-            <input type="number" id="smallBoxesInput" min="0" value="0" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+            <input type="number" id="smallBoxesInput" min="0" value="0" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="font-weight: bold; line-height: 1; flex: 1;">How many LARGE boxes:</label>
-            <input type="number" id="largeBoxesInput" min="0" value="0" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+            <input type="number" id="largeBoxesInput" min="0" value="0" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 5px;">Calculate Distribution</button>
           <div id="calculationResult" style="padding: 8px; background: #e8f5e8; border-radius: 4px; margin-top: 5px; display: none;">
@@ -106,11 +106,11 @@ class InventoryManager {
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div>
             <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">small boxes:</label>
-            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" inputmode="numeric" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
           </div>
           <div>
             <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">LARGE boxes:</label>
-            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" inputmode="numeric" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
           </div>
           <div>
             <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">Your name:</label>
