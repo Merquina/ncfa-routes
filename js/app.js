@@ -184,6 +184,19 @@ function selectDate(date) {
   loadApiDataIfNeeded()
     .then(() => {
       datesManager.selectDate(date);
+
+      // Scroll to assignments after a delay
+      setTimeout(() => {
+        const assignmentsContainer = document.getElementById(
+          "assignmentsContainer",
+        );
+        if (assignmentsContainer) {
+          assignmentsContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 500);
     })
     .catch((error) => {
       showError("Failed to load date data: " + error.message);

@@ -307,7 +307,7 @@ class DatesManager {
           const firstLine = `${dateItem.emoji} <strong>${formattedDate}</strong> - ${routeType}`;
 
           return `
-          <div class="date-card" onclick="selectDate('${dateItem.date}'); setTimeout(() => { const assignmentsContainer = document.getElementById('assignmentsContainer'); if (assignmentsContainer) { assignmentsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, 300);"
+          <div class="date-card" onclick="selectDate('${dateItem.date}')"
                style="border: 2px solid ${dateItem.color}; border-radius: 8px; padding: 10px; text-align: left;">
             <div style="margin-bottom: 3px;">${firstLine}</div>
             <div style="margin-bottom: 3px;">${marketName}</div>
