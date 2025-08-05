@@ -94,9 +94,9 @@ class InventoryManager {
             <input type="number" id="largeBoxesInput" min="0" value="0" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 5px;">Calculate Distribution</button>
-          <div id="calculationResult" style="padding: 8px; background: #e8f5e8; border-radius: 4px; margin-top: 5px; display: none;">
-            <h4>Give to each farmer:</h4>
-            <div id="distributionText"></div>
+          <div id="calculationResult" style="padding: 2px; background: #e8f5e8; border-radius: 4px; margin-top: 2px; display: none;">
+            <h4 style="margin: 2px 0; font-size: 0.9rem;">Give to each farmer:</h4>
+            <div id="distributionText" style="margin: 2px 0;"></div>
           </div>
         </div>
       </div>
@@ -258,9 +258,9 @@ class InventoryManager {
 
     if (resultDiv && distributionText) {
       distributionText.innerHTML = `
-        <strong>Small: ${smallPerFarmer}</strong> | <strong>Large: ${largePerFarmer}</strong>
+        <strong>small: ${smallPerFarmer}</strong> | <strong>LARGE: ${largePerFarmer}</strong>
         ${smallBoxes % farmers > 0 ? `<br><small>Remaining small boxes: ${smallBoxes % farmers}</small>` : ""}
-        ${largeBoxes % farmers > 0 ? `<br><small>Remaining large boxes: ${largeBoxes % farmers}</small>` : ""}
+        ${largeBoxes % farmers > 0 ? `<br><small>Remaining LARGE boxes: ${largeBoxes % farmers}</small>` : ""}
       `;
       resultDiv.style.display = "block";
     }
