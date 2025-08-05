@@ -322,67 +322,21 @@ class DatesManager {
       return;
     }
 
-    const cacheBreaker = Date.now();
-    container.innerHTML =
-      `<!-- Route cards rendered at ${cacheBreaker} -->` +
-      allDates
-        .map((dateItem) => {
-          const formattedDate = this.formatDate(dateItem.parsed);
-          const routes =
-            dateItem.type === "spfm"
-              ? allSPFMRoutes.filter((route) => route.date === dateItem.date)
-              : [dateItem]; // For generated recovery routes, use the dateItem itself
-
-          const workers =
-            dateItem.type === "spfm"
-              ? routes
-                  .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
-                  .filter(Boolean)
-                  .filter((w) => w.toLowerCase() !== "cancelled")
-              : dateItem.worker
-                ? [dateItem.worker]
-                : [];
-
-          // Add worker emojis
-          const workersWithEmojis = workers
-            .map((worker) => {
-              const emoji = this.getWorkerEmoji(worker);
-              return `${emoji} ${worker}`;
-            })
-            .slice(0, 3);
-          const workersText =
-            workersWithEmojis.join(", ") + (workers.length > 3 ? "..." : "");
-
-          const routeQty = dateItem.type === "spfm" ? routes.length : 1;
-          const locations =
-            dateItem.type === "spfm"
-              ? routes
-                  .map((r) => r.location || r.Location)
-                  .filter(Boolean)
-                  .slice(0, 2)
-              : [dateItem.location];
-          const locationsText = locations.filter(Boolean).join(", ");
-          const routeType =
-            dateItem.type === "spfm" ? "SPFM Routes" : "Recovery Routes";
-          const marketName =
-            dateItem.type === "spfm"
-              ? routeQty >= 2
-                ? routes
-                    .map((r) => r.market || r.Market || "Market")
-                    .filter(Boolean)
-                    .join(", ")
-                : dateItem.market
-              : dateItem.dayName || "Recovery Route";
-          const firstLine = `${dateItem.emoji} <strong>${formattedDate}</strong> - ${routeType}`;
-
-          return `
-          <div class="date-card" onclick="selectDate('${dateItem.date}')">
-            <div>${formattedDate}</div>
-            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 4px;">${marketName}</div>
-          </div>
-        `;
-        })
-        .join("");
+    // Use same flexbox layout as worker cards
+    container.innerHTML = `
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center;">
+        ${allDates
+          .map((dateItem) => {
+            const formattedDate = this.formatDate(dateItem.parsed);
+            return `
+              <div class="worker-card" onclick="selectDate('${dateItem.date}')" style="display: inline-block; text-align: center;">
+                ${formattedDate}
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    `;
   }
 
   // ========================================
