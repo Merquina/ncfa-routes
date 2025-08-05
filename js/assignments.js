@@ -107,6 +107,18 @@ class AssignmentsManager {
         : "";
 
     assignmentsContainer.innerHTML = `
+      <style>
+        @media print {
+          .print-btn, .directions-btn { display: none !important; }
+          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
+          .market-section h2 { font-size: 16px; margin: 5px 0; }
+          .market-section p { margin: 3px 0; font-size: 11px; }
+          .step-header { font-size: 13px; margin: 5px 0; }
+          .single-column { margin: 3px 0; font-size: 11px; }
+          .double-column { margin: 3px 0; font-size: 11px; }
+          body { font-size: 11px; }
+        }
+      </style>
       <div class="assignment-card">
         <div style="text-align: center; padding: 8px; background: white;">
           <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
@@ -181,6 +193,18 @@ class AssignmentsManager {
         : "";
 
     return `
+      <style>
+        @media print {
+          .print-btn, .directions-btn { display: none !important; }
+          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
+          .market-section h2 { font-size: 16px; margin: 5px 0; }
+          .market-section p { margin: 3px 0; font-size: 11px; }
+          .step-header { font-size: 13px; margin: 5px 0; }
+          .single-column { margin: 3px 0; font-size: 11px; }
+          .double-column { margin: 3px 0; font-size: 11px; }
+          body { font-size: 11px; }
+        }
+      </style>
       <div class="assignment-card">
         <div style="text-align: center; padding: 8px; background: white;">
           <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
@@ -254,6 +278,18 @@ class AssignmentsManager {
     const recoveryHeader = `<div class="recovery-header">🚗 Recovery Assignment</div>`;
 
     assignmentsContainer.innerHTML = `
+      <style>
+        @media print {
+          .print-btn, .directions-btn { display: none !important; }
+          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
+          .market-section h2 { font-size: 16px; margin: 5px 0; }
+          .market-section p { margin: 3px 0; font-size: 11px; }
+          .step-header { font-size: 13px; margin: 5px 0; }
+          .single-column { margin: 3px 0; font-size: 11px; }
+          .recovery-header { font-size: 16px; margin: 5px 0; }
+          body { font-size: 11px; }
+        }
+      </style>
       <div class="assignment-card">
         ${recoveryHeader}
         <div style="text-align: center; padding: 8px; background: white;">
@@ -303,6 +339,18 @@ class AssignmentsManager {
     const fullRouteUrl = this.buildFullRouteUrl(stops);
 
     assignmentsContainer.innerHTML = `
+      <style>
+        @media print {
+          .print-btn, .directions-btn { display: none !important; }
+          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
+          .market-section h2 { font-size: 16px; margin: 5px 0; }
+          .market-section p { margin: 3px 0; font-size: 11px; }
+          .step-header { font-size: 13px; margin: 5px 0; }
+          .single-column { margin: 3px 0; font-size: 11px; }
+          .recovery-header { font-size: 16px; margin: 5px 0; }
+          body { font-size: 11px; }
+        }
+      </style>
       <div class="assignment-card">
         <div class="recovery-header">🚗 Recovery Assignment</div>
         <div style="text-align: center; padding: 8px; background: white;">

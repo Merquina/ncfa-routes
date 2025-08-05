@@ -20,6 +20,26 @@
 
         <!-- Main Stylesheet -->
         <link rel="stylesheet" href="css/app.css" />
+
+        <!-- Print Styles -->
+        <style>
+            @media print {
+                .header,
+                .bottom-tabs,
+                .main-content > :not(#assignmentsContainer) {
+                    display: none !important;
+                }
+                #assignmentsContainer {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                body {
+                    margin: 0;
+                    padding: 10px;
+                    font-size: 11px;
+                }
+            }
+        </style>
     </head>
 
     <body>
