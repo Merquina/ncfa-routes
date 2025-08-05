@@ -82,7 +82,7 @@ class AssignmentsManager {
     const vanEmoji = this.getVanEmoji(route.van1 || route.van2);
 
     return `
-      <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #ff8c00;">
+      <div style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00;">
         <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
           ${route.displayDate || route.date} at ${route.startTime || "TBD"}
         </div>
@@ -125,7 +125,7 @@ class AssignmentsManager {
 
   renderRecoveryCard(route) {
     return `
-      <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
+      <div style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff;">
         <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
           ${route.displayDate} at ${route.Time || "TBD"}
         </div>
@@ -523,11 +523,19 @@ class AssignmentsManager {
         document.getElementById("chronologicalDates");
       if (chronologicalContainer) {
         chronologicalContainer.innerHTML = "";
-        let html = `<div style="margin: 0; padding: 0;">`;
+        chronologicalContainer.style.margin = "0";
+        chronologicalContainer.style.padding = "0";
+
+        // Remove padding from parent tab content for dates tab
+        const dateTab = document.getElementById("dateTab");
+        if (dateTab) {
+          dateTab.style.padding = "0";
+        }
+
+        let html = ``;
         upcomingRoutes.forEach((route) => {
           html += this.renderSingleAssignmentCard(route);
         });
-        html += `</div>`;
         chronologicalContainer.innerHTML = html;
       }
     } else {
