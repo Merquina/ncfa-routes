@@ -331,8 +331,10 @@ class DatesManager {
       sheetsAPI.recoveryData.forEach((route, index) => {
         console.log(`🔍 Debug: Processing recovery route ${index}:`, route);
         const dayName = route["Recovery Routes"] || route.Day || route.day;
+        const stop1 = route["Stop 1"] || route["stop1"] || "";
         console.log(`🔍 Debug: Day name extracted: ${dayName}`);
-        if (dayName) {
+        console.log(`🔍 Debug: Stop 1 extracted: ${stop1}`);
+        if (dayName && stop1.trim() !== "") {
           // Generate next 12 occurrences of this recovery route
           for (let occurrence = 0; occurrence < 12; occurrence++) {
             const nextDate = this.calculateNextOccurrence(dayName, occurrence);
