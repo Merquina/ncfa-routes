@@ -131,7 +131,18 @@ class AssignmentsManager {
           ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "No team assigned"}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${route.van || route.Van ? `${this.getVanEmoji(route.van || route.Van)} ${route.van || route.Van}` : "No vans assigned"}
+          ${(() => {
+            console.log("🔍 Debug recovery van data:", route);
+            console.log("🔍 Van fields:", {
+              van: route.van,
+              Van: route.Van,
+              D: route.D,
+            });
+            const vanValue = route.van || route.Van || route.D;
+            return vanValue
+              ? `${this.getVanEmoji(vanValue)} ${vanValue}`
+              : "No vans assigned";
+          })()}
         </div>
       </div>
     `;
