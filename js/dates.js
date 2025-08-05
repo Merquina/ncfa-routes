@@ -350,9 +350,9 @@ class DatesManager {
     console.log("🔍 Debug: About to render", allDates.length, "dates");
     console.log("🔍 Debug: allDates array:", allDates);
 
-    // Use same flexbox layout as worker cards with route type colors
+    // Use single column layout on mobile
     container.innerHTML = `
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center; padding: 20px;">
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 20px;">
         ${allDates
           .map((dateItem) => {
             const formattedDate = this.formatDate(dateItem.parsed);
