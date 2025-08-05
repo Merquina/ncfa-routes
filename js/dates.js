@@ -261,14 +261,14 @@ class DatesManager {
           dateItem.type === "spfm"
             ? dateItem.market
             : dateItem.location || "Market";
-        const firstLine = `${dateItem.emoji} ${routeType} - ${marketName}`;
+        const firstLine = `${dateItem.emoji} ${routeType} - ${formattedDate}`;
 
         return `
           <div class="date-card" onclick="selectDate('${dateItem.date}')"
                style="border: 2px solid ${dateItem.color}; border-radius: 8px; padding: 10px; text-align: left;">
             <div style="font-weight: bold; margin-bottom: 3px;">${firstLine}</div>
+            <div style="margin-bottom: 3px;">${marketName}</div>
             ${locationsText ? `<div style="margin-bottom: 3px;">${locationsText}</div>` : ""}
-            <div style="margin-bottom: 3px;">${formattedDate}</div>
             ${routeQty < 2 ? `<div style="margin-bottom: 3px;">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>` : ""}
             <div style="font-weight: bold;">Routes: ${routeQty}</div>
           </div>
