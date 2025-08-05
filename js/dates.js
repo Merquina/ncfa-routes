@@ -16,8 +16,8 @@ class DatesManager {
 
     if (!chronologicalContainer) return;
 
-    // Show route preview cards directly instead of date buttons
-    this.renderRoutePreviewCards(chronologicalContainer);
+    // Show full assignment cards immediately
+    this.renderFullAssignmentCards(chronologicalContainer);
   }
 
   renderSPFMDates(container) {
@@ -244,10 +244,10 @@ class DatesManager {
   }
 
   // ========================================
-  // ROUTE PREVIEW CARDS (Direct display)
+  // FULL ASSIGNMENT CARDS (Direct display)
   // ========================================
-  renderRoutePreviewCards(container) {
-    console.log("🔍 Debug: renderRoutePreviewCards called");
+  renderFullAssignmentCards(container) {
+    console.log("🔍 Debug: renderFullAssignmentCards called");
     console.log("🔍 Debug: sheetsAPI.data length:", sheetsAPI.data.length);
     console.log(
       "🔍 Debug: sheetsAPI.recoveryData length:",
@@ -270,7 +270,7 @@ class DatesManager {
 
     // Get upcoming recovery routes
     const recoveryDates = this.generateWeeklyRecoveryDates();
-    const upcomingRecoveryRoutes = recoveryDates.slice(0, 7); // Next 7 recovery routes
+    const upcomingRecoveryRoutes = recoveryDates.slice(0, 7);
 
     // Combine all routes
     const allRoutes = [];
@@ -301,6 +301,7 @@ class DatesManager {
       .slice(0, 10);
 
     if (upcomingRoutes.length === 0) {
+      // Show empty state in dates container, not assignments
       container.innerHTML = `
         <div style="text-align: center; padding: 40px; color: #666;">
           <p>No upcoming routes found.</p>
@@ -309,62 +310,18 @@ class DatesManager {
       return;
     }
 
-    // Render route preview cards
-    container.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px;">
-        ${upcomingRoutes
-          .map((route) => {
-            if (route.type === "spfm") {
-              return `
-                <div class="worker-card" onclick="selectDate('${route.date}')"
-                     style="background: #fff3e0 !important; border: 2px solid #ff8c00 !important; text-align: left; min-height: auto;">
-                  <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
-                    👨‍🌾 ${route.displayDate} - ${route.market || "Market"}
-                  </div>
-                  <div style="font-size: 0.85rem; color: #666;">
-                    ${route.startTime ? `Time: ${route.startTime}` : ""} |
-                    Workers: ${[
-                      route.worker1,
-                      route.worker2,
-                      route.worker3,
-                      route.worker4,
-                    ]
-                      .filter(
-                        (w) => w && w.trim() && w.toLowerCase() !== "cancelled",
-                      )
-                      .slice(0, 2)
-                      .join(", ")}${
-                      [
-                        route.worker1,
-                        route.worker2,
-                        route.worker3,
-                        route.worker4,
-                      ].filter(
-                        (w) => w && w.trim() && w.toLowerCase() !== "cancelled",
-                      ).length > 2
-                        ? "..."
-                        : ""
-                    }
-                  </div>
-                </div>
-              `;
-            } else {
-              return `
-                <div class="worker-card" onclick="selectRecoveryRoute('${route.Worker}', '${route.dayName}')"
-                     style="background: #e3f2fd !important; border: 2px solid #007bff !important; text-align: left; min-height: auto;">
-                  <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
-                    🛒 ${route.displayDate} - ${route.location || "Recovery Route"}
-                  </div>
-                  <div style="font-size: 0.85rem; color: #666;">
-                    Worker: ${route.worker || "TBD"}
-                  </div>
-                </div>
-              `;
-            }
-          })
-          .join("")}
-      </div>
-    `;
+    // Clear the dates container and show assignments in assignments container
+    container.innerHTML = "";
+
+    // Use the unified assignment renderer to show full assignment cards
+    assignmentsManager.renderUnifiedAssignments({
+      routes: upcomingRoutes,
+      title: "Upcoming Routes",
+      emoji: "📅",
+      color: "#007bff",
+      groupByMarket: false,
+      printButtonText: "Print All Routes",
+    });
   }
 
   // ========================================
