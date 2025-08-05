@@ -377,7 +377,7 @@ class DatesManager {
 
           return `
           <div class="date-card" onclick="selectDate('${dateItem.date}')">
-            <div>${dateItem.emoji} ${formattedDate}</div>
+            <div>${formattedDate}</div>
             <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 4px;">${marketName}</div>
           </div>
         `;

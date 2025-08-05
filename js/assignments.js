@@ -79,11 +79,11 @@ class AssignmentsManager {
     const vanEmoji = this.getVanEmoji(route.van1 || route.van2);
 
     return `
-      <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
+      <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #ff8c00;">
         <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
           ${route.displayDate || route.date} - ${route.market || "Market"} ${route.startTime ? `at ${route.startTime}` : ""}
         </div>
-        <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">🚚 SPFM Route</div>
+        <div style="font-size: 0.85rem; color: #ff8c00; margin-bottom: 4px;">👨‍🌾 SPFM Route</div>
         <div style="font-size: 0.9rem; color: #666;">
           <div><strong>Team:</strong> ${(() => {
             const workers = [
@@ -122,11 +122,11 @@ class AssignmentsManager {
 
   renderRecoveryCard(route) {
     return `
-      <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+      <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
         <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
           ${route.displayDate} - ${route.Location || route.location || "Location"}
         </div>
-        <div style="font-size: 0.85rem; color: #28a745; margin-bottom: 4px;">🚗 Recovery Route</div>
+        <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">🛒 Recovery Route</div>
         <div style="font-size: 0.9rem; color: #666;">
           <div><strong>Time:</strong> ${route.Time || "Not specified"}</div>
           <div><strong>Contact:</strong> ${route.Contact || "Not specified"}</div>
