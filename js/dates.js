@@ -28,8 +28,13 @@ class DatesManager {
       return;
     }
 
-    // Use the same system as Screen 3 - get data and use assignment manager
-    this.prepareAndRenderAssignments();
+    // Use shared function to render upcoming routes (same as Screen 3)
+    assignmentsManager.renderAllUpcomingRoutes({
+      title: "Upcoming Routes",
+      emoji: "📅",
+      showPrintButton: false,
+      limit: 8,
+    });
   }
 
   renderSPFMDates(container) {
@@ -256,80 +261,10 @@ class DatesManager {
   }
 
   // ========================================
-  // PREPARE AND RENDER ASSIGNMENTS (Same as Screen 3)
+  // SHARED RENDERING SYSTEM
   // ========================================
-  prepareAndRenderAssignments() {
-    console.log(
-      "🔍 Debug: prepareAndRenderAssignments called - using same system as Screen 3",
-    );
-
-    // Clear the dates container - we'll render into assignments container like Screen 3
-    const chronologicalContainer =
-      document.getElementById("chronologicalDates");
-    if (chronologicalContainer) {
-      chronologicalContainer.innerHTML = "";
-    }
-
-    // Get SPFM routes (not completed)
-    const allSPFMRoutes = sheetsAPI.data.filter((route) => {
-      const status = (route.status || route.Status || "").toLowerCase();
-      const routeDate = new Date(route.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return status !== "completed" && routeDate >= today;
-    });
-
-    // Get recovery routes
-    const recoveryDates = this.generateWeeklyRecoveryDates();
-    const upcomingRecoveryRoutes = recoveryDates.slice(0, 4);
-
-    // Combine all routes exactly like Screen 3 worker assignments
-    const allRoutes = [];
-
-    // Add SPFM routes
-    allSPFMRoutes.forEach((route) => {
-      allRoutes.push({
-        ...route,
-        type: "spfm",
-        sortDate: new Date(route.date),
-        displayDate: route.date,
-      });
-    });
-
-    // Add recovery routes with properly formatted dates
-    upcomingRecoveryRoutes.forEach((route) => {
-      allRoutes.push({
-        ...route,
-        type: "recovery",
-        sortDate: route.parsed,
-        displayDate: route.parsed.toLocaleDateString("en-US", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-        Worker: route.worker,
-        Location: route.location,
-        Time: route.Time,
-        Notes: route.Notes,
-      });
-    });
-
-    // Sort by date and take next 8 routes
-    const upcomingRoutes = allRoutes
-      .sort((a, b) => a.sortDate - b.sortDate)
-      .slice(0, 8);
-
-    // Use the unified assignment renderer exactly like Screen 3
-    assignmentsManager.renderUnifiedAssignments({
-      routes: upcomingRoutes,
-      title: "Upcoming Routes",
-      emoji: "📅",
-      color: "#007bff",
-      groupByMarket: false,
-      showPrintButton: false,
-    });
-  }
+  // Screen 2 now uses assignmentsManager.renderAllUpcomingRoutes()
+  // No duplicate code - single source of truth in assignments.js
 
   // ========================================
   // OLD DATE BUTTON RENDERING (kept for reference)

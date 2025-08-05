@@ -448,6 +448,83 @@ class AssignmentsManager {
       return dateString;
     }
   }
+
+  // ========================================
+  // SHARED UPCOMING ROUTES FUNCTION
+  // ========================================
+  getUpcomingRoutes(limit = 8) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get SPFM routes (not completed)
+    const allSPFMRoutes = sheetsAPI.data.filter((route) => {
+      const status = (route.status || route.Status || "").toLowerCase();
+      const routeDate = new Date(route.date);
+      return status !== "completed" && routeDate >= today;
+    });
+
+    // Get recovery routes
+    const recoveryDates = datesManager.generateWeeklyRecoveryDates();
+    const upcomingRecoveryRoutes = recoveryDates.slice(0, 4);
+
+    // Combine all routes
+    const allRoutes = [];
+
+    // Add SPFM routes
+    allSPFMRoutes.forEach((route) => {
+      allRoutes.push({
+        ...route,
+        type: "spfm",
+        sortDate: new Date(route.date),
+        displayDate: route.date,
+      });
+    });
+
+    // Add recovery routes with properly formatted dates
+    upcomingRecoveryRoutes.forEach((route) => {
+      allRoutes.push({
+        ...route,
+        type: "recovery",
+        sortDate: route.parsed,
+        displayDate: route.parsed.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        Worker: route.worker,
+        Location: route.location,
+        Time: route.Time,
+        Notes: route.Notes,
+      });
+    });
+
+    // Sort by date and return limited results
+    return allRoutes.sort((a, b) => a.sortDate - b.sortDate).slice(0, limit);
+  }
+
+  // ========================================
+  // RENDER ALL UPCOMING ROUTES (Shared function)
+  // ========================================
+  renderAllUpcomingRoutes(options = {}) {
+    const {
+      title = "Upcoming Routes",
+      emoji = "📅",
+      showPrintButton = false,
+      limit = 8,
+    } = options;
+
+    const upcomingRoutes = this.getUpcomingRoutes(limit);
+
+    this.renderUnifiedAssignments({
+      routes: upcomingRoutes,
+      title: title,
+      emoji: emoji,
+      color: "#007bff",
+      groupByMarket: false,
+      showPrintButton: showPrintButton,
+    });
+  }
 }
 
 // Export instance
