@@ -265,11 +265,11 @@ class DatesManager {
         return `
           <div class="date-card" onclick="selectDate('${dateItem.date}')"
                style="border: 2px solid ${dateItem.color}; border-radius: 8px; padding: 10px; text-align: left;">
-            <div style="font-size: 1.2rem; margin-bottom: 3px;">${dateItem.emoji} ${routeType}</div>
-            <div style="margin-bottom: 3px; font-weight: bold;">${routeQty} route${routeQty > 1 ? "s" : ""}</div>
-            <div style="margin-bottom: 3px; color: #666;">${locationsText || "No locations"}</div>
-            <div style="margin-bottom: 3px; font-weight: bold;">${formattedDate}</div>
-            ${routeQty < 2 ? `<div style="color: #888; font-size: 0.9rem;">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>` : ""}
+            <div style="font-weight: bold; margin-bottom: 3px;">${routeType}</div>
+            <div style="margin-bottom: 3px;">${locationsText || "Market"}</div>
+            <div style="margin-bottom: 3px;">${formattedDate}</div>
+            ${routeQty < 2 ? `<div style="margin-bottom: 3px;">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>` : ""}
+            <div style="font-weight: bold;">Routes: ${routeQty}</div>
           </div>
         `;
       })
