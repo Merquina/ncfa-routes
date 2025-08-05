@@ -104,6 +104,14 @@ function switchTab(tabName, updateUrl = true) {
   // Clear assignments when switching tabs
   clearAssignments();
 
+  // Scroll to top when any tab is clicked
+  if (updateUrl) {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
   // Load content based on tab
   switch (tabName) {
     case "box":
@@ -149,14 +157,6 @@ function switchTab(tabName, updateUrl = true) {
 
       // Clear assignments when switching to worker tab
       clearAssignments();
-
-      // Scroll to top when worker tab is clicked
-      if (updateUrl) {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
-      }
 
       if (window.workersManager) {
         // Only load API data when user actually clicks the tab
