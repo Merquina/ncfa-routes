@@ -117,6 +117,7 @@ class AssignmentsManager {
           <h2>${assignment.market} – ${assignment.date}</h2>
           <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
           <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
+          ${assignment.van1 || assignment.van2 ? `<p><strong>Van:</strong> ${this.getVanEmoji(assignment.van1 || assignment.van2)} ${assignment.van1 || assignment.van2}</p>` : ""}
           <p>
             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
                target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${marketAddress}</a>
@@ -190,6 +191,7 @@ class AssignmentsManager {
           <h2>${assignment.market} – ${assignment.date}</h2>
           <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
           <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
+          ${assignment.van1 || assignment.van2 ? `<p><strong>Van:</strong> ${this.getVanEmoji(assignment.van1 || assignment.van2)} ${assignment.van1 || assignment.van2}</p>` : ""}
           <p>
             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
                target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${marketAddress}</a>
@@ -263,6 +265,7 @@ class AssignmentsManager {
           <h2>${routeDate}</h2>
           <p><strong>Start Time:</strong> ${startTime}</p>
           <p><strong>Worker:</strong> ${workersManager.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
+          ${route.Van ? `<p><strong>Van:</strong> ${this.getVanEmoji(route.Van)} ${route.Van}</p>` : ""}
         </div>
 
         ${stops
@@ -311,6 +314,7 @@ class AssignmentsManager {
           <h2>${routeDate}</h2>
           <p><strong>Start Time:</strong> ${startTime}</p>
           <p><strong>Worker:</strong> ${workersManager.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
+          ${route.Van ? `<p><strong>Van:</strong> ${this.getVanEmoji(route.Van)} ${route.Van}</p>` : ""}
         </div>
 
         ${stops
@@ -476,6 +480,26 @@ class AssignmentsManager {
       month: "long",
       day: "numeric",
     });
+  }
+}
+
+  // ========================================
+  // VAN EMOJI HELPER
+  // ========================================
+  getVanEmoji(vanName) {
+    if (!vanName || vanName.trim() === "") return "🚐";
+
+    const vanIcons = {
+      Tooth: "🦷",
+      "Green Bean": "🫛",
+      Marshmallow: "🧁",
+    };
+
+    const vanIcon = Object.keys(vanIcons).find(
+      (key) => key.toLowerCase() === vanName.trim().toLowerCase(),
+    );
+
+    return vanIcon ? vanIcons[vanIcon] : "🚐";
   }
 }
 
