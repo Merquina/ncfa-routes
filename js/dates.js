@@ -227,7 +227,7 @@ class DatesManager {
       }))
       .filter((item) => !isNaN(item.parsed.getTime()))
       .sort((a, b) => a.parsed - b.parsed)
-      .slice(0, 8); // Show next 8 dates
+      .slice(0, 7); // Show next 7 dates
 
     console.log("🔍 Debug: allDates:", allDates);
 
