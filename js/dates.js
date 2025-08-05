@@ -298,7 +298,7 @@ class DatesManager {
                   .filter(Boolean)
                   .join(", ")
               : dateItem.market
-            : dateItem.location || "Market";
+            : dateItem.location || "Recovery Route";
         const firstLine = `${dateItem.emoji} ${routeType} - ${formattedDate}`;
 
         return `
@@ -306,9 +306,9 @@ class DatesManager {
                style="border: 2px solid ${dateItem.color}; border-radius: 8px; padding: 10px; text-align: left;">
             <div style="font-weight: bold; margin-bottom: 3px;">${firstLine}</div>
             <div style="margin-bottom: 3px;">${marketName}</div>
-            ${locationsText ? `<div style="margin-bottom: 3px;">${locationsText}</div>` : ""}
+            ${dateItem.type === "spfm" && locationsText ? `<div style="margin-bottom: 3px;">${locationsText}</div>` : ""}
             ${routeQty < 2 ? `<div style="margin-bottom: 3px;"><strong>Workers:</strong> ${workersText}</div>` : ""}
-            <div style="font-weight: bold;">Routes: ${routeQty}</div>
+            ${routeQty >= 2 ? `<div style="font-weight: bold;">Routes: ${routeQty}</div>` : ""}
           </div>
         `;
       })
