@@ -11,7 +11,9 @@ class AssignmentsManager {
   // MAIN ASSIGNMENT RENDERING
   // ========================================
   renderWorkerAssignments(worker, assignments) {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
     if (!assignmentsContainer) return;
 
     // Combine and sort assignments by date
@@ -58,7 +60,9 @@ class AssignmentsManager {
   }
 
   renderDateAssignments(date, routes) {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
     if (!assignmentsContainer) return;
 
     if (routes.length === 0) {
@@ -80,7 +84,9 @@ class AssignmentsManager {
   // SPFM ASSIGNMENT RENDERING
   // ========================================
   renderSPFMAssignment(assignment) {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
 
     const marketContact = sheetsAPI.getAddressFromContacts(assignment.market);
     const dropOffContact = sheetsAPI.getAddressFromContacts(assignment.dropOff);
@@ -103,8 +109,8 @@ class AssignmentsManager {
     assignmentsContainer.innerHTML = `
       <div class="assignment-card">
         <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-          ${fullRouteUrl ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px;">🗺️ Open Full Route in Maps</a>` : ""}
+          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
+          ${fullRouteUrl ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
         </div>
 
         <div class="market-section">
@@ -113,9 +119,9 @@ class AssignmentsManager {
           <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
           <p>
             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
-               target="_blank" class="directions-btn">📍 ${marketAddress}</a>
+               target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${marketAddress}</a>
           </p>
-          ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn">📞 ${marketContact.phone}</a></p>` : ""}
+          ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${marketContact.phone}</a></p>` : ""}
         </div>
 
         <div class="single-column">
@@ -141,7 +147,11 @@ class AssignmentsManager {
           assignment.dropOff &&
           assignment.dropOff.trim() &&
           assignment.dropOff !== "TBD"
-            ? this.renderDropOffSection(assignment, dropOffContact, dropOffAddress)
+            ? this.renderDropOffSection(
+                assignment,
+                dropOffContact,
+                dropOffAddress,
+              )
             : ""
         }
 
@@ -172,8 +182,8 @@ class AssignmentsManager {
     return `
       <div class="assignment-card">
         <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-          ${fullRouteUrl ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 10px;">🗺️ Open Full Route in Maps</a>` : ""}
+          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
+          ${fullRouteUrl ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 10px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
         </div>
 
         <div class="market-section">
@@ -182,9 +192,9 @@ class AssignmentsManager {
           <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
           <p>
             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
-               target="_blank" class="directions-btn">📍 ${marketAddress}</a>
+               target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${marketAddress}</a>
           </p>
-          ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn">📞 ${marketContact.phone}</a></p>` : ""}
+          ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${marketContact.phone}</a></p>` : ""}
         </div>
 
         <div class="single-column">
@@ -210,7 +220,11 @@ class AssignmentsManager {
           assignment.dropOff &&
           assignment.dropOff.trim() &&
           assignment.dropOff !== "TBD"
-            ? this.renderDropOffSection(assignment, dropOffContact, dropOffAddress)
+            ? this.renderDropOffSection(
+                assignment,
+                dropOffContact,
+                dropOffAddress,
+              )
             : ""
         }
 
@@ -223,9 +237,13 @@ class AssignmentsManager {
   // RECOVERY ASSIGNMENT RENDERING
   // ========================================
   renderRecoveryAssignment(route) {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
 
-    const routeDate = this.getNextDateForDay(route["Recovery Routes"]) || route["Recovery Routes"];
+    const routeDate =
+      this.getNextDateForDay(route["Recovery Routes"]) ||
+      route["Recovery Routes"];
     const startTime = route["Start Time"] || route.startTime || "TBD";
 
     const stops = this.buildRecoveryStops(route);
@@ -237,8 +255,8 @@ class AssignmentsManager {
       <div class="assignment-card">
         ${recoveryHeader}
         <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-          ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px;">🗺️ Open Full Route in Maps</a>` : ""}
+          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
+          ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
         </div>
 
         <div class="market-section">
@@ -257,8 +275,8 @@ class AssignmentsManager {
             <div class="single-column">
               ${
                 stop.address
-                  ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn">📍 ${stop.address}</a>
-                     ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn">📞 ${stop.phone}</a></p>` : ""}`
+                  ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${stop.address}</a>
+                     ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${stop.phone}</a></p>` : ""}`
                   : `<p><em>Address not specified</em></p>`
               }
             </div>
@@ -270,7 +288,9 @@ class AssignmentsManager {
   }
 
   renderRecoveryRouteAssignment(route) {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
     if (!assignmentsContainer) return;
 
     const routeDate = route.calculatedDate || route["Recovery Routes"];
@@ -283,8 +303,8 @@ class AssignmentsManager {
       <div class="assignment-card">
         <div class="recovery-header">🚗 Recovery Assignment</div>
         <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn">🖨️ Print This Assignment</button>
-          ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px;">🗺️ Open Full Route in Maps</a>` : ""}
+          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
+          ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
         </div>
 
         <div class="market-section">
@@ -303,8 +323,8 @@ class AssignmentsManager {
             <div class="single-column">
               ${
                 stop.address
-                  ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn">📍 ${stop.address}</a>
-                     ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn">📞 ${stop.phone}</a></p>` : ""}`
+                  ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${stop.address}</a>
+                     ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${stop.phone}</a></p>` : ""}`
                   : `<p><em>Address not specified</em></p>`
               }
             </div>
@@ -399,11 +419,11 @@ class AssignmentsManager {
             dropOffAddress &&
             dropOffAddress.trim() !== "" &&
             dropOffAddress.trim() !== "TBD"
-              ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dropOffAddress.trim())}" target="_blank" class="directions-btn">📍 ${dropOffAddress}</a>`
+              ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dropOffAddress.trim())}" target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${dropOffAddress}</a>`
               : ""
           }
           <p><strong>Drop-off Amount:</strong> ${assignment.dropoffAmount || assignment["dropoffAmount "] || "TBD"}</p>
-          ${dropOffContact && dropOffContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${dropOffContact.phone}" class="phone-btn">📞 ${dropOffContact.phone}</a></p>` : ""}
+          ${dropOffContact && dropOffContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${dropOffContact.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${dropOffContact.phone}</a></p>` : ""}
         </div>
       </div>
     `;
