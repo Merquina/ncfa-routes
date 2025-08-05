@@ -122,7 +122,7 @@ class AssignmentsManager {
           ${route.displayDate} at ${route.Time || "TBD"}
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${(route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"}
+          ${(route.dayName || route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"}
         </div>
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">
           🛒 Recovery Route
@@ -191,6 +191,7 @@ class AssignmentsManager {
               ...route,
               type: "recovery",
               sortDate: nextDate,
+              dayName: dayName,
               displayDate: nextDate.toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "short",
