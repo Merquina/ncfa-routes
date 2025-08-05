@@ -185,13 +185,21 @@ class DatesManager {
       sheetsAPI.recoveryData.length,
     );
 
-    // Get all SPFM dates
-    const spfmDates = sheetsAPI.getAllDates().map((date) => ({
-      date: date,
-      type: "spfm",
-      emoji: "👨‍🌾",
-      color: "#28a745", // green
-    }));
+    // Get all SPFM dates with market info
+    const spfmDates = sheetsAPI.getAllDates().map((date) => {
+      const routes = sheetsAPI.getRoutesByDate(date);
+      const market =
+        routes.length > 0
+          ? routes[0].market || routes[0].Market || "Market"
+          : "Market";
+      return {
+        date: date,
+        type: "spfm",
+        emoji: "👨‍🌾",
+        color: "#28a745", // green
+        market: market,
+      };
+    });
 
     // Generate weekly recovery dates based on day of week
     const recoveryDates = this.generateWeeklyRecoveryDates();
@@ -246,15 +254,20 @@ class DatesManager {
                 .filter(Boolean)
                 .slice(0, 2)
             : [dateItem.location];
-        const locationsText = locations.filter(Boolean).join(", ") || "Market";
+        const locationsText = locations.filter(Boolean).join(", ");
         const routeType =
           dateItem.type === "spfm" ? "SPFM Routes" : "Recovery Routes";
+        const marketName =
+          dateItem.type === "spfm"
+            ? dateItem.market
+            : dateItem.location || "Market";
+        const firstLine = `${dateItem.emoji} ${routeType} - ${marketName}`;
 
         return `
           <div class="date-card" onclick="selectDate('${dateItem.date}')"
                style="border: 2px solid ${dateItem.color}; border-radius: 8px; padding: 10px; text-align: left;">
-            <div style="font-weight: bold; margin-bottom: 3px;">${routeType}</div>
-            <div style="margin-bottom: 3px;">${locationsText || "Market"}</div>
+            <div style="font-weight: bold; margin-bottom: 3px;">${firstLine}</div>
+            ${locationsText ? `<div style="margin-bottom: 3px;">${locationsText}</div>` : ""}
             <div style="margin-bottom: 3px;">${formattedDate}</div>
             ${routeQty < 2 ? `<div style="margin-bottom: 3px;">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>` : ""}
             <div style="font-weight: bold;">Routes: ${routeQty}</div>
