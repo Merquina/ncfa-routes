@@ -322,9 +322,12 @@ class DatesManager {
       return;
     }
 
+    console.log("🔍 Debug: About to render", allDates.length, "dates");
+    console.log("🔍 Debug: allDates array:", allDates);
+
     // Use same flexbox layout as worker cards with route type colors
     container.innerHTML = `
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center; padding: 20px;">
         ${allDates
           .map((dateItem) => {
             const formattedDate = this.formatDate(dateItem.parsed);
@@ -344,10 +347,14 @@ class DatesManager {
               dateItem.type === "spfm" ? "#ff8c00" : "#007bff";
             const emoji = dateItem.type === "spfm" ? "👨‍🌾" : "🛒";
 
+            console.log(
+              `🔍 Debug: Rendering card for ${formattedDate}, type: ${dateItem.type}, bgColor: ${bgColor}`,
+            );
+
             return `
               <div class="worker-card" onclick="selectDate('${dateItem.date}')"
-                   style="display: inline-block; text-align: center; background: ${bgColor}; border: 2px solid ${borderColor};">
-                <div style="font-weight: bold;">${formattedDate}</div>
+                   style="display: inline-block; text-align: center; background: ${bgColor} !important; border: 2px solid ${borderColor} !important; min-width: 120px; min-height: 60px;">
+                <div style="font-weight: bold; color: #333;">${formattedDate}</div>
                 <div style="font-size: 0.8rem; margin-top: 4px; color: ${borderColor};">
                   ${emoji} ${marketName}
                 </div>
@@ -357,6 +364,11 @@ class DatesManager {
           .join("")}
       </div>
     `;
+
+    console.log(
+      "🔍 Debug: Container innerHTML set, length:",
+      container.innerHTML.length,
+    );
   }
 
   // ========================================
