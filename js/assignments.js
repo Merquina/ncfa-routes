@@ -1,6 +1,6 @@
 /* ========================================
    SPFM Routes - Assignments Management
-   Updated: 2025-01-09
+   Fresh rewrite to fix syntax errors
    ======================================== */
 
 class AssignmentsManager {
@@ -9,531 +9,247 @@ class AssignmentsManager {
   }
 
   // ========================================
-  // MAIN ASSIGNMENT RENDERING
+  // WORKER ASSIGNMENTS RENDERING
   // ========================================
-  renderWorkerAssignments(worker, assignments) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
+  renderWorkerAssignments(workerName, assignments) {
+    const assignmentsContainer = document.getElementById("assignmentsContainer");
     if (!assignmentsContainer) return;
 
-    // Combine and sort assignments by date
-    const allAssignments = [
-      ...assignments.spfm.map((a) => ({ ...a, type: "spfm" })),
-      ...assignments.recovery.map((a) => ({ ...a, type: "recovery" })),
-    ];
+    const workerEmoji = this.getWorkerEmoji(workerName);
 
-    // Sort by date
-    allAssignments.sort((a, b) => {
-      const dateA = new Date(a.date || a["Recovery Routes"] || "1900-01-01");
-      const dateB = new Date(b.date || b["Recovery Routes"] || "1900-01-01");
-      return dateA - dateB;
-    });
-
-    if (allAssignments.length === 0) {
+    if (!assignments || (assignments.spfm.length === 0 && assignments.recovery.length === 0)) {
       assignmentsContainer.innerHTML = `
-        <div class="no-assignments">
-          <h3>${workersManager.getWorkerEmoji(worker)} ${worker}</h3>
+        <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
+          <div style="font-size: 2rem; margin-bottom: 10px;">${workerEmoji}</div>
+          <h3>${workerName}</h3>
           <p>No assignments found for this worker.</p>
         </div>
       `;
       return;
     }
 
-    // Show only the next assignment (chronologically)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    let html = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <div style="font-size: 2rem; margin-bottom: 5px;">${workerEmoji}</div>
+          <h3 style="margin: 0; color: #007bff;">${workerName}'s Assignments</h3>
+          <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
+        </div>
+    `;
 
-    const nextAssignment =
-      allAssignments.find((assignment) => {
-        const assignmentDate = new Date(
-          assignment.date || assignment["Recovery Routes"] || "1900-01-01",
-        );
-        assignmentDate.setHours(0, 0, 0, 0);
-        return assignmentDate >= today;
-      }) || allAssignments[0]; // Fallback to first assignment if none in future
+    // Add SPFM assignments
+    if (assignments.spfm.length > 0) {
+      html += `<div style="margin-bottom: 20px;">`;
+      html += `<h4 style="color: #007bff; margin-bottom: 10px;">🚚 SPFM Routes (${assignments.spfm.length})</h4>`;
 
-    if (nextAssignment.type === "spfm") {
-      this.renderSPFMAssignment(nextAssignment);
-    } else {
-      this.renderRecoveryAssignment(nextAssignment);
+      assignments.spfm.forEach(route => {
+        const vanEmoji = this.getVanEmoji(route.van1 || route.van2);
+        html += `
+          <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #007bff;">
+            <div style="font-weight: bold; color: #333;">
+              ${vanEmoji} ${route.date} - ${route.market || 'Market'} ${route.startTime ? `at ${route.startTime}` : ''}
+            </div>
+            <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">
+              Van: ${route.van1 || route.van2 || 'Not assigned'} |
+              Workers: ${[route.worker1, route.worker2, route.worker3, route.worker4].filter(w => w && w.trim()).join(', ')}
+            </div>
+            ${route.dropOff ? `<div style="font-size: 0.8rem; color: #888; margin-top: 2px;">Drop-off: ${route.dropOff}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
     }
+
+    // Add Recovery assignments
+    if (assignments.recovery.length > 0) {
+      html += `<div style="margin-bottom: 20px;">`;
+      html += `<h4 style="color: #28a745; margin-bottom: 10px;">🚗 Recovery Routes (${assignments.recovery.length})</h4>`;
+
+      assignments.recovery.forEach(route => {
+        html += `
+          <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #28a745;">
+            <div style="font-weight: bold; color: #333;">
+              🚗 ${route.Day || 'Day'} Recovery - ${route.Location || 'Location'}
+            </div>
+            <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">
+              Time: ${route.Time || 'Not specified'} |
+              Contact: ${route.Contact || 'Not specified'}
+            </div>
+            ${route.Notes ? `<div style="font-size: 0.8rem; color: #888; margin-top: 2px;">Notes: ${route.Notes}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    html += `
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
+            🖨️ Print Assignment
+          </button>
+        </div>
+      </div>
+    `;
+
+    assignmentsContainer.innerHTML = html;
   }
 
+  // ========================================
+  // DATE ASSIGNMENTS RENDERING
+  // ========================================
   renderDateAssignments(date, routes) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
+    const assignmentsContainer = document.getElementById("assignmentsContainer");
     if (!assignmentsContainer) return;
 
-    if (routes.length === 0) {
+    if (!routes || routes.length === 0) {
       assignmentsContainer.innerHTML = `
-        <div class="no-assignments">
-          <h3>📅 ${date}</h3>
-          <p>No routes scheduled for this date.</p>
+        <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
+          <div style="font-size: 2rem; margin-bottom: 10px;">📅</div>
+          <h3>${date}</h3>
+          <p>No routes found for this date.</p>
         </div>
       `;
       return;
     }
 
-    assignmentsContainer.innerHTML = routes
-      .map((assignment) => this.renderSingleDateAssignment(assignment))
-      .join("");
-  }
+    const formattedDate = this.formatDateForDisplay(date);
 
-  // ========================================
-  // SPFM ASSIGNMENT RENDERING
-  // ========================================
-  renderSPFMAssignment(assignment) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
-
-    const marketContact = sheetsAPI.getAddressFromContacts(assignment.market);
-    const dropOffContact = sheetsAPI.getAddressFromContacts(assignment.dropOff);
-    const marketAddress = marketContact
-      ? marketContact.address
-      : assignment.marketAddress;
-    const dropOffAddress = dropOffContact
-      ? dropOffContact.address
-      : assignment.dropOffAddress;
-
-    const fullRouteUrl =
-      assignment.dropOff &&
-      assignment.dropOff.trim() &&
-      assignment.dropOff !== "TBD" &&
-      dropOffAddress &&
-      dropOffAddress.trim()
-        ? `https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}`
-        : "";
-
-    assignmentsContainer.innerHTML = `
-      <style>
-        @media print {
-          .print-btn, .directions-btn { display: none !important; }
-          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
-          .market-section h2 { font-size: 16px; margin: 5px 0; }
-          .market-section p { margin: 3px 0; font-size: 11px; }
-          .step-header { font-size: 13px; margin: 5px 0; }
-          .single-column { margin: 3px 0; font-size: 11px; }
-          .double-column { margin: 3px 0; font-size: 11px; }
-          body { font-size: 11px; }
-        }
-      </style>
-      <div class="assignment-card">
-        <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
-          ${fullRouteUrl ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
+    let html = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <div style="font-size: 2rem; margin-bottom: 5px;">📅</div>
+          <h3 style="margin: 0; color: #007bff;">${formattedDate}</h3>
+          <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
         </div>
+    `;
 
-        <div class="market-section">
-          <h2>${assignment.market} – ${assignment.date}</h2>
-          <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
-          <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
-          ${assignment.van1 || assignment.van2 ? `<p><strong>Van:</strong> ${this.getVanEmoji(assignment.van1 || assignment.van2)} ${assignment.van1 || assignment.van2}</p>` : ""}
-          <p>
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
-               target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${marketAddress}</a>
-          </p>
-          ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${marketContact.phone}</a></p>` : ""}
-        </div>
+    routes.forEach(route => {
+      const vanEmoji = this.getVanEmoji(route.van1 || route.van2);
+      const workers = [route.worker1, route.worker2, route.worker3, route.worker4]
+        .filter(w => w && w.trim() && w.toLowerCase() !== 'cancelled')
+        .map(w => `${this.getWorkerEmoji(w)} ${w}`)
+        .join(', ');
 
-        <div class="single-column">
-          <div>
-            <h3>👥 Team</h3>
-            ${assignment.worker1 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker1)} ${assignment.worker1}</span>` : ""}
-            ${assignment.worker2 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker2)} ${assignment.worker2}</span>` : ""}
-            ${assignment.worker3 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker3)} ${assignment.worker3}</span>` : ""}
-            ${assignment.worker4 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker4)} ${assignment.worker4}</span>` : ""}
+      html += `
+        <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
+          <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
+            ${vanEmoji} ${route.market || 'Market'} Route ${route.startTime ? `- ${route.startTime}` : ''}
           </div>
-          <div>
-            <h3>🚐 Vans</h3>
-            ${assignment.van1 ? `<div class="van-info">Van 1: ${assignment.van1}</div>` : ""}
-            ${assignment.van2 ? `<div class="van-info">Van 2: ${assignment.van2}</div>` : ""}
-            ${assignment.van3 ? `<div class="van-info">Van 3: ${assignment.van3}</div>` : ""}
-            ${assignment.van4 ? `<div class="van-info">Van 4: ${assignment.van4}</div>` : ""}
+          <div style="display: grid; gap: 4px; font-size: 0.9rem;">
+            <div><strong>Workers:</strong> ${workers || 'Not assigned'}</div>
+            <div><strong>Van:</strong> ${route.van1 || route.van2 || 'Not assigned'}</div>
+            ${route.dropOff ? `<div><strong>Drop-off:</strong> ${route.dropOff}</div>` : ''}
+            ${route.pickupAmount ? `<div><strong>Pickup Amount:</strong> ${route.pickupAmount}</div>` : ''}
           </div>
         </div>
+      `;
+    });
 
-        ${this.renderSteps(assignment)}
-
-        ${
-          assignment.dropOff &&
-          assignment.dropOff.trim() &&
-          assignment.dropOff !== "TBD"
-            ? this.renderDropOffSection(
-                assignment,
-                dropOffContact,
-                dropOffAddress,
-              )
-            : ""
-        }
-
-        ${this.renderFinalSection(assignment)}
+    html += `
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
+            🖨️ Print Assignment
+          </button>
+        </div>
       </div>
     `;
-  }
 
-  renderSingleDateAssignment(assignment) {
-    const marketContact = sheetsAPI.getAddressFromContacts(assignment.market);
-    const dropOffContact = sheetsAPI.getAddressFromContacts(assignment.dropOff);
-    const marketAddress = marketContact
-      ? marketContact.address
-      : assignment.marketAddress;
-    const dropOffAddress = dropOffContact
-      ? dropOffContact.address
-      : assignment.dropOffAddress;
-
-    const fullRouteUrl =
-      assignment.dropOff &&
-      assignment.dropOff.trim() &&
-      assignment.dropOff !== "TBD" &&
-      dropOffAddress &&
-      dropOffAddress.trim()
-        ? `https://www.google.com/maps/dir/${encodeURIComponent(marketAddress)}/${encodeURIComponent(dropOffAddress.trim())}`
-        : "";
-
-    return `
-      <style>
-        @media print {
-          .print-btn, .directions-btn { display: none !important; }
-          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
-          .market-section h2 { font-size: 16px; margin: 5px 0; }
-          .market-section p { margin: 3px 0; font-size: 11px; }
-          .step-header { font-size: 13px; margin: 5px 0; }
-          .single-column { margin: 3px 0; font-size: 11px; }
-          .double-column { margin: 3px 0; font-size: 11px; }
-          body { font-size: 11px; }
-        }
-      </style>
-      <div class="assignment-card">
-        <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
-          ${fullRouteUrl ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 10px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
-        </div>
-
-        <div class="market-section">
-          <h2>${assignment.market} – ${assignment.date}</h2>
-          <p><strong>Time:</strong> ${assignment.startTime} – ${assignment.endTime}</p>
-          <p><strong>Pickup Amount:</strong> ${assignment.pickupAmount || assignment["pickupAmount "] || "TBD"}</p>
-          ${assignment.van1 || assignment.van2 ? `<p><strong>Van:</strong> ${this.getVanEmoji(assignment.van1 || assignment.van2)} ${assignment.van1 || assignment.van2}</p>` : ""}
-          <p>
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(marketAddress)}"
-               target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${marketAddress}</a>
-          </p>
-          ${marketContact && marketContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${marketContact.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${marketContact.phone}</a></p>` : ""}
-        </div>
-
-        <div class="single-column">
-          <div>
-            <h3>👥 Team</h3>
-            ${assignment.worker1 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker1)} ${assignment.worker1}</span>` : ""}
-            ${assignment.worker2 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker2)} ${assignment.worker2}</span>` : ""}
-            ${assignment.worker3 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker3)} ${assignment.worker3}</span>` : ""}
-            ${assignment.worker4 ? `<span class="team-member">${workersManager.getWorkerEmoji(assignment.worker4)} ${assignment.worker4}</span>` : ""}
-          </div>
-          <div>
-            <h3>🚐 Vans</h3>
-            ${assignment.van1 ? `<div class="van-info">Van 1: ${assignment.van1}</div>` : ""}
-            ${assignment.van2 ? `<div class="van-info">Van 2: ${assignment.van2}</div>` : ""}
-            ${assignment.van3 ? `<div class="van-info">Van 3: ${assignment.van3}</div>` : ""}
-            ${assignment.van4 ? `<div class="van-info">Van 4: ${assignment.van4}</div>` : ""}
-          </div>
-        </div>
-
-        ${this.renderSteps(assignment)}
-
-        ${
-          assignment.dropOff &&
-          assignment.dropOff.trim() &&
-          assignment.dropOff !== "TBD"
-            ? this.renderDropOffSection(
-                assignment,
-                dropOffContact,
-                dropOffAddress,
-              )
-            : ""
-        }
-
-        ${this.renderFinalSection(assignment)}
-      </div>
-    `;
+    assignmentsContainer.innerHTML = html;
   }
 
   // ========================================
-  // RECOVERY ASSIGNMENT RENDERING
+  // RECOVERY ROUTE ASSIGNMENTS RENDERING
   // ========================================
-  renderRecoveryAssignment(route) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
-
-    const routeDate =
-      this.getNextDateForDay(route["Recovery Routes"]) ||
-      route["Recovery Routes"];
-    const startTime = route["Start Time"] || route.startTime || "TBD";
-
-    const stops = this.buildRecoveryStops(route);
-    const fullRouteUrl = this.buildFullRouteUrl(stops);
-
-    const recoveryHeader = `<div class="recovery-header">🚗 Recovery Assignment</div>`;
-
-    assignmentsContainer.innerHTML = `
-      <style>
-        @media print {
-          .print-btn, .directions-btn { display: none !important; }
-          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
-          .market-section h2 { font-size: 16px; margin: 5px 0; }
-          .market-section p { margin: 3px 0; font-size: 11px; }
-          .step-header { font-size: 13px; margin: 5px 0; }
-          .single-column { margin: 3px 0; font-size: 11px; }
-          .recovery-header { font-size: 16px; margin: 5px 0; }
-          body { font-size: 11px; }
-        }
-      </style>
-      <div class="assignment-card">
-        ${recoveryHeader}
-        <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
-          ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
-        </div>
-
-        <div class="market-section">
-          <h2>${routeDate}</h2>
-          <p><strong>Start Time:</strong> ${startTime}</p>
-          <p><strong>Worker:</strong> ${workersManager.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
-          ${route.Van ? `<p><strong>Van:</strong> ${this.getVanEmoji(route.Van)} ${route.Van}</p>` : ""}
-        </div>
-
-        ${stops
-          .map(
-            (stop, index) => `
-            <div class="step-header">
-              <span class="step-number">${index + 1}</span>
-              ${stop.name}
-            </div>
-            <div class="single-column">
-              ${
-                stop.address
-                  ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${stop.address}</a>
-                     ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${stop.phone}</a></p>` : ""}`
-                  : `<p><em>Address not specified</em></p>`
-              }
-            </div>
-          `,
-          )
-          .join("")}
-      </div>
-    `;
-  }
-
-  renderRecoveryRouteAssignment(route) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
+  renderRecoveryRouteAssignment(worker, dayName) {
+    const assignmentsContainer = document.getElementById("assignmentsContainer");
     if (!assignmentsContainer) return;
 
-    const routeDate = route.calculatedDate || route["Recovery Routes"];
-    const startTime = route["Start Time"] || route.startTime || "TBD";
+    const workerEmoji = this.getWorkerEmoji(worker);
 
-    const stops = this.buildRecoveryStops(route);
-    const fullRouteUrl = this.buildFullRouteUrl(stops);
+    // Find recovery routes for this worker and day
+    const recoveryRoutes = sheetsAPI.recoveryData.filter(route => {
+      const routeWorker = (route.Worker || '').trim().toLowerCase();
+      const routeDay = (route.Day || '').trim().toLowerCase();
+      return routeWorker === worker.toLowerCase() && routeDay === dayName.toLowerCase();
+    });
 
-    assignmentsContainer.innerHTML = `
-      <style>
-        @media print {
-          .print-btn, .directions-btn { display: none !important; }
-          .assignment-card { margin: 0; padding: 10px; font-size: 12px; }
-          .market-section h2 { font-size: 16px; margin: 5px 0; }
-          .market-section p { margin: 3px 0; font-size: 11px; }
-          .step-header { font-size: 13px; margin: 5px 0; }
-          .single-column { margin: 3px 0; font-size: 11px; }
-          .recovery-header { font-size: 16px; margin: 5px 0; }
-          body { font-size: 11px; }
-        }
-      </style>
-      <div class="assignment-card">
-        <div class="recovery-header">🚗 Recovery Assignment</div>
-        <div style="text-align: center; padding: 8px; background: white;">
-          <button onclick="printAssignment()" class="print-btn" style="background: #9c27b0; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🖨️ Print This Assignment</button>
-          ${stops.length > 1 ? `<br><a href="${fullRouteUrl}" target="_blank" class="directions-btn" style="margin-top: 8px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">🗺️ Open Full Route in Maps</a>` : ""}
+    if (recoveryRoutes.length === 0) {
+      assignmentsContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
+          <div style="font-size: 2rem; margin-bottom: 10px;">🚗</div>
+          <h3>${workerEmoji} ${worker} - ${dayName} Recovery</h3>
+          <p>No recovery routes found.</p>
         </div>
+      `;
+      return;
+    }
 
-        <div class="market-section">
-          <h2>${routeDate}</h2>
-          <p><strong>Start Time:</strong> ${startTime}</p>
-          <p><strong>Worker:</strong> ${workersManager.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
-          ${route.Van ? `<p><strong>Van:</strong> ${this.getVanEmoji(route.Van)} ${route.Van}</p>` : ""}
+    let html = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #28a745;">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <div style="font-size: 2rem; margin-bottom: 5px;">🚗</div>
+          <h3 style="margin: 0; color: #28a745;">${workerEmoji} ${worker} - ${dayName} Recovery</h3>
+          <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
         </div>
+    `;
 
-        ${stops
-          .map(
-            (stop, index) => `
-            <div class="step-header">
-              <span class="step-number">${index + 1}</span>
-              ${stop.name}
-            </div>
-            <div class="single-column">
-              ${
-                stop.address
-                  ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}" target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${stop.address}</a>
-                     ${stop.phone ? `<p><strong>Phone:</strong> <a href="tel:${stop.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${stop.phone}</a></p>` : ""}`
-                  : `<p><em>Address not specified</em></p>`
-              }
-            </div>
-          `,
-          )
-          .join("")}
+    recoveryRoutes.forEach(route => {
+      html += `
+        <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+          <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
+            📍 ${route.Location || 'Location'}
+          </div>
+          <div style="display: grid; gap: 4px; font-size: 0.9rem;">
+            <div><strong>Time:</strong> ${route.Time || 'Not specified'}</div>
+            <div><strong>Contact:</strong> ${route.Contact || 'Not specified'}</div>
+            ${route.Phone ? `<div><strong>Phone:</strong> ${route.Phone}</div>` : ''}
+            ${route.Address ? `<div><strong>Address:</strong> ${route.Address}</div>` : ''}
+            ${route.Notes ? `<div><strong>Notes:</strong> ${route.Notes}</div>` : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
+            🖨️ Print Assignment
+          </button>
+        </div>
       </div>
     `;
+
+    assignmentsContainer.innerHTML = html;
   }
 
   // ========================================
   // HELPER METHODS
   // ========================================
-  buildRecoveryStops(route) {
-    const stops = [];
-    for (let i = 1; i <= 7; i++) {
-      const stopName = route[`Stop ${i}`];
-      const stopAddress = route[`Stop ${i} Address`];
+  getWorkerEmoji(workerName) {
+    if (!workerName || workerName.trim() === "") return "👤";
 
-      if (stopName && stopName.trim() && stopName.toLowerCase() !== "stop") {
-        const contactInfo = sheetsAPI.getAddressFromContacts(stopName);
-        stops.push({
-          name: stopName,
-          address: contactInfo ? contactInfo.address : stopAddress || "",
-          phone: contactInfo ? contactInfo.phone : "",
-        });
-      }
-    }
-    return stops;
-  }
-
-  buildFullRouteUrl(stops) {
-    if (stops.length <= 1) return "";
-
-    const addresses = stops
-      .map((stop) => stop.address)
-      .filter((addr) => addr && addr.trim())
-      .map((addr) => encodeURIComponent(addr.trim()));
-
-    if (addresses.length <= 1) return "";
-
-    const origin = addresses[0];
-    const destination = addresses[addresses.length - 1];
-    const waypoints = addresses.slice(1, -1).join("|");
-
-    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}`;
-  }
-
-  renderSteps(assignment) {
-    const steps = [];
-
-    // Office Materials
-    if (assignment.officeMaterials && assignment.officeMaterials.trim()) {
-      steps.push({
-        title: "📋 Office Materials",
-        content: assignment.officeMaterials,
-      });
+    if (workerName.trim().toLowerCase().includes("volunteer")) {
+      return "👤";
     }
 
-    // Storage Materials
-    if (assignment.storageMaterials && assignment.storageMaterials.trim()) {
-      steps.push({
-        title: "📦 Storage Materials",
-        content: assignment.storageMaterials,
-      });
-    }
+    const workerIcons = {
+      Samuel: "🐋",
+      Emmanuel: "🦁",
+      Irmydel: "🐸",
+      Tess: "🌟",
+      Ayoyo: "⚡",
+      Rosey: "🌹",
+      Boniat: "🌊",
+      Volunteer: "👤",
+    };
 
-    return steps
-      .map(
-        (step, index) => `
-          <div class="step-header">
-            <span class="step-number">${index + 1}</span>
-            ${step.title}
-          </div>
-          <div class="single-column">
-            <p>${step.content}</p>
-          </div>
-        `,
-      )
-      .join("");
-  }
-
-  renderDropOffSection(assignment, dropOffContact, dropOffAddress) {
-    return `
-      <div class="dropoff-section">
-        <div class="step-header">
-          <span class="step-number">🚚</span>
-          Drop-off at ${assignment.dropOff}
-        </div>
-        <div class="single-column">
-          ${
-            dropOffAddress &&
-            dropOffAddress.trim() !== "" &&
-            dropOffAddress.trim() !== "TBD"
-              ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dropOffAddress.trim())}" target="_blank" class="directions-btn" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📍 ${dropOffAddress}</a>`
-              : ""
-          }
-          <p><strong>Drop-off Amount:</strong> ${assignment.dropoffAmount || assignment["dropoffAmount "] || "TBD"}</p>
-          ${dropOffContact && dropOffContact.phone ? `<p><strong>Phone:</strong> <a href="tel:${dropOffContact.phone}" class="phone-btn" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">📞 ${dropOffContact.phone}</a></p>` : ""}
-        </div>
-      </div>
-    `;
-  }
-
-  renderFinalSection(assignment) {
-    return `
-      <div class="final-section">
-        <div class="step-header">
-          <span class="step-number">✅</span>
-          Final Steps
-        </div>
-        <div class="single-column">
-          <p><strong>Return Time:</strong> ${assignment.returnTime || "TBD"}</p>
-          <p><strong>Notes:</strong> ${assignment.notes || "None"}</p>
-        </div>
-      </div>
-    `;
-  }
-
-  getNextDateForDay(dayName) {
-    if (!dayName) return null;
-
-    const days = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const dayIndex = days.findIndex(
-      (day) => day.toLowerCase() === dayName.toLowerCase(),
+    const workerIcon = Object.keys(workerIcons).find(
+      (key) => key.toLowerCase() === workerName.trim().toLowerCase(),
     );
 
-    if (dayIndex === -1) return null;
-
-    const today = new Date();
-    const currentDay = today.getDay();
-    const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
-    const targetDate = new Date(today);
-    targetDate.setDate(
-      today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget),
-    );
-
-    return targetDate.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return workerIcon ? workerIcons[workerIcon] : "👤";
   }
 
-  // ========================================
-  // VAN EMOJI HELPER
-  // ========================================
   getVanEmoji(vanName) {
     if (!vanName || vanName.trim() === "") return "🚐";
 
@@ -548,6 +264,24 @@ class AssignmentsManager {
     );
 
     return vanIcon ? vanIcons[vanIcon] : "🚐";
+  }
+
+  formatDateForDisplay(dateString) {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      return date.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      return dateString;
+    }
   }
 }
 
