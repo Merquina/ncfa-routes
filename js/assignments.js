@@ -512,18 +512,35 @@ class AssignmentsManager {
       emoji = "📅",
       showPrintButton = false,
       limit = 8,
+      renderInDatesContainer = false,
     } = options;
 
     const upcomingRoutes = this.getUpcomingRoutes(limit);
 
-    this.renderUnifiedAssignments({
-      routes: upcomingRoutes,
-      title: title,
-      emoji: emoji,
-      color: "#007bff",
-      groupByMarket: false,
-      showPrintButton: showPrintButton,
-    });
+    if (renderInDatesContainer) {
+      // For Screen 2 - render directly in dates container at top
+      const chronologicalContainer =
+        document.getElementById("chronologicalDates");
+      if (chronologicalContainer) {
+        chronologicalContainer.innerHTML = "";
+        let html = `<div style="margin: 0; padding: 0;">`;
+        upcomingRoutes.forEach((route) => {
+          html += this.renderSingleAssignmentCard(route);
+        });
+        html += `</div>`;
+        chronologicalContainer.innerHTML = html;
+      }
+    } else {
+      // For Screen 3 - render in assignments container
+      this.renderUnifiedAssignments({
+        routes: upcomingRoutes,
+        title: title,
+        emoji: emoji,
+        color: "#007bff",
+        groupByMarket: false,
+        showPrintButton: showPrintButton,
+      });
+    }
   }
 }
 

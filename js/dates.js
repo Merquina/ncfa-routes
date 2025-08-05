@@ -28,12 +28,13 @@ class DatesManager {
       return;
     }
 
-    // Use shared function to render upcoming routes (same as Screen 3)
+    // Use shared function to render upcoming routes in dates container at top
     assignmentsManager.renderAllUpcomingRoutes({
       title: "Upcoming Routes",
       emoji: "📅",
       showPrintButton: false,
       limit: 8,
+      renderInDatesContainer: true,
     });
   }
 
