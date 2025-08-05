@@ -172,17 +172,26 @@ class DatesManager {
   }
 
   findRecoveryRouteForDate(targetDate) {
+    console.log("🔍 Debug: findRecoveryRouteForDate called with:", targetDate);
+
     if (!sheetsAPI.recoveryData || sheetsAPI.recoveryData.length === 0) {
+      console.log("🔍 Debug: No recovery data available");
       return null;
     }
 
     const targetDateObj = new Date(targetDate);
+    const targetDateStr = targetDateObj.toLocaleDateString("en-US");
+    console.log("🔍 Debug: Target date normalized:", targetDateStr);
 
     for (const route of sheetsAPI.recoveryData) {
       const dayName = route["Recovery Routes"] || route.Day || route.day;
       const stop1 = route["Stop 1"] || route["stop1"] || "";
 
       if (!dayName || stop1.trim() === "") continue;
+
+      console.log(
+        `🔍 Debug: Checking recovery route for ${dayName} with stop: ${stop1}`,
+      );
 
       // Generate multiple occurrences to check against target date
       for (let occurrence = 0; occurrence < 10; occurrence++) {
@@ -192,13 +201,19 @@ class DatesManager {
         );
         if (calculatedDate) {
           const calculatedDateStr = calculatedDate.toLocaleDateString("en-US");
-          if (calculatedDateStr === targetDate) {
+          console.log(
+            `🔍 Debug: Comparing ${calculatedDateStr} with ${targetDateStr}`,
+          );
+
+          if (calculatedDateStr === targetDateStr) {
+            console.log("🔍 Debug: Match found! Returning recovery route");
             return { ...route, calculatedDate: calculatedDate };
           }
         }
       }
     }
 
+    console.log("🔍 Debug: No matching recovery route found");
     return null;
   }
 
