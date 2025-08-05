@@ -97,10 +97,10 @@ class AssignmentsManager {
     return `
       <div style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00;">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
-          ${route.market || "Market"}
+          ${route.displayDate || route.date} - ${route.market || "Market"}
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${route.displayDate || route.date} at ${route.startTime || "TBD"}
+          ${route.startTime || "TBD"}
         </div>
         <div style="font-size: 0.85rem; color: #ff8c00; margin-bottom: 4px;">
           👨‍🌾 SPFM Route
