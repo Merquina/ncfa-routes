@@ -143,9 +143,63 @@ class DatesManager {
 
     event.target.classList.add("selected");
 
-    // Get routes for this date
-    const routes = sheetsAPI.getRoutesByDate(date);
-    assignmentsManager.renderDateAssignments(date, routes);
+    // Get SPFM routes for this date
+    const spfmRoutes = sheetsAPI.getRoutesByDate(date);
+
+    // Check if this date matches any recovery routes
+    const recoveryRoute = this.findRecoveryRouteForDate(date);
+
+    if (recoveryRoute) {
+      // Show recovery route assignment
+      assignmentsManager.renderRecoveryAssignment(recoveryRoute);
+    } else if (spfmRoutes.length > 0) {
+      // Show SPFM routes assignment
+      assignmentsManager.renderDateAssignments(date, spfmRoutes);
+    } else {
+      // No routes found
+      const assignmentsContainer = document.getElementById(
+        "assignmentsContainer",
+      );
+      if (assignmentsContainer) {
+        assignmentsContainer.innerHTML = `
+          <div class="no-assignments">
+            <h3>📅 ${date}</h3>
+            <p>No routes scheduled for this date.</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  findRecoveryRouteForDate(targetDate) {
+    if (!sheetsAPI.recoveryData || sheetsAPI.recoveryData.length === 0) {
+      return null;
+    }
+
+    const targetDateObj = new Date(targetDate);
+
+    for (const route of sheetsAPI.recoveryData) {
+      const dayName = route["Recovery Routes"] || route.Day || route.day;
+      const stop1 = route["Stop 1"] || route["stop1"] || "";
+
+      if (!dayName || stop1.trim() === "") continue;
+
+      // Generate multiple occurrences to check against target date
+      for (let occurrence = 0; occurrence < 10; occurrence++) {
+        const calculatedDate = this.calculateNextOccurrence(
+          dayName,
+          occurrence,
+        );
+        if (calculatedDate) {
+          const calculatedDateStr = calculatedDate.toLocaleDateString("en-US");
+          if (calculatedDateStr === targetDate) {
+            return { ...route, calculatedDate: calculatedDate };
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   selectRecoveryRoute(worker, dayName) {
