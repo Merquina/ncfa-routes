@@ -146,6 +146,18 @@ function switchTab(tabName, updateUrl = true) {
       break;
     case "worker":
       console.log("🔍 Switching to worker tab, updateUrl:", updateUrl);
+
+      // Clear assignments when switching to worker tab
+      clearAssignments();
+
+      // Scroll to top when worker tab is clicked
+      if (updateUrl) {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }
+
       if (window.workersManager) {
         // Only load API data when user actually clicks the tab
         if (updateUrl) {
