@@ -55,8 +55,20 @@ class AssignmentsManager {
               ${vanEmoji} ${route.date} - ${route.market || "Market"} ${route.startTime ? `at ${route.startTime}` : ""}
             </div>
             <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">
-              Van: ${route.van1 || route.van2 || "Not assigned"} |
-              Workers: ${[route.worker1, route.worker2, route.worker3, route.worker4].filter((w) => w && w.trim()).join(", ")}
+              Team: ${(() => {
+                const workers = [
+                  route.worker1,
+                  route.worker2,
+                  route.worker3,
+                  route.worker4,
+                ]
+                  .filter((w) => w && w.trim())
+                  .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
+                const vans = [route.van1, route.van2]
+                  .filter((v) => v && v.trim())
+                  .map((v) => `${this.getVanEmoji(v)} ${v}`);
+                return [...workers, ...vans].join(", ") || "Not assigned";
+              })()}
             </div>
             ${route.dropOff ? `<div style="font-size: 0.8rem; color: #888; margin-top: 2px;">Drop-off: ${route.dropOff}</div>` : ""}
           </div>
@@ -162,24 +174,28 @@ class AssignmentsManager {
 
       marketRoutes.forEach((route) => {
         const vanEmoji = this.getVanEmoji(route.van1 || route.van2);
-        const workers = [
-          route.worker1,
-          route.worker2,
-          route.worker3,
-          route.worker4,
-        ]
-          .filter((w) => w && w.trim() && w.toLowerCase() !== "cancelled")
-          .map((w) => `${this.getWorkerEmoji(w)} ${w}`)
-          .join(", ");
-
         html += `
           <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
             <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
               ${vanEmoji} ${market} Route ${route.startTime ? `- ${route.startTime}` : ""}
             </div>
             <div style="display: grid; gap: 4px; font-size: 0.9rem;">
-              <div><strong>Workers:</strong> ${workers || "Not assigned"}</div>
-              <div><strong>Van:</strong> ${route.van1 || route.van2 || "Not assigned"}</div>
+              <div><strong>Team:</strong> ${(() => {
+                const workers = [
+                  route.worker1,
+                  route.worker2,
+                  route.worker3,
+                  route.worker4,
+                ]
+                  .filter(
+                    (w) => w && w.trim() && w.toLowerCase() !== "cancelled",
+                  )
+                  .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
+                const vans = [route.van1, route.van2]
+                  .filter((v) => v && v.trim())
+                  .map((v) => `${this.getVanEmoji(v)} ${v}`);
+                return [...workers, ...vans].join(", ") || "Not assigned";
+              })()}</div>
               ${route.dropOff ? `<div><strong>Drop-off:</strong> ${route.dropOff}</div>` : ""}
               ${route.pickupAmount ? `<div><strong>Pickup Amount:</strong> ${route.pickupAmount}</div>` : ""}
             </div>
