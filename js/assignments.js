@@ -96,7 +96,7 @@ class AssignmentsManager {
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
         <div style="text-align: center; margin-bottom: 15px;">
           <div style="font-size: 2rem; margin-bottom: 5px;">${workerEmoji}</div>
-          <h3 style="margin: 0; color: #007bff;">${workerName}'s Next ${upcomingRoutes.length} Routes</h3>
+          <h3 style="margin: 0; color: #007bff;">${workerName}'s Upcoming Assignments</h3>
           <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
         </div>
     `;
