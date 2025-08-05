@@ -185,9 +185,21 @@ class DatesManager {
       sheetsAPI.recoveryData.length,
     );
 
-    // Get all SPFM dates with market info
-    const spfmDates = sheetsAPI.getAllDates().map((date) => {
-      const routes = sheetsAPI.getRoutesByDate(date);
+    // Get all SPFM dates with market info, excluding completed routes
+    const allSPFMRoutes = sheetsAPI.data.filter((route) => {
+      const status = (
+        route["Status"] ||
+        route["status"] ||
+        route["A"] ||
+        ""
+      ).toLowerCase();
+      return status !== "completed";
+    });
+
+    const spfmDates = [
+      ...new Set(allSPFMRoutes.map((route) => route.date).filter(Boolean)),
+    ].map((date) => {
+      const routes = allSPFMRoutes.filter((route) => route.date === date);
       const market =
         routes.length > 0
           ? routes[0].market || routes[0].Market || "Market"
@@ -233,7 +245,7 @@ class DatesManager {
         const formattedDate = this.formatDate(dateItem.parsed);
         const routes =
           dateItem.type === "spfm"
-            ? sheetsAPI.getRoutesByDate(dateItem.date)
+            ? allSPFMRoutes.filter((route) => route.date === dateItem.date)
             : [dateItem]; // For generated recovery routes, use the dateItem itself
 
         const workers =
