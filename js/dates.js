@@ -322,15 +322,35 @@ class DatesManager {
       return;
     }
 
-    // Use same flexbox layout as worker cards
+    // Use same flexbox layout as worker cards with route type colors
     container.innerHTML = `
       <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center;">
         ${allDates
           .map((dateItem) => {
             const formattedDate = this.formatDate(dateItem.parsed);
+            const routes =
+              dateItem.type === "spfm"
+                ? allSPFMRoutes.filter((route) => route.date === dateItem.date)
+                : [dateItem];
+            const routeCount = routes.length;
+            const marketName =
+              dateItem.type === "spfm"
+                ? routeCount > 1
+                  ? `${routeCount} Routes`
+                  : routes[0]?.market || "Market"
+                : "Recovery";
+            const bgColor = dateItem.type === "spfm" ? "#fff3e0" : "#e3f2fd"; // Orange tint for SPFM, Blue tint for Recovery
+            const borderColor =
+              dateItem.type === "spfm" ? "#ff8c00" : "#007bff";
+            const emoji = dateItem.type === "spfm" ? "👨‍🌾" : "🛒";
+
             return `
-              <div class="worker-card" onclick="selectDate('${dateItem.date}')" style="display: inline-block; text-align: center;">
-                ${formattedDate}
+              <div class="worker-card" onclick="selectDate('${dateItem.date}')"
+                   style="display: inline-block; text-align: center; background: ${bgColor}; border: 2px solid ${borderColor};">
+                <div style="font-weight: bold;">${formattedDate}</div>
+                <div style="font-size: 0.8rem; margin-top: 4px; color: ${borderColor};">
+                  ${emoji} ${marketName}
+                </div>
               </div>
             `;
           })
