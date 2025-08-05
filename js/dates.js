@@ -293,7 +293,12 @@ class DatesManager {
         ...route,
         type: "recovery",
         sortDate: route.parsed,
-        displayDate: route.date,
+        displayDate: route.parsed.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
       });
     });
 
