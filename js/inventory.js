@@ -105,11 +105,11 @@ class InventoryManager {
         <h4>📝 Update Inventory</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">Small boxes:</label>
+            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">small boxes:</label>
             <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
           </div>
           <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">Large boxes:</label>
+            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">LARGE boxes:</label>
             <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
           </div>
           <div>
