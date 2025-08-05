@@ -529,7 +529,6 @@ class AssignmentsManager {
       day: "numeric",
     });
   }
-}
 
   // ========================================
   // VAN EMOJI HELPER

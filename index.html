@@ -53,6 +53,49 @@
 
             <!-- Main Content Area -->
             <div class="main-content">
+                <!-- Debug Panel (temporary) -->
+                <div
+                    style="
+                        background: #f0f0f0;
+                        padding: 10px;
+                        margin: 5px;
+                        border-radius: 5px;
+                        font-size: 0.8rem;
+                    "
+                >
+                    <strong>Debug Panel:</strong>
+                    <button
+                        onclick="window.refreshData()"
+                        style="
+                            margin: 0 5px;
+                            padding: 5px 10px;
+                            font-size: 0.7rem;
+                        "
+                    >
+                        Force Refresh
+                    </button>
+                    <button
+                        onclick="loadApiDataIfNeeded().then(() => console.log('Manual API load complete'))"
+                        style="
+                            margin: 0 5px;
+                            padding: 5px 10px;
+                            font-size: 0.7rem;
+                        "
+                    >
+                        Load API
+                    </button>
+                    <button
+                        onclick="console.log('Data lengths:', {spfm: sheetsAPI.data.length, recovery: sheetsAPI.recoveryData.length})"
+                        style="
+                            margin: 0 5px;
+                            padding: 5px 10px;
+                            font-size: 0.7rem;
+                        "
+                    >
+                        Check Data
+                    </button>
+                </div>
+
                 <!-- Box Management Tab -->
                 <div id="boxTab" class="tab-content active">
                     <div id="inventoryContainer">

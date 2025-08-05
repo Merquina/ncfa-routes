@@ -116,31 +116,59 @@ function switchTab(tabName, updateUrl = true) {
       }
       break;
     case "date":
+      console.log("🔍 Switching to date tab, updateUrl:", updateUrl);
       if (window.datesManager) {
         // Only load API data when user actually clicks the tab
         if (updateUrl) {
+          console.log("📊 Loading API data for date tab...");
           // Load API data when date tab is clicked
-          loadApiDataIfNeeded().then(() => {
-            datesManager.renderDates();
-          });
+          loadApiDataIfNeeded()
+            .then(() => {
+              console.log("✅ API data loaded, rendering dates...");
+              console.log("📊 sheetsAPI.data.length:", sheetsAPI.data.length);
+              console.log(
+                "📊 sheetsAPI.recoveryData.length:",
+                sheetsAPI.recoveryData.length,
+              );
+              datesManager.renderDates();
+            })
+            .catch((error) => {
+              console.error("❌ Error loading API data for dates:", error);
+            });
         } else {
           // Just show empty state on initial load
+          console.log("📅 Rendering dates without API load (initial)");
           datesManager.renderDates();
         }
+      } else {
+        console.error("❌ datesManager not available");
       }
       break;
     case "worker":
+      console.log("🔍 Switching to worker tab, updateUrl:", updateUrl);
       if (window.workersManager) {
         // Only load API data when user actually clicks the tab
         if (updateUrl) {
+          console.log("👥 Loading API data for worker tab...");
           // Load API data when worker tab is clicked
-          loadApiDataIfNeeded().then(() => {
-            workersManager.renderWorkers();
-          });
+          loadApiDataIfNeeded()
+            .then(() => {
+              console.log("✅ API data loaded, rendering workers...");
+              console.log("👥 sheetsAPI.data.length:", sheetsAPI.data.length);
+              const workers = sheetsAPI.getAllWorkers();
+              console.log("👥 Found workers:", workers);
+              workersManager.renderWorkers();
+            })
+            .catch((error) => {
+              console.error("❌ Error loading API data for workers:", error);
+            });
         } else {
           // Just show empty state on initial load
+          console.log("👥 Rendering workers without API load (initial)");
           workersManager.renderWorkers();
         }
+      } else {
+        console.error("❌ workersManager not available");
       }
       break;
   }
@@ -150,18 +178,28 @@ function switchTab(tabName, updateUrl = true) {
 // API LOADING ON DEMAND
 // ========================================
 async function loadApiDataIfNeeded() {
+  console.log(
+    "📊 loadApiDataIfNeeded called, current data length:",
+    sheetsAPI.data.length,
+  );
   if (sheetsAPI.data.length === 0) {
     console.log("📊 Loading API data on demand...");
     updateVersionStatus("Loading sheet data...");
     try {
       await sheetsAPI.fetchSheetData();
-      console.log("✅ API data loaded");
+      console.log("✅ API data loaded successfully");
+      console.log("📊 SPFM data count:", sheetsAPI.data.length);
+      console.log("📊 Recovery data count:", sheetsAPI.recoveryData.length);
+      console.log("📊 Sample SPFM data:", sheetsAPI.data[0]);
       updateVersionStatus("✅ Ready");
     } catch (error) {
       console.error("❌ Error loading API data:", error);
+      console.error("❌ Error details:", error.message);
       updateVersionStatus("❌ API Error");
       throw error;
     }
+  } else {
+    console.log("✅ API data already loaded, skipping fetch");
   }
 }
 
