@@ -33,34 +33,27 @@ class AssignmentsManager {
       return;
     }
 
-    // Interleave SPFM and recovery routes chronologically
-    const allRoutes = [];
+    // Use the same logic as Screen 2 for generating dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Add SPFM routes with date parsing
-    assignments.spfm.forEach((route) => {
+    // Get SPFM routes for this worker (not completed)
+    const workerSPFMRoutes = assignments.spfm.filter((route) => {
+      const status = (route.status || "").toLowerCase();
       const routeDate = new Date(route.date);
-      if (routeDate >= today) {
-        allRoutes.push({
-          ...route,
-          type: "spfm",
-          sortDate: routeDate,
-          displayDate: route.date,
-        });
-      }
+      return status !== "completed" && routeDate >= today;
     });
 
-    // Add recovery routes with generated dates
+    // Generate recovery dates using Screen 2's logic
+    const allRecoveryDates = [];
     assignments.recovery.forEach((route) => {
-      const dayName = route.Day;
+      const dayName = route.Day || route["Recovery Routes"] || route.day;
       if (dayName) {
-        // Generate next few occurrences of this day
-        for (let i = 0; i < 4; i++) {
-          // Look ahead 4 weeks
-          const nextDate = this.getNextDateForDay(dayName, i);
-          if (nextDate >= today) {
-            allRoutes.push({
+        // Generate next 12 occurrences like Screen 2
+        for (let occurrence = 0; occurrence < 12; occurrence++) {
+          const nextDate = this.calculateNextOccurrence(dayName, occurrence);
+          if (nextDate && nextDate >= today) {
+            allRecoveryDates.push({
               ...route,
               type: "recovery",
               sortDate: nextDate,
@@ -75,6 +68,22 @@ class AssignmentsManager {
         }
       }
     });
+
+    // Combine SPFM and recovery routes
+    const allRoutes = [];
+
+    // Add SPFM routes
+    workerSPFMRoutes.forEach((route) => {
+      allRoutes.push({
+        ...route,
+        type: "spfm",
+        sortDate: new Date(route.date),
+        displayDate: route.date,
+      });
+    });
+
+    // Add recovery routes
+    allRoutes.push(...allRecoveryDates);
 
     // Sort all routes by date and take only next 4
     const upcomingRoutes = allRoutes
@@ -165,31 +174,32 @@ class AssignmentsManager {
     assignmentsContainer.innerHTML = html;
   }
 
-  // Helper method to get next occurrence of a day
-  getNextDateForDay(dayName, weeksOffset = 0) {
-    const days = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const targetDay = days.indexOf(dayName.toLowerCase());
+  // Use Screen 2's date calculation logic
+  calculateNextOccurrence(dayName, occurrence) {
+    const dayMap = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+    };
 
-    if (targetDay === -1) return new Date(); // fallback
+    const targetDay = dayMap[dayName.toLowerCase()];
+    if (targetDay === undefined) return null;
 
     const today = new Date();
     const currentDay = today.getDay();
-    let daysUntilTarget = (targetDay - currentDay + 7) % 7;
 
-    if (daysUntilTarget === 0 && weeksOffset === 0) {
-      daysUntilTarget = 7; // If it's the same day, go to next week
+    // Calculate days until next occurrence of this weekday
+    let daysUntilTarget = (targetDay - currentDay + 7) % 7;
+    if (daysUntilTarget === 0 && occurrence === 0) {
+      daysUntilTarget = 7; // If today is the target day, get next week's
     }
 
     const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + daysUntilTarget + weeksOffset * 7);
+    targetDate.setDate(today.getDate() + daysUntilTarget + occurrence * 7);
 
     return targetDate;
   }
