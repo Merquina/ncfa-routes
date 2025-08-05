@@ -271,7 +271,12 @@ class DatesManager {
           dateItem.type === "spfm" ? "SPFM Routes" : "Recovery Routes";
         const marketName =
           dateItem.type === "spfm"
-            ? dateItem.market
+            ? routeQty >= 2
+              ? routes
+                  .map((r) => r.market || r.Market || "Market")
+                  .filter(Boolean)
+                  .join(", ")
+              : dateItem.market
             : dateItem.location || "Market";
         const firstLine = `${dateItem.emoji} ${routeType} - ${formattedDate}`;
 
