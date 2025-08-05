@@ -289,15 +289,40 @@ class DatesManager {
     console.log("🔍 Debug: recoveryDates:", recoveryDates);
 
     // Combine and sort chronologically
-    const allDates = [...spfmDates, ...recoveryDates]
-      .map((item) => ({
-        ...item,
-        parsed: new Date(item.date),
-      }))
-      .filter((item) => !isNaN(item.parsed.getTime()))
-      .sort((a, b) => a.parsed - b.parsed)
-      .slice(0, 7); // Show next 7 dates
+    console.log(
+      "🔍 Debug: Before combining - spfmDates:",
+      spfmDates.length,
+      "recoveryDates:",
+      recoveryDates.length,
+    );
 
+    const combinedDates = [...spfmDates, ...recoveryDates];
+    console.log("🔍 Debug: Combined dates:", combinedDates.length);
+
+    const parsedDates = combinedDates.map((item) => {
+      const parsed = new Date(item.date);
+      console.log(
+        `🔍 Debug: Parsing date "${item.date}" -> ${parsed}, isValid: ${!isNaN(parsed.getTime())}`,
+      );
+      return {
+        ...item,
+        parsed: parsed,
+      };
+    });
+
+    const filteredDates = parsedDates.filter(
+      (item) => !isNaN(item.parsed.getTime()),
+    );
+    console.log(
+      "🔍 Debug: After filtering invalid dates:",
+      filteredDates.length,
+    );
+
+    const sortedDates = filteredDates.sort((a, b) => a.parsed - b.parsed);
+    console.log("🔍 Debug: After sorting:", sortedDates.length);
+
+    const allDates = sortedDates.slice(0, 7); // Show next 7 dates
+    console.log("🔍 Debug: Final allDates after slice(0,7):", allDates.length);
     console.log("🔍 Debug: allDates:", allDates);
 
     if (allDates.length === 0) {
