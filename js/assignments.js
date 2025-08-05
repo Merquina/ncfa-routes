@@ -38,14 +38,19 @@ class AssignmentsManager {
       return;
     }
 
-    let html = `
-      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid ${color};">
-        <div style="text-align: center; margin-bottom: 15px;">
-          <div style="font-size: 2rem; margin-bottom: 5px;">${emoji}</div>
-          <h3 style="margin: 0; color: ${color};">${title}</h3>
-          <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
-        </div>
-    `;
+    let html = ``;
+
+    // Only add header section if title is provided
+    if (title && title.trim() !== "") {
+      html += `
+        <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid ${color};">
+          <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-size: 2rem; margin-bottom: 5px;">${emoji}</div>
+            <h3 style="margin: 0; color: ${color};">${title}</h3>
+            <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
+          </div>
+      `;
+    }
 
     // Render all routes with identical cards
     routes.forEach((route) => {
@@ -63,7 +68,9 @@ class AssignmentsManager {
       `;
     }
 
-    html += `</div>`;
+    if (title && title.trim() !== "") {
+      html += `</div>`;
+    }
     assignmentsContainer.innerHTML = html;
   }
 

@@ -16,22 +16,15 @@ class DatesManager {
 
     if (!chronologicalContainer) return;
 
-    // Check if API data is loaded
+    // Skip loading state - show cards directly
     if (sheetsAPI.data.length === 0) {
-      // Show loading state in dates container
-      chronologicalContainer.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
-          <div style="font-size: 2rem; margin-bottom: 10px;">📅</div>
-          <p style="font-weight: bold; color: #007bff;">Loading upcoming routes...</p>
-        </div>
-      `;
       return;
     }
 
-    // Use shared function to render upcoming routes in dates container at top
+    // Use shared function with no title - just show cards
     assignmentsManager.renderAllUpcomingRoutes({
-      title: "Upcoming Routes",
-      emoji: "📅",
+      title: "",
+      emoji: "",
       showPrintButton: false,
       limit: 8,
       renderInDatesContainer: true,
