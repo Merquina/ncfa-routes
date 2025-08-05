@@ -303,7 +303,7 @@ class DatesManager {
                     .filter(Boolean)
                     .join(", ")
                 : dateItem.market
-              : dateItem.location || "Recovery Route";
+              : "Recovery Route";
           const firstLine = `${dateItem.emoji} ${routeType} - ${formattedDate}`;
 
           return `
