@@ -159,6 +159,7 @@ class AssignmentsManager {
         color: "#007bff",
         groupByMarket: false,
         printButtonText: "Print Assignment",
+        showPrintButton: false,
       });
       return;
     }
@@ -245,6 +246,7 @@ class AssignmentsManager {
       color: "#007bff",
       groupByMarket: false,
       printButtonText: "Print Assignment",
+      showPrintButton: false,
     });
   }
 
