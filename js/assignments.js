@@ -86,46 +86,30 @@ class AssignmentsManager {
   }
 
   renderSPFMCard(route) {
-    const vanEmoji = this.getVanEmoji(route.van1 || route.van2);
+    const workers = [route.worker1, route.worker2, route.worker3, route.worker4]
+      .filter((w) => w && w.trim() && w.toLowerCase() !== "cancelled")
+      .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
+
+    const vans = [route.van1, route.van2]
+      .filter((v) => v && v.trim())
+      .map((v) => `${this.getVanEmoji(v)} ${v}`);
 
     return `
       <div style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00;">
-        <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
+        <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate || route.date} at ${route.startTime || "TBD"}
         </div>
-        <div style="font-size: 0.85rem; color: #ff8c00; margin-bottom: 4px;">👨‍🌾 SPFM Route</div>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
+          ${route.market || "Market"}
+        </div>
+        <div style="font-size: 0.85rem; color: #ff8c00; margin-bottom: 4px;">
+          👨‍🌾 SPFM Route
+        </div>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
+          ${workers.join(", ") || "No team assigned"}
+        </div>
         <div style="font-size: 0.9rem; color: #666;">
-          <div><strong>Market:</strong> ${route.market || "Market"}</div>
-          <div><strong>Team:</strong> ${(() => {
-            const workers = [
-              route.worker1,
-              route.worker2,
-              route.worker3,
-              route.worker4,
-            ]
-              .filter((w) => w && w.trim() && w.toLowerCase() !== "cancelled")
-              .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
-            const vans = [route.van1, route.van2]
-              .filter((v) => v && v.trim())
-              .map((v) => `${this.getVanEmoji(v)} ${v}`);
-            return [...workers, ...vans].join(", ") || "Not assigned";
-          })()}</div>
-          ${route.dropOff ? `<div><strong>Drop-off:</strong> ${route.dropOff}</div>` : ""}
-          ${
-            route.backAtOffice
-              ? `
-            <div><strong>Final Steps:</strong></div>
-            <div style="margin-left: 10px; font-size: 0.85rem;">
-              ${route.backAtOffice
-                .split(",")
-                .map((step) =>
-                  step.trim() ? `<div>☐ ${step.trim()}</div>` : "",
-                )
-                .join("")}
-            </div>
-          `
-              : ""
-          }
+          ${vans.join(", ") || "No vans assigned"}
         </div>
       </div>
     `;
@@ -134,28 +118,20 @@ class AssignmentsManager {
   renderRecoveryCard(route) {
     return `
       <div style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff;">
-        <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
+        <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate} at ${route.Time || "TBD"}
         </div>
-        <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">🛒 Recovery Route</div>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
+          ${route.A || "Recovery Route"}
+        </div>
+        <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">
+          🛒 Recovery Route
+        </div>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
+          ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "No team assigned"}
+        </div>
         <div style="font-size: 0.9rem; color: #666;">
-          <div><strong>Recovery Route</strong></div>
-          <div><strong>Team:</strong> ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "Not assigned"}</div>
-          ${route.Contact ? `<div><strong>Drop-off:</strong> ${route.Contact}</div>` : ""}
-          ${
-            route.Notes
-              ? `
-            <div><strong>Final Steps:</strong></div>
-            <div style="margin-left: 10px; font-size: 0.85rem;">
-              ${route.Notes.split(",")
-                .map((step) =>
-                  step.trim() ? `<div>☐ ${step.trim()}</div>` : "",
-                )
-                .join("")}
-            </div>
-          `
-              : ""
-          }
+          No vans assigned
         </div>
       </div>
     `;
