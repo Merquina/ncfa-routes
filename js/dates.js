@@ -16,8 +16,8 @@ class DatesManager {
 
     if (!chronologicalContainer) return;
 
-    // Show full assignment cards immediately
-    this.renderFullAssignmentCards(chronologicalContainer);
+    // Show the exact same assignment cards as worker selection
+    this.showAssignmentCardsDirectly();
   }
 
   renderSPFMDates(container) {
@@ -244,24 +244,21 @@ class DatesManager {
   }
 
   // ========================================
-  // FULL ASSIGNMENT CARDS (Direct display)
+  // SHOW ASSIGNMENT CARDS DIRECTLY (Like worker selection)
   // ========================================
-  renderFullAssignmentCards(container) {
-    console.log("🔍 Debug: renderFullAssignmentCards called");
-    console.log("🔍 Debug: sheetsAPI.data length:", sheetsAPI.data.length);
-    console.log(
-      "🔍 Debug: sheetsAPI.recoveryData length:",
-      sheetsAPI.recoveryData.length,
-    );
+  showAssignmentCardsDirectly() {
+    console.log("🔍 Debug: showAssignmentCardsDirectly called");
+
+    // Clear the dates container since we'll show cards in assignments container
+    const chronologicalContainer =
+      document.getElementById("chronologicalDates");
+    if (chronologicalContainer) {
+      chronologicalContainer.innerHTML = "";
+    }
 
     // Get all upcoming SPFM routes (not completed)
     const allSPFMRoutes = sheetsAPI.data.filter((route) => {
-      const status = (
-        route["Status"] ||
-        route["status"] ||
-        route["A"] ||
-        ""
-      ).toLowerCase();
+      const status = (route.status || route.Status || "").toLowerCase();
       const routeDate = new Date(route.date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -270,7 +267,7 @@ class DatesManager {
 
     // Get upcoming recovery routes
     const recoveryDates = this.generateWeeklyRecoveryDates();
-    const upcomingRecoveryRoutes = recoveryDates.slice(0, 7);
+    const upcomingRecoveryRoutes = recoveryDates.slice(0, 4);
 
     // Combine all routes
     const allRoutes = [];
@@ -295,32 +292,19 @@ class DatesManager {
       });
     });
 
-    // Sort by date and take next 10 routes
+    // Sort by date and take next 8 routes
     const upcomingRoutes = allRoutes
       .sort((a, b) => a.sortDate - b.sortDate)
-      .slice(0, 10);
+      .slice(0, 8);
 
-    if (upcomingRoutes.length === 0) {
-      // Show empty state in dates container, not assignments
-      container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <p>No upcoming routes found.</p>
-        </div>
-      `;
-      return;
-    }
-
-    // Clear the dates container and show assignments in assignments container
-    container.innerHTML = "";
-
-    // Use the unified assignment renderer to show full assignment cards
+    // Use the unified assignment renderer - EXACT same as worker selection
     assignmentsManager.renderUnifiedAssignments({
       routes: upcomingRoutes,
       title: "Upcoming Routes",
       emoji: "📅",
       color: "#007bff",
       groupByMarket: false,
-      printButtonText: "Print All Routes",
+      printButtonText: "Print Routes",
     });
   }
 
