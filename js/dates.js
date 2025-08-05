@@ -301,9 +301,9 @@ class DatesManager {
       sheetsAPI.recoveryData.forEach((route) => {
         const dayName = route.Day || route.day;
         if (dayName) {
-          // Generate next 8 weeks of this recovery route
-          for (let week = 0; week < 8; week++) {
-            const nextDate = this.getNextDateForDay(dayName, week);
+          // Generate next 12 occurrences of this recovery route
+          for (let occurrence = 0; occurrence < 12; occurrence++) {
+            const nextDate = this.calculateNextOccurrence(dayName, occurrence);
             if (nextDate) {
               recoveryDates.push({
                 date: nextDate.toLocaleDateString("en-US"),
@@ -324,6 +324,35 @@ class DatesManager {
     return recoveryDates;
   }
 
+  calculateNextOccurrence(dayName, occurrence) {
+    const dayMap = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+    };
+
+    const targetDay = dayMap[dayName.toLowerCase()];
+    if (targetDay === undefined) return null;
+
+    const today = new Date();
+    const currentDay = today.getDay();
+
+    // Calculate days until next occurrence of this weekday
+    let daysUntilTarget = (targetDay - currentDay + 7) % 7;
+    if (daysUntilTarget === 0 && occurrence === 0) {
+      daysUntilTarget = 7; // If today is the target day, get next week's
+    }
+
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysUntilTarget + occurrence * 7);
+
+    return targetDate;
+  }
+
   // ========================================
   // HELPER METHODS
   // ========================================
@@ -336,34 +365,7 @@ class DatesManager {
   }
 
   getNextDateForDay(dayName, weeksFromNow = 0) {
-    if (!dayName) return null;
-
-    const days = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const dayIndex = days.findIndex(
-      (day) => day.toLowerCase() === dayName.toLowerCase(),
-    );
-
-    if (dayIndex === -1) return null;
-
-    const today = new Date();
-    const currentDay = today.getDay();
-    const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
-    const targetDate = new Date(today);
-    targetDate.setDate(
-      today.getDate() +
-        (daysUntilTarget === 0 ? 7 : daysUntilTarget) +
-        weeksFromNow * 7,
-    );
-
-    return targetDate;
+    return this.calculateNextOccurrence(dayName, weeksFromNow);
   }
 }
 
