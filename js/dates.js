@@ -193,15 +193,8 @@ class DatesManager {
       color: "#28a745", // green
     }));
 
-    // Get all recovery dates
-    const recoveryDates = sheetsAPI.recoveryData
-      .map((route) => ({
-        date: route.Date || route.date,
-        type: "recovery",
-        emoji: "🛒",
-        color: "#ff8c00", // orange
-      }))
-      .filter((item) => item.date);
+    // Generate weekly recovery dates based on day of week
+    const recoveryDates = this.generateWeeklyRecoveryDates();
 
     console.log("🔍 Debug: spfmDates:", spfmDates);
     console.log("🔍 Debug: recoveryDates:", recoveryDates);
@@ -233,9 +226,7 @@ class DatesManager {
         const routes =
           dateItem.type === "spfm"
             ? sheetsAPI.getRoutesByDate(dateItem.date)
-            : sheetsAPI.recoveryData.filter(
-                (r) => (r.Date || r.date) === dateItem.date,
-              );
+            : [dateItem]; // For generated recovery routes, use the dateItem itself
 
         const workers =
           dateItem.type === "spfm"
@@ -243,22 +234,19 @@ class DatesManager {
                 .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
                 .filter(Boolean)
                 .filter((w) => w.toLowerCase() !== "cancelled")
-            : routes.map((r) => r.Worker).filter(Boolean);
+            : dateItem.worker
+              ? [dateItem.worker]
+              : [];
 
-        const routeQty = routes.length;
+        const routeQty = dateItem.type === "spfm" ? routes.length : 1;
         const locations =
           dateItem.type === "spfm"
             ? routes
                 .map((r) => r.location || r.Location)
                 .filter(Boolean)
                 .slice(0, 2)
-            : routes
-                .map((r) => r.Location || r.location)
-                .filter(Boolean)
-                .slice(0, 2);
-        const locationsText =
-          locations.join(", ") +
-          (locations.length < routes.length ? "..." : "");
+            : [dateItem.location];
+        const locationsText = locations.filter(Boolean).join(", ") || "Market";
         const routeType =
           dateItem.type === "spfm" ? "SPFM Routes" : "Recovery Routes";
 
@@ -277,6 +265,41 @@ class DatesManager {
   }
 
   // ========================================
+  // RECOVERY DATE GENERATION
+  // ========================================
+  generateWeeklyRecoveryDates() {
+    const recoveryDates = [];
+    const today = new Date();
+
+    // Get recovery route patterns from sheets (day of week info)
+    if (sheetsAPI.recoveryData && sheetsAPI.recoveryData.length > 0) {
+      sheetsAPI.recoveryData.forEach((route) => {
+        const dayName = route.Day || route.day;
+        if (dayName) {
+          // Generate next 8 weeks of this recovery route
+          for (let week = 0; week < 8; week++) {
+            const nextDate = this.getNextDateForDay(dayName, week);
+            if (nextDate) {
+              recoveryDates.push({
+                date: nextDate.toLocaleDateString("en-US"),
+                parsed: nextDate,
+                type: "recovery",
+                emoji: "🛒",
+                color: "#ff8c00", // orange
+                dayName: dayName,
+                worker: route.Worker || route.worker,
+                location: route.Location || route.location || "Recovery Route",
+              });
+            }
+          }
+        }
+      });
+    }
+
+    return recoveryDates;
+  }
+
+  // ========================================
   // HELPER METHODS
   // ========================================
   formatDate(date) {
@@ -287,7 +310,7 @@ class DatesManager {
     });
   }
 
-  getNextDateForDay(dayName) {
+  getNextDateForDay(dayName, weeksFromNow = 0) {
     if (!dayName) return null;
 
     const days = [
@@ -310,15 +333,12 @@ class DatesManager {
     const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
     const targetDate = new Date(today);
     targetDate.setDate(
-      today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget),
+      today.getDate() +
+        (daysUntilTarget === 0 ? 7 : daysUntilTarget) +
+        weeksFromNow * 7,
     );
 
-    return targetDate.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return targetDate;
   }
 }
 
