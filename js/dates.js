@@ -101,12 +101,12 @@ class DatesManager {
     const recoveryRoutes = sheetsAPI.recoveryData
       .filter(
         (route) =>
-          route["Recovery Routes"] &&
+          route["recovery route"] &&
           route.Worker &&
           route.Worker.toLowerCase() !== "worker",
       )
       .map((route) => {
-        const calculatedDate = this.getNextDateForDay(route["Recovery Routes"]);
+        const calculatedDate = this.getNextDateForDay(route["recovery route"]);
         return {
           ...route,
           calculatedDate,
@@ -131,8 +131,8 @@ class DatesManager {
     container.innerHTML = recoveryRoutes
       .map(
         (route) => `
-                <div class="date-card" onclick="selectRecoveryRoute('${route.Worker}', '${route["Recovery Routes"]}')">
-                    <h3>${route.calculatedDate || route["Recovery Routes"]}</h3>
+                <div class="date-card" onclick="selectRecoveryRoute('${route.Worker}', '${route["recovery route"]}')">
+                    <h3>${route.calculatedDate || route["recovery route"]}</h3>
                     <p><strong>Worker:</strong> ${workersManager.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
                     <p><strong>Type:</strong> Recovery Route</p>
                 </div>
@@ -195,7 +195,11 @@ class DatesManager {
     console.log("🔍 Debug: Target date normalized:", targetDateStr);
 
     for (const route of sheetsAPI.recoveryData) {
-      const dayName = route["Recovery Routes"] || route.Day || route.day;
+      const dayName =
+        route["recovery route"] ||
+        route["Recovery Routes"] ||
+        route.Day ||
+        route.day;
       const stop1 = route["Stop 1"] || route["stop1"] || "";
 
       if (!dayName || stop1.trim() === "") continue;
@@ -230,7 +234,7 @@ class DatesManager {
 
   selectRecoveryRoute(worker, dayName) {
     const route = sheetsAPI.recoveryData.find(
-      (r) => r.Worker === worker && r["Recovery Routes"] === dayName,
+      (r) => r.Worker === worker && r["recovery route"] === dayName,
     );
 
     if (!route) return;
@@ -428,7 +432,11 @@ class DatesManager {
       console.log("🔍 Debug: Found recovery data, processing routes...");
       sheetsAPI.recoveryData.forEach((route, index) => {
         console.log(`🔍 Debug: Processing recovery route ${index}:`, route);
-        const dayName = route["Recovery Routes"] || route.Day || route.day;
+        const dayName =
+          route["recovery route"] ||
+          route["Recovery Routes"] ||
+          route.Day ||
+          route.day;
         const stop1 = route["Stop 1"] || route["stop1"] || "";
         console.log(`🔍 Debug: Day name extracted: ${dayName}`);
         console.log(`🔍 Debug: Stop 1 extracted: ${stop1}`);

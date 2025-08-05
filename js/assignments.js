@@ -122,7 +122,7 @@ class AssignmentsManager {
           ${route.displayDate} at ${route.Time || "TBD"}
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${(route.dayName || route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"}
+          ${(route.dayName || route["recovery route"] || route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"}
         </div>
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">
           🛒 Recovery Route
@@ -131,18 +131,7 @@ class AssignmentsManager {
           ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "No team assigned"}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${(() => {
-            console.log("🔍 Debug recovery van data:", route);
-            console.log("🔍 Van fields:", {
-              van: route.van,
-              Van: route.Van,
-              D: route.D,
-            });
-            const vanValue = route.van || route.Van || route.D;
-            return vanValue
-              ? `${this.getVanEmoji(vanValue)} ${vanValue}`
-              : "No vans assigned";
-          })()}
+          ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : "No vans assigned"}
         </div>
       </div>
     `;
@@ -192,7 +181,11 @@ class AssignmentsManager {
     // Generate recovery dates using Screen 2's logic
     const allRecoveryDates = [];
     assignments.recovery.forEach((route) => {
-      const dayName = route.Day || route["Recovery Routes"] || route.day;
+      const dayName =
+        route["recovery route"] ||
+        route.Day ||
+        route["Recovery Routes"] ||
+        route.day;
       if (dayName) {
         // Generate next 12 occurrences like Screen 2
         for (let occurrence = 0; occurrence < 12; occurrence++) {
@@ -330,7 +323,9 @@ class AssignmentsManager {
     // Find recovery routes for this worker and day
     const recoveryRoutes = sheetsAPI.recoveryData.filter((route) => {
       const routeWorker = (route.Worker || "").trim().toLowerCase();
-      const routeDay = (route.Day || "").trim().toLowerCase();
+      const routeDay = (route["recovery route"] || route.Day || "")
+        .trim()
+        .toLowerCase();
       return (
         routeWorker === worker.toLowerCase() &&
         routeDay === dayName.toLowerCase()
