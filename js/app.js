@@ -256,6 +256,63 @@ function printAssignment() {
   window.print();
 }
 
+function printMarketSection(marketId) {
+  const marketSection = document.getElementById(marketId);
+  if (!marketSection) {
+    console.error("Market section not found:", marketId);
+    return;
+  }
+
+  // Create a new window for printing
+  const printWindow = window.open("", "_blank");
+
+  // Get the market content
+  const marketContent = marketSection.outerHTML;
+
+  // Create print-friendly HTML
+  const printHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>NCFA Route Assignment</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+          font-size: 12px;
+          line-height: 1.4;
+        }
+        .market-section {
+          margin: 0 !important;
+        }
+        @media print {
+          body { margin: 10px; }
+          button { display: none !important; }
+        }
+      </style>
+    </head>
+    <body>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2>North Country Food Alliance</h2>
+        <p>Route Assignment</p>
+      </div>
+      ${marketContent}
+      <script>
+        window.onload = function() {
+          window.print();
+          window.onafterprint = function() {
+            window.close();
+          };
+        };
+      </script>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.write(printHTML);
+  printWindow.document.close();
+}
+
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
@@ -379,6 +436,7 @@ window.selectWorker = selectWorker;
 window.selectDate = selectDate;
 window.selectRecoveryRoute = selectRecoveryRoute;
 window.printAssignment = printAssignment;
+window.printMarketSection = printMarketSection;
 window.initializeApp = initializeApp;
 window.updateVersionStatus = updateVersionStatus;
 window.switchTab = switchTab;
