@@ -56,8 +56,8 @@ class AssignmentsManager {
       const dayName = route.Day;
       if (dayName) {
         // Generate next few occurrences of this day
-        for (let i = 0; i < 8; i++) {
-          // Look ahead 8 weeks
+        for (let i = 0; i < 4; i++) {
+          // Look ahead 4 weeks
           const nextDate = this.getNextDateForDay(dayName, i);
           if (nextDate >= today) {
             allRoutes.push({
@@ -80,6 +80,11 @@ class AssignmentsManager {
     const upcomingRoutes = allRoutes
       .sort((a, b) => a.sortDate - b.sortDate)
       .slice(0, 4);
+
+    console.log("🔍 Debug worker assignments for", workerName);
+    console.log("🔍 Total routes found:", allRoutes.length);
+    console.log("🔍 Upcoming routes (limited to 4):", upcomingRoutes.length);
+    console.log("🔍 Upcoming routes:", upcomingRoutes);
 
     if (upcomingRoutes.length === 0) {
       assignmentsContainer.innerHTML = `

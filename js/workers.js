@@ -73,15 +73,8 @@ class WorkersManager {
           <div style="font-size: 2rem; margin-bottom: 10px;">📋</div>
           <div style="border-top: 2px solid #ddd; margin: 0 20px 15px 20px;"></div>
           <p style="font-weight: bold; color: #007bff;">Loading assignment for ${this.getWorkerEmoji(worker)} ${worker}...</p>
-          <div style="font-size: 0.8rem; color: #999; margin-top: 10px;">Scrolling to assignment view...</div>
         </div>
       `;
-
-      // Immediately scroll to show the loading state
-      assignmentsContainer.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
     }
 
     // Get worker assignments and render using assignments manager
@@ -91,39 +84,18 @@ class WorkersManager {
     setTimeout(() => {
       assignmentsManager.renderWorkerAssignments(worker, assignments);
 
-      // Simple, direct mobile scrolling
+      // Scroll to assignments after rendering (like Screen 2)
       setTimeout(() => {
+        const assignmentsContainer = document.getElementById(
+          "assignmentsContainer",
+        );
         if (assignmentsContainer) {
-          // Force scroll to bottom of page to ensure assignment is visible
-          const isMobile = /iPhone|iPad|iPod|Android/i.test(
-            navigator.userAgent,
-          );
-
-          if (isMobile) {
-            // Mobile: scroll to bottom of document
-            const documentHeight = Math.max(
-              document.body.scrollHeight,
-              document.body.offsetHeight,
-              document.documentElement.clientHeight,
-              document.documentElement.scrollHeight,
-              document.documentElement.offsetHeight,
-            );
-
-            window.scrollTo({
-              top: documentHeight,
-              behavior: "smooth",
-            });
-
-            console.log("Mobile scroll triggered to:", documentHeight);
-          } else {
-            // Desktop: scroll to assignment
-            assignmentsContainer.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
-          }
+          assignmentsContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
         }
-      }, 300);
+      }, 500);
     }, 100);
   }
 
