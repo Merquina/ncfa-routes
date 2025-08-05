@@ -46,72 +46,19 @@ class AssignmentsManager {
         </div>
     `;
 
-    if (groupByMarket) {
-      // Group routes by market for date-based display
-      const marketGroups = {};
-      routes.forEach((route) => {
-        if (route.type === "spfm") {
-          const market = route.market || "Market";
-          if (!marketGroups[market]) {
-            marketGroups[market] = [];
-          }
-          marketGroups[market].push(route);
-        } else {
-          // Recovery routes don't have markets, group separately
-          const recoveryKey = "Recovery Routes";
-          if (!marketGroups[recoveryKey]) {
-            marketGroups[recoveryKey] = [];
-          }
-          marketGroups[recoveryKey].push(route);
-        }
-      });
+    // Render all routes with identical cards
+    routes.forEach((route) => {
+      html += this.renderSingleAssignmentCard(route);
+    });
 
-      const markets = Object.keys(marketGroups);
-      const totalMarkets = markets.length;
-
-      markets.forEach((market, marketIndex) => {
-        const marketRoutes = marketGroups[market];
-        const marketId = `market-${Date.now()}-${marketIndex}`;
-
-        html += `<div id="${marketId}" class="market-section" style="margin-bottom: 20px;">`;
-
-        // Add market banner if multiple markets
-        if (totalMarkets > 1 && market !== "Recovery Routes") {
-          html += `
-            <div style="background: #007bff; color: white; padding: 8px 12px; margin-bottom: 12px; border-radius: 4px; font-weight: bold; text-align: center; font-size: 0.9rem;">
-              Market ${marketIndex + 1} of ${totalMarkets}
-            </div>
-          `;
-        }
-
-        // Render routes in this market
-        marketRoutes.forEach((route) => {
-          html += this.renderSingleAssignmentCard(route);
-        });
-
-        // Individual print button for each market
-        html += `
-          <div style="text-align: center; margin-top: 15px; margin-bottom: 15px;">
-            <button onclick="printMarketSection('${marketId}')" class="directions-btn" style="background: #6c757d; font-size: 0.9rem;">
-              🖨️ Print ${totalMarkets > 1 && market !== "Recovery Routes" ? `Market ${marketIndex + 1}` : "Assignment"}
-            </button>
-          </div>
-        </div>`;
-      });
-    } else {
-      // Chronological display for worker-based view
-      routes.forEach((route) => {
-        html += this.renderSingleAssignmentCard(route);
-      });
-
-      html += `
-        <div style="text-align: center; margin-top: 20px;">
-          <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
-            🖨️ ${printButtonText}
-          </button>
-        </div>
-      `;
-    }
+    // Add single print button (same for both screens for now)
+    html += `
+      <div style="text-align: center; margin-top: 20px;">
+        <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
+          🖨️ ${printButtonText}
+        </button>
+      </div>
+    `;
 
     html += `</div>`;
     assignmentsContainer.innerHTML = html;
