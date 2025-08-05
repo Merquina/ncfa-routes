@@ -80,17 +80,17 @@ class InventoryManager {
       <div style="margin-bottom: 10px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>🧮 Box Calculator</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
-          <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">How many farmers:</label>
-            <input type="number" id="farmersInput" min="1" value="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="font-weight: bold; line-height: 1; flex: 1;">How many farmers:</label>
+            <input type="number" id="farmersInput" min="1" value="1" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
-          <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">How many small boxes:</label>
-            <input type="number" id="smallBoxesInput" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="font-weight: bold; line-height: 1; flex: 1;">How many small boxes:</label>
+            <input type="number" id="smallBoxesInput" min="0" value="0" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
-          <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">How many LARGE boxes:</label>
-            <input type="number" id="largeBoxesInput" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="font-weight: bold; line-height: 1; flex: 1;">How many LARGE boxes:</label>
+            <input type="number" id="largeBoxesInput" min="0" value="0" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 5px;">Calculate Distribution</button>
           <div id="calculationResult" style="padding: 8px; background: #e8f5e8; border-radius: 4px; margin-top: 5px; display: none;">
