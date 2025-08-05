@@ -311,16 +311,22 @@ class DatesManager {
     const recoveryDates = [];
     const today = new Date();
 
+    console.log("🔍 Debug: generateWeeklyRecoveryDates called");
+    console.log("🔍 Debug: sheetsAPI.recoveryData:", sheetsAPI.recoveryData);
+
     // Get recovery route patterns from sheets (day of week info)
     if (sheetsAPI.recoveryData && sheetsAPI.recoveryData.length > 0) {
-      sheetsAPI.recoveryData.forEach((route) => {
+      console.log("🔍 Debug: Found recovery data, processing routes...");
+      sheetsAPI.recoveryData.forEach((route, index) => {
+        console.log(`🔍 Debug: Processing recovery route ${index}:`, route);
         const dayName = route.Day || route.day;
+        console.log(`🔍 Debug: Day name extracted: ${dayName}`);
         if (dayName) {
           // Generate next 12 occurrences of this recovery route
           for (let occurrence = 0; occurrence < 12; occurrence++) {
             const nextDate = this.calculateNextOccurrence(dayName, occurrence);
             if (nextDate) {
-              recoveryDates.push({
+              const recoveryRoute = {
                 date: nextDate.toLocaleDateString("en-US"),
                 parsed: nextDate,
                 type: "recovery",
@@ -329,13 +335,23 @@ class DatesManager {
                 dayName: dayName,
                 worker: route.Worker || route.worker,
                 location: route.Location || route.location || "Recovery Route",
-              });
+              };
+              console.log(
+                `🔍 Debug: Generated recovery route for ${dayName}, occurrence ${occurrence}:`,
+                recoveryRoute,
+              );
+              recoveryDates.push(recoveryRoute);
             }
           }
+        } else {
+          console.log(`🔍 Debug: No day name found for route ${index}`);
         }
       });
+    } else {
+      console.log("🔍 Debug: No recovery data found or empty array");
     }
 
+    console.log("🔍 Debug: Final recovery dates array:", recoveryDates);
     return recoveryDates;
   }
 
