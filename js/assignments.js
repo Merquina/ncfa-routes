@@ -71,6 +71,21 @@ class AssignmentsManager {
               })()}
             </div>
             ${route.dropOff ? `<div style="font-size: 0.8rem; color: #888; margin-top: 2px;">Drop-off: ${route.dropOff}</div>` : ""}
+            ${
+              route.backAtOffice
+                ? `
+              <div style="font-size: 0.8rem; color: #888; margin-top: 4px;"><strong>Final Steps:</strong></div>
+              <div style="margin-left: 10px; font-size: 0.75rem; color: #666;">
+                ${route.backAtOffice
+                  .split(",")
+                  .map((step) =>
+                    step.trim() ? `<div>☐ ${step.trim()}</div>` : "",
+                  )
+                  .join("")}
+              </div>
+            `
+                : ""
+            }
           </div>
         `;
       });
@@ -197,7 +212,21 @@ class AssignmentsManager {
                 return [...workers, ...vans].join(", ") || "Not assigned";
               })()}</div>
               ${route.dropOff ? `<div><strong>Drop-off:</strong> ${route.dropOff}</div>` : ""}
-              ${route.pickupAmount ? `<div><strong>Pickup Amount:</strong> ${route.pickupAmount}</div>` : ""}
+              ${
+                route.backAtOffice
+                  ? `
+                <div><strong>Final Steps:</strong></div>
+                <div style="margin-left: 10px; font-size: 0.85rem;">
+                  ${route.backAtOffice
+                    .split(",")
+                    .map((step) =>
+                      step.trim() ? `<div>☐ ${step.trim()}</div>` : "",
+                    )
+                    .join("")}
+                </div>
+              `
+                  : ""
+              }
             </div>
           </div>
         `;
