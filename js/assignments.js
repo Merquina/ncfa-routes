@@ -95,6 +95,7 @@ class AssignmentsManager {
         </div>
         <div style="font-size: 0.85rem; color: #ff8c00; margin-bottom: 4px;">👨‍🌾 SPFM Route</div>
         <div style="font-size: 0.9rem; color: #666;">
+          <div><strong>Market:</strong> ${route.market || "Market"}</div>
           <div><strong>Team:</strong> ${(() => {
             const workers = [
               route.worker1,
@@ -138,6 +139,7 @@ class AssignmentsManager {
         </div>
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">🛒 Recovery Route</div>
         <div style="font-size: 0.9rem; color: #666;">
+          <div><strong>Recovery Route</strong></div>
           <div><strong>Team:</strong> ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "Not assigned"}</div>
           ${route.Contact ? `<div><strong>Drop-off:</strong> ${route.Contact}</div>` : ""}
           ${
