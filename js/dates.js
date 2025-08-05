@@ -330,7 +330,7 @@ class DatesManager {
       console.log("🔍 Debug: Found recovery data, processing routes...");
       sheetsAPI.recoveryData.forEach((route, index) => {
         console.log(`🔍 Debug: Processing recovery route ${index}:`, route);
-        const dayName = route.Day || route.day;
+        const dayName = route["Recovery Routes"] || route.Day || route.day;
         console.log(`🔍 Debug: Day name extracted: ${dayName}`);
         if (dayName) {
           // Generate next 12 occurrences of this recovery route
