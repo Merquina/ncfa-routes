@@ -18,26 +18,18 @@ class DatesManager {
 
     // Check if API data is loaded
     if (sheetsAPI.data.length === 0) {
-      // Show loading state while waiting for API data
-      const assignmentsContainer = document.getElementById(
-        "assignmentsContainer",
-      );
-      if (assignmentsContainer) {
-        assignmentsContainer.innerHTML = `
-          <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
-            <div style="font-size: 2rem; margin-bottom: 10px;">📅</div>
-            <p style="font-weight: bold; color: #007bff;">Loading upcoming routes...</p>
-          </div>
-        `;
-      }
+      // Show loading state in dates container
+      chronologicalContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
+          <div style="font-size: 2rem; margin-bottom: 10px;">📅</div>
+          <p style="font-weight: bold; color: #007bff;">Loading upcoming routes...</p>
+        </div>
+      `;
       return;
     }
 
-    // Clear the dates container and show assignments like worker selection
-    chronologicalContainer.innerHTML = "";
-
-    // Get upcoming routes and render them exactly like worker assignments
-    this.renderUpcomingRoutesAsAssignments();
+    // Get upcoming routes and render them directly in dates container
+    this.renderUpcomingRoutesAsAssignments(chronologicalContainer);
   }
 
   renderSPFMDates(container) {
@@ -266,7 +258,7 @@ class DatesManager {
   // ========================================
   // RENDER UPCOMING ROUTES AS ASSIGNMENTS (Like worker selection)
   // ========================================
-  renderUpcomingRoutesAsAssignments() {
+  renderUpcomingRoutesAsAssignments(container) {
     console.log("🔍 Debug: renderUpcomingRoutesAsAssignments called");
 
     // Get all upcoming SPFM routes (not completed)
@@ -310,21 +302,32 @@ class DatesManager {
       .sort((a, b) => a.sortDate - b.sortDate)
       .slice(0, 8);
 
-    // Render into assignmentsContainer exactly like worker selection
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
-    if (!assignmentsContainer) return;
+    if (upcomingRoutes.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <p>No upcoming routes found.</p>
+        </div>
+      `;
+      return;
+    }
 
-    // Use the unified assignment renderer - EXACT same as worker selection
-    assignmentsManager.renderUnifiedAssignments({
-      routes: upcomingRoutes,
-      title: "Upcoming Routes",
-      emoji: "📅",
-      color: "#007bff",
-      groupByMarket: false,
-      showPrintButton: false,
+    // Render assignment cards directly in the dates container
+    let html = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <div style="font-size: 2rem; margin-bottom: 5px;">📅</div>
+          <h3 style="margin: 0; color: #007bff;">Upcoming Routes</h3>
+          <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
+        </div>
+    `;
+
+    // Render all routes with identical cards
+    upcomingRoutes.forEach((route) => {
+      html += assignmentsManager.renderSingleAssignmentCard(route);
     });
+
+    html += `</div>`;
+    container.innerHTML = html;
   }
 
   // ========================================
