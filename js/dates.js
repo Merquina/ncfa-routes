@@ -208,7 +208,7 @@ class DatesManager {
         date: date,
         type: "spfm",
         emoji: "👨‍🌾",
-        color: "#28a745", // green
+        color: "#007bff", // blue
         market: market,
       };
     });
