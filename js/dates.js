@@ -258,6 +258,16 @@ class DatesManager {
               ? [dateItem.worker]
               : [];
 
+        // Add worker emojis
+        const workersWithEmojis = workers
+          .map((worker) => {
+            const emoji = this.getWorkerEmoji(worker);
+            return `${emoji} ${worker}`;
+          })
+          .slice(0, 3);
+        const workersText =
+          workersWithEmojis.join(", ") + (workers.length > 3 ? "..." : "");
+
         const routeQty = dateItem.type === "spfm" ? routes.length : 1;
         const locations =
           dateItem.type === "spfm"
@@ -286,7 +296,7 @@ class DatesManager {
             <div style="font-weight: bold; margin-bottom: 3px;">${firstLine}</div>
             <div style="margin-bottom: 3px;">${marketName}</div>
             ${locationsText ? `<div style="margin-bottom: 3px;">${locationsText}</div>` : ""}
-            ${routeQty < 2 ? `<div style="margin-bottom: 3px;">${workers.slice(0, 3).join(", ")}${workers.length > 3 ? "..." : ""}</div>` : ""}
+            ${routeQty < 2 ? `<div style="margin-bottom: 3px;"><strong>Workers:</strong> ${workersText}</div>` : ""}
             <div style="font-weight: bold;">Routes: ${routeQty}</div>
           </div>
         `;
@@ -371,6 +381,31 @@ class DatesManager {
 
   getNextDateForDay(dayName, weeksFromNow = 0) {
     return this.calculateNextOccurrence(dayName, weeksFromNow);
+  }
+
+  getWorkerEmoji(workerName) {
+    if (!workerName || workerName.trim() === "") return "👤";
+
+    if (workerName.trim().toLowerCase().includes("volunteer")) {
+      return "👤";
+    }
+
+    const workerIcons = {
+      Samuel: "🐋",
+      Emmanuel: "🦁",
+      Irmydel: "🐸",
+      Tess: "🌟",
+      Ayoyo: "⚡",
+      Rosey: "🌹",
+      Boniat: "🌊",
+      Volunteer: "👤",
+    };
+
+    const workerIcon = Object.keys(workerIcons).find(
+      (key) => key.toLowerCase() === workerName.trim().toLowerCase(),
+    );
+
+    return workerIcon ? workerIcons[workerIcon] : "👤";
   }
 }
 
