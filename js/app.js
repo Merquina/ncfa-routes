@@ -117,18 +117,30 @@ function switchTab(tabName, updateUrl = true) {
       break;
     case "date":
       if (window.datesManager) {
-        // Load API data when date tab is clicked
-        loadApiDataIfNeeded().then(() => {
+        // Only load API data when user actually clicks the tab
+        if (updateUrl) {
+          // Load API data when date tab is clicked
+          loadApiDataIfNeeded().then(() => {
+            datesManager.renderDates();
+          });
+        } else {
+          // Just show empty state on initial load
           datesManager.renderDates();
-        });
+        }
       }
       break;
     case "worker":
       if (window.workersManager) {
-        // Load API data when worker tab is clicked
-        loadApiDataIfNeeded().then(() => {
+        // Only load API data when user actually clicks the tab
+        if (updateUrl) {
+          // Load API data when worker tab is clicked
+          loadApiDataIfNeeded().then(() => {
+            workersManager.renderWorkers();
+          });
+        } else {
+          // Just show empty state on initial load
           workersManager.renderWorkers();
-        });
+        }
       }
       break;
   }
