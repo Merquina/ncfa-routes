@@ -131,7 +131,7 @@ class AssignmentsManager {
           ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "No team assigned"}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${route.van || route.Van || route.D || "No vans assigned"}
+          ${route.van || route.Van ? `${this.getVanEmoji(route.van || route.Van)} ${route.van || route.Van}` : "No vans assigned"}
         </div>
       </div>
     `;
