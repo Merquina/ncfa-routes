@@ -298,6 +298,12 @@ class SheetsAPI {
       return routeWorker === normalizedWorker;
     });
 
+    console.log(`🔍 Debug getWorkerAssignments for ${workerName}:`);
+    console.log("🔍 Recovery data:", this.recoveryData);
+    console.log("🔍 SPFM assignments found:", spfmAssignments.length);
+    console.log("🔍 Recovery assignments found:", recoveryAssignments.length);
+    console.log("🔍 Recovery assignments:", recoveryAssignments);
+
     return {
       spfm: spfmAssignments,
       recovery: recoveryAssignments,

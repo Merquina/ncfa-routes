@@ -39,8 +39,11 @@ class AssignmentsManager {
 
     // Get SPFM routes for this worker (not completed)
     const workerSPFMRoutes = assignments.spfm.filter((route) => {
-      const status = (route.status || "").toLowerCase();
+      const status = (route.status || route.Status || "").toLowerCase();
       const routeDate = new Date(route.date);
+      console.log(
+        `🔍 Route ${route.routeId}: status="${status}", date=${route.date}, dateObj=${routeDate}, future=${routeDate >= today}`,
+      );
       return status !== "completed" && routeDate >= today;
     });
 
@@ -91,9 +94,30 @@ class AssignmentsManager {
       .slice(0, 4);
 
     console.log("🔍 Debug worker assignments for", workerName);
+    console.log("🔍 Original SPFM assignments:", assignments.spfm.length);
+    console.log(
+      "🔍 Original recovery assignments:",
+      assignments.recovery.length,
+    );
+    console.log(
+      "🔍 Filtered SPFM routes (not completed):",
+      workerSPFMRoutes.length,
+    );
+    console.log(
+      "🔍 Filtered SPFM routes (not completed):",
+      workerSPFMRoutes.length,
+    );
+    console.log("🔍 Generated recovery dates:", allRecoveryDates.length);
     console.log("🔍 Total routes found:", allRoutes.length);
     console.log("🔍 Upcoming routes (limited to 4):", upcomingRoutes.length);
     console.log("🔍 Upcoming routes:", upcomingRoutes);
+    console.log("🔍 Worker SPFM routes:", workerSPFMRoutes);
+    console.log("🔍 All recovery dates:", allRecoveryDates);
+    console.log("🔍 Today:", today);
+    console.log(
+      "🔍 Original SPFM assignments sample:",
+      assignments.spfm.slice(0, 3),
+    );
 
     if (upcomingRoutes.length === 0) {
       assignmentsContainer.innerHTML = `
