@@ -127,13 +127,26 @@ class AssignmentsManager {
     return `
       <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
         <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
-          ${route.displayDate} - ${route.Location || route.location || "Location"}
+          ${route.displayDate} - ${route.Location || route.location || "Location"} ${route.Time ? `at ${route.Time}` : ""}
         </div>
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">🛒 Recovery Route</div>
         <div style="font-size: 0.9rem; color: #666;">
-          <div><strong>Time:</strong> ${route.Time || "Not specified"}</div>
-          <div><strong>Contact:</strong> ${route.Contact || "Not specified"}</div>
-          ${route.Notes ? `<div><strong>Notes:</strong> ${route.Notes}</div>` : ""}
+          <div><strong>Team:</strong> ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "Not assigned"}</div>
+          ${route.Contact ? `<div><strong>Drop-off:</strong> ${route.Contact}</div>` : ""}
+          ${
+            route.Notes
+              ? `
+            <div><strong>Final Steps:</strong></div>
+            <div style="margin-left: 10px; font-size: 0.85rem;">
+              ${route.Notes.split(",")
+                .map((step) =>
+                  step.trim() ? `<div>☐ ${step.trim()}</div>` : "",
+                )
+                .join("")}
+            </div>
+          `
+              : ""
+          }
         </div>
       </div>
     `;
