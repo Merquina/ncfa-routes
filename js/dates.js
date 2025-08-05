@@ -28,8 +28,8 @@ class DatesManager {
       return;
     }
 
-    // Get upcoming routes and render them directly in dates container
-    this.renderUpcomingRoutesAsAssignments(chronologicalContainer);
+    // Use the same system as Screen 3 - get data and use assignment manager
+    this.prepareAndRenderAssignments();
   }
 
   renderSPFMDates(container) {
@@ -256,12 +256,21 @@ class DatesManager {
   }
 
   // ========================================
-  // RENDER UPCOMING ROUTES AS ASSIGNMENTS (Like worker selection)
+  // PREPARE AND RENDER ASSIGNMENTS (Same as Screen 3)
   // ========================================
-  renderUpcomingRoutesAsAssignments(container) {
-    console.log("🔍 Debug: renderUpcomingRoutesAsAssignments called");
+  prepareAndRenderAssignments() {
+    console.log(
+      "🔍 Debug: prepareAndRenderAssignments called - using same system as Screen 3",
+    );
 
-    // Get all upcoming SPFM routes (not completed)
+    // Clear the dates container - we'll render into assignments container like Screen 3
+    const chronologicalContainer =
+      document.getElementById("chronologicalDates");
+    if (chronologicalContainer) {
+      chronologicalContainer.innerHTML = "";
+    }
+
+    // Get SPFM routes (not completed)
     const allSPFMRoutes = sheetsAPI.data.filter((route) => {
       const status = (route.status || route.Status || "").toLowerCase();
       const routeDate = new Date(route.date);
@@ -270,11 +279,11 @@ class DatesManager {
       return status !== "completed" && routeDate >= today;
     });
 
-    // Get upcoming recovery routes
+    // Get recovery routes
     const recoveryDates = this.generateWeeklyRecoveryDates();
     const upcomingRecoveryRoutes = recoveryDates.slice(0, 4);
 
-    // Combine all routes
+    // Combine all routes exactly like Screen 3 worker assignments
     const allRoutes = [];
 
     // Add SPFM routes
@@ -287,7 +296,7 @@ class DatesManager {
       });
     });
 
-    // Add recovery routes
+    // Add recovery routes with properly formatted dates
     upcomingRecoveryRoutes.forEach((route) => {
       allRoutes.push({
         ...route,
@@ -299,6 +308,10 @@ class DatesManager {
           month: "long",
           day: "numeric",
         }),
+        Worker: route.worker,
+        Location: route.location,
+        Time: route.Time,
+        Notes: route.Notes,
       });
     });
 
@@ -307,25 +320,15 @@ class DatesManager {
       .sort((a, b) => a.sortDate - b.sortDate)
       .slice(0, 8);
 
-    if (upcomingRoutes.length === 0) {
-      container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <p>No upcoming routes found.</p>
-        </div>
-      `;
-      return;
-    }
-
-    // Render assignment cards directly at the top with no header
-    let html = `<div style="margin: 0; padding: 0;">`;
-
-    // Render all routes with identical cards
-    upcomingRoutes.forEach((route) => {
-      html += assignmentsManager.renderSingleAssignmentCard(route);
+    // Use the unified assignment renderer exactly like Screen 3
+    assignmentsManager.renderUnifiedAssignments({
+      routes: upcomingRoutes,
+      title: "Upcoming Routes",
+      emoji: "📅",
+      color: "#007bff",
+      groupByMarket: false,
+      showPrintButton: false,
     });
-
-    html += `</div>`;
-    container.innerHTML = html;
   }
 
   // ========================================
