@@ -45,8 +45,9 @@ class InventoryManager {
 
     const inventory = this.getLocalInventory();
 
+    const cacheBreaker = Date.now();
     inventoryContainer.innerHTML = `
-      <!-- Section 1: Box Inventory -->
+      <!-- Section 1: Box Inventory (${cacheBreaker}) -->
       <div style="margin-bottom: 10px; margin-top: 2px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>📦 Box Inventory</h4>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px;">
@@ -76,7 +77,7 @@ class InventoryManager {
         }
       </div>
 
-      <!-- Section 2: Box Calculator -->
+      <!-- Section 2: Box Calculator (${cacheBreaker}) -->
       <div style="margin-bottom: 10px; margin-top: 2px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>🧮 Box Calculator</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
@@ -100,7 +101,7 @@ class InventoryManager {
         </div>
       </div>
 
-      <!-- Section 3: Update Inventory -->
+      <!-- Section 3: Update Inventory (${cacheBreaker}) -->
       <div style="margin-top: 2px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>📝 Update Inventory</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
