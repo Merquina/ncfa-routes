@@ -16,8 +16,11 @@ class DatesManager {
 
     if (!chronologicalContainer) return;
 
-    // Show the exact same assignment cards as worker selection
-    this.showAssignmentCardsDirectly();
+    // Clear the dates container and show assignments like worker selection
+    chronologicalContainer.innerHTML = "";
+
+    // Get upcoming routes and render them exactly like worker assignments
+    this.renderUpcomingRoutesAsAssignments();
   }
 
   renderSPFMDates(container) {
@@ -244,17 +247,10 @@ class DatesManager {
   }
 
   // ========================================
-  // SHOW ASSIGNMENT CARDS DIRECTLY (Like worker selection)
+  // RENDER UPCOMING ROUTES AS ASSIGNMENTS (Like worker selection)
   // ========================================
-  showAssignmentCardsDirectly() {
-    console.log("🔍 Debug: showAssignmentCardsDirectly called");
-
-    // Clear the dates container since we'll show cards in assignments container
-    const chronologicalContainer =
-      document.getElementById("chronologicalDates");
-    if (chronologicalContainer) {
-      chronologicalContainer.innerHTML = "";
-    }
+  renderUpcomingRoutesAsAssignments() {
+    console.log("🔍 Debug: renderUpcomingRoutesAsAssignments called");
 
     // Get all upcoming SPFM routes (not completed)
     const allSPFMRoutes = sheetsAPI.data.filter((route) => {
@@ -296,6 +292,12 @@ class DatesManager {
     const upcomingRoutes = allRoutes
       .sort((a, b) => a.sortDate - b.sortDate)
       .slice(0, 8);
+
+    // Render into assignmentsContainer exactly like worker selection
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
+    if (!assignmentsContainer) return;
 
     // Use the unified assignment renderer - EXACT same as worker selection
     assignmentsManager.renderUnifiedAssignments({
