@@ -27,7 +27,66 @@ class AssignmentsManager {
         <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
           <div style="font-size: 2rem; margin-bottom: 10px;">${workerEmoji}</div>
           <h3>${workerName}</h3>
-          <p>No assignments found for this worker.</p>
+          <p>No upcoming assignments found for this worker.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Interleave SPFM and recovery routes chronologically
+    const allRoutes = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Add SPFM routes with date parsing
+    assignments.spfm.forEach((route) => {
+      const routeDate = new Date(route.date);
+      if (routeDate >= today) {
+        allRoutes.push({
+          ...route,
+          type: "spfm",
+          sortDate: routeDate,
+          displayDate: route.date,
+        });
+      }
+    });
+
+    // Add recovery routes with generated dates
+    assignments.recovery.forEach((route) => {
+      const dayName = route.Day;
+      if (dayName) {
+        // Generate next few occurrences of this day
+        for (let i = 0; i < 8; i++) {
+          // Look ahead 8 weeks
+          const nextDate = this.getNextDateForDay(dayName, i);
+          if (nextDate >= today) {
+            allRoutes.push({
+              ...route,
+              type: "recovery",
+              sortDate: nextDate,
+              displayDate: nextDate.toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+            });
+          }
+        }
+      }
+    });
+
+    // Sort all routes by date and take only next 4
+    const upcomingRoutes = allRoutes
+      .sort((a, b) => a.sortDate - b.sortDate)
+      .slice(0, 4);
+
+    if (upcomingRoutes.length === 0) {
+      assignmentsContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
+          <div style="font-size: 2rem; margin-bottom: 10px;">${workerEmoji}</div>
+          <h3>${workerName}</h3>
+          <p>No upcoming assignments found for this worker.</p>
         </div>
       `;
       return;
@@ -37,25 +96,23 @@ class AssignmentsManager {
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
         <div style="text-align: center; margin-bottom: 15px;">
           <div style="font-size: 2rem; margin-bottom: 5px;">${workerEmoji}</div>
-          <h3 style="margin: 0; color: #007bff;">${workerName}'s Assignments</h3>
+          <h3 style="margin: 0; color: #007bff;">${workerName}'s Next ${upcomingRoutes.length} Routes</h3>
           <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
         </div>
     `;
 
-    // Add SPFM assignments
-    if (assignments.spfm.length > 0) {
-      html += `<div style="margin-bottom: 20px;">`;
-      html += `<h4 style="color: #007bff; margin-bottom: 10px;">🚚 SPFM Routes (${assignments.spfm.length})</h4>`;
-
-      assignments.spfm.forEach((route) => {
+    // Render interleaved routes
+    upcomingRoutes.forEach((route, index) => {
+      if (route.type === "spfm") {
         const vanEmoji = this.getVanEmoji(route.van1 || route.van2);
         html += `
-          <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #007bff;">
-            <div style="font-weight: bold; color: #333;">
-              ${vanEmoji} ${route.date} - ${route.market || "Market"} ${route.startTime ? `at ${route.startTime}` : ""}
+          <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #007bff;">
+            <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
+              ${vanEmoji} ${route.displayDate} - ${route.market || "Market"} ${route.startTime ? `at ${route.startTime}` : ""}
             </div>
-            <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">
-              Team: ${(() => {
+            <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">🚚 SPFM Route</div>
+            <div style="font-size: 0.9rem; color: #666;">
+              <div><strong>Team:</strong> ${(() => {
                 const workers = [
                   route.worker1,
                   route.worker2,
@@ -68,51 +125,28 @@ class AssignmentsManager {
                   .filter((v) => v && v.trim())
                   .map((v) => `${this.getVanEmoji(v)} ${v}`);
                 return [...workers, ...vans].join(", ") || "Not assigned";
-              })()}
+              })()}</div>
+              ${route.dropOff ? `<div><strong>Drop-off:</strong> ${route.dropOff}</div>` : ""}
             </div>
-            ${route.dropOff ? `<div style="font-size: 0.8rem; color: #888; margin-top: 2px;">Drop-off: ${route.dropOff}</div>` : ""}
-            ${
-              route.backAtOffice
-                ? `
-              <div style="font-size: 0.8rem; color: #888; margin-top: 4px;"><strong>Final Steps:</strong></div>
-              <div style="margin-left: 10px; font-size: 0.75rem; color: #666;">
-                ${route.backAtOffice
-                  .split(",")
-                  .map((step) =>
-                    step.trim() ? `<div>☐ ${step.trim()}</div>` : "",
-                  )
-                  .join("")}
-              </div>
-            `
-                : ""
-            }
           </div>
         `;
-      });
-      html += `</div>`;
-    }
-
-    // Add Recovery assignments
-    if (assignments.recovery.length > 0) {
-      html += `<div style="margin-bottom: 20px;">`;
-      html += `<h4 style="color: #28a745; margin-bottom: 10px;">🚗 Recovery Routes (${assignments.recovery.length})</h4>`;
-
-      assignments.recovery.forEach((route) => {
+      } else {
+        // Recovery route
         html += `
-          <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #28a745;">
-            <div style="font-weight: bold; color: #333;">
-              🚗 ${route.Day || "Day"} Recovery - ${route.Location || "Location"}
+          <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+            <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
+              🚗 ${route.displayDate} - ${route.Location || "Location"}
             </div>
-            <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">
-              Time: ${route.Time || "Not specified"} |
-              Contact: ${route.Contact || "Not specified"}
+            <div style="font-size: 0.85rem; color: #28a745; margin-bottom: 4px;">🚗 Recovery Route</div>
+            <div style="font-size: 0.9rem; color: #666;">
+              <div><strong>Time:</strong> ${route.Time || "Not specified"}</div>
+              <div><strong>Contact:</strong> ${route.Contact || "Not specified"}</div>
+              ${route.Notes ? `<div><strong>Notes:</strong> ${route.Notes}</div>` : ""}
             </div>
-            ${route.Notes ? `<div style="font-size: 0.8rem; color: #888; margin-top: 2px;">Notes: ${route.Notes}</div>` : ""}
           </div>
         `;
-      });
-      html += `</div>`;
-    }
+      }
+    });
 
     html += `
         <div style="text-align: center; margin-top: 20px;">
@@ -124,6 +158,35 @@ class AssignmentsManager {
     `;
 
     assignmentsContainer.innerHTML = html;
+  }
+
+  // Helper method to get next occurrence of a day
+  getNextDateForDay(dayName, weeksOffset = 0) {
+    const days = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+    const targetDay = days.indexOf(dayName.toLowerCase());
+
+    if (targetDay === -1) return new Date(); // fallback
+
+    const today = new Date();
+    const currentDay = today.getDay();
+    let daysUntilTarget = (targetDay - currentDay + 7) % 7;
+
+    if (daysUntilTarget === 0 && weeksOffset === 0) {
+      daysUntilTarget = 7; // If it's the same day, go to next week
+    }
+
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysUntilTarget + weeksOffset * 7);
+
+    return targetDate;
   }
 
   // ========================================
