@@ -313,7 +313,7 @@ class DatesManager {
             <div style="margin-bottom: 3px;">${marketName}</div>
             ${dateItem.type === "spfm" && locationsText ? `<div style="margin-bottom: 3px;">${locationsText}</div>` : ""}
             ${routeQty < 2 ? `<div style="margin-bottom: 3px;"><strong>Workers:</strong> ${workersText}</div>` : ""}
-            ${routeQty >= 2 ? `<div style="font-weight: bold;">Routes: ${routeQty}</div>` : ""}
+            ${routeQty >= 2 ? `<div style="font-weight: bold;">${routeQty} Routes</div>` : ""}
           </div>
         `;
         })
