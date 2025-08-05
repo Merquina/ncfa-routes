@@ -81,15 +81,15 @@ class InventoryManager {
         <h4>🧮 Box Calculator</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <label style="font-weight: bold; line-height: 1; flex: 1;">How many farmers:</label>
+            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many farmers:</label>
             <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <label style="font-weight: bold; line-height: 1; flex: 1;">How many small boxes:</label>
+            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many small boxes:</label>
             <input type="number" id="smallBoxesInput" min="0" value="0" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <label style="font-weight: bold; line-height: 1; flex: 1;">How many LARGE boxes:</label>
+            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many LARGE boxes:</label>
             <input type="number" id="largeBoxesInput" min="0" value="0" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
           <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 5px;">Calculate Distribution</button>
@@ -104,17 +104,17 @@ class InventoryManager {
       <div style="margin-top: 2px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>📝 Update Inventory</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
-          <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">small boxes:</label>
-            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" inputmode="numeric" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">small boxes:</label>
+            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
-          <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">LARGE boxes:</label>
-            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" inputmode="numeric" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">LARGE boxes:</label>
+            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" inputmode="numeric" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
           </div>
-          <div>
-            <label style="display: block; margin-bottom: 3px; font-weight: bold; line-height: 1;">Your name:</label>
-            <input type="text" id="updateName" placeholder="Enter your name" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">Your name:</label>
+            <input type="text" id="updateName" placeholder="Enter your name" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
           </div>
           <button class="directions-btn" onclick="inventoryManager.updateInventory()" style="margin-top: 5px; background: #007bff;">Update Inventory</button>
         </div>
