@@ -234,74 +234,79 @@ class DatesManager {
     if (allDates.length === 0) {
       // Check if API data hasn't loaded yet
       if (sheetsAPI.data.length === 0 && sheetsAPI.recoveryData.length === 0) {
+        const cacheBreaker = Date.now();
         container.innerHTML = `
           <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-            <p>🔄 Loading route data...</p>
+            <p>🔄 Loading route data... (${cacheBreaker})</p>
             <p style="font-size: 0.8rem; margin-top: 10px;">Click to load Google Sheets data</p>
             <button class="directions-btn" onclick="loadApiDataIfNeeded().then(() => datesManager.renderDates())" style="margin-top: 15px;">Load Routes</button>
           </div>
         `;
       } else {
+        const cacheBreaker = Date.now();
         container.innerHTML = `
           <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-            <p>No upcoming dates found.</p>
+            <p>No upcoming dates found. (${cacheBreaker})</p>
           </div>
         `;
       }
       return;
     }
 
-    container.innerHTML = allDates
-      .map((dateItem) => {
-        const formattedDate = this.formatDate(dateItem.parsed);
-        const routes =
-          dateItem.type === "spfm"
-            ? allSPFMRoutes.filter((route) => route.date === dateItem.date)
-            : [dateItem]; // For generated recovery routes, use the dateItem itself
+    const cacheBreaker = Date.now();
+    container.innerHTML =
+      `<!-- Route cards rendered at ${cacheBreaker} -->` +
+      allDates
+        .map((dateItem) => {
+          const formattedDate = this.formatDate(dateItem.parsed);
+          const routes =
+            dateItem.type === "spfm"
+              ? allSPFMRoutes.filter((route) => route.date === dateItem.date)
+              : [dateItem]; // For generated recovery routes, use the dateItem itself
 
-        const workers =
-          dateItem.type === "spfm"
-            ? routes
-                .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
-                .filter(Boolean)
-                .filter((w) => w.toLowerCase() !== "cancelled")
-            : dateItem.worker
-              ? [dateItem.worker]
-              : [];
-
-        // Add worker emojis
-        const workersWithEmojis = workers
-          .map((worker) => {
-            const emoji = this.getWorkerEmoji(worker);
-            return `${emoji} ${worker}`;
-          })
-          .slice(0, 3);
-        const workersText =
-          workersWithEmojis.join(", ") + (workers.length > 3 ? "..." : "");
-
-        const routeQty = dateItem.type === "spfm" ? routes.length : 1;
-        const locations =
-          dateItem.type === "spfm"
-            ? routes
-                .map((r) => r.location || r.Location)
-                .filter(Boolean)
-                .slice(0, 2)
-            : [dateItem.location];
-        const locationsText = locations.filter(Boolean).join(", ");
-        const routeType =
-          dateItem.type === "spfm" ? "SPFM Routes" : "Recovery Routes";
-        const marketName =
-          dateItem.type === "spfm"
-            ? routeQty >= 2
+          const workers =
+            dateItem.type === "spfm"
               ? routes
-                  .map((r) => r.market || r.Market || "Market")
+                  .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
                   .filter(Boolean)
-                  .join(", ")
-              : dateItem.market
-            : dateItem.location || "Recovery Route";
-        const firstLine = `${dateItem.emoji} ${routeType} - ${formattedDate}`;
+                  .filter((w) => w.toLowerCase() !== "cancelled")
+              : dateItem.worker
+                ? [dateItem.worker]
+                : [];
 
-        return `
+          // Add worker emojis
+          const workersWithEmojis = workers
+            .map((worker) => {
+              const emoji = this.getWorkerEmoji(worker);
+              return `${emoji} ${worker}`;
+            })
+            .slice(0, 3);
+          const workersText =
+            workersWithEmojis.join(", ") + (workers.length > 3 ? "..." : "");
+
+          const routeQty = dateItem.type === "spfm" ? routes.length : 1;
+          const locations =
+            dateItem.type === "spfm"
+              ? routes
+                  .map((r) => r.location || r.Location)
+                  .filter(Boolean)
+                  .slice(0, 2)
+              : [dateItem.location];
+          const locationsText = locations.filter(Boolean).join(", ");
+          const routeType =
+            dateItem.type === "spfm" ? "SPFM Routes" : "Recovery Routes";
+          const marketName =
+            dateItem.type === "spfm"
+              ? routeQty >= 2
+                ? routes
+                    .map((r) => r.market || r.Market || "Market")
+                    .filter(Boolean)
+                    .join(", ")
+                : dateItem.market
+              : dateItem.location || "Recovery Route";
+          const firstLine = `${dateItem.emoji} ${routeType} - ${formattedDate}`;
+
+          return `
           <div class="date-card" onclick="selectDate('${dateItem.date}')"
                style="border: 2px solid ${dateItem.color}; border-radius: 8px; padding: 10px; text-align: left;">
             <div style="font-weight: bold; margin-bottom: 3px;">${firstLine}</div>
@@ -311,8 +316,8 @@ class DatesManager {
             ${routeQty >= 2 ? `<div style="font-weight: bold;">Routes: ${routeQty}</div>` : ""}
           </div>
         `;
-      })
-      .join("");
+        })
+        .join("");
   }
 
   // ========================================
