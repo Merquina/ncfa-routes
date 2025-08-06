@@ -136,20 +136,7 @@ class AssignmentsManager {
           🛒 Recovery Route
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${(() => {
-            const teamSlots = [];
-            if (route.Worker) {
-              teamSlots.push(
-                `${this.getWorkerEmoji(route.Worker)} ${route.Worker}`,
-              );
-            }
-            while (teamSlots.length < 3) {
-              teamSlots.push(
-                '<span style="color: #800020; font-style: italic;">Need worker</span>',
-              );
-            }
-            return teamSlots.slice(0, 3).join(", ");
-          })()}
+          ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : '<span style="color: #800020; font-style: italic;">Need worker</span>'}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
           ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
