@@ -46,9 +46,62 @@
         <div class="container">
             <!-- Header -->
             <div class="header" style="background: #28a745; color: white">
-                <h1>North Country Food Alliance</h1>
-                <div style="font-size: 1.2rem; margin: 5px 0">🥕 🥒 🥬</div>
-                <p>SPFM and Recovery Routes</p>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        margin-bottom: 10px;
+                    "
+                >
+                    <div style="flex: 1">
+                        <h1 style="margin: 0 0 5px 0">
+                            North Country Food Alliance
+                        </h1>
+                        <div style="font-size: 1.2rem; margin: 5px 0">
+                            🥕 🥒 🥬
+                        </div>
+                        <p style="margin: 5px 0 0 0">
+                            SPFM and Recovery Routes
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-shrink: 0">
+                        <button
+                            onclick="signInToGoogle()"
+                            style="
+                                background: rgba(255, 255, 255, 0.2);
+                                color: white;
+                                border: 1px solid rgba(255, 255, 255, 0.3);
+                                padding: 8px 12px;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                                transition: background-color 0.2s;
+                            "
+                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'"
+                            onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'"
+                        >
+                            🔐 Sign in to Google
+                        </button>
+                        <button
+                            onclick="openBackendData()"
+                            style="
+                                background: rgba(255, 255, 255, 0.2);
+                                color: white;
+                                border: 1px solid rgba(255, 255, 255, 0.3);
+                                padding: 8px 12px;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                                transition: background-color 0.2s;
+                            "
+                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'"
+                            onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'"
+                        >
+                            📊 Backend Data
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Main Content Area -->
@@ -259,6 +312,20 @@
                     );
                 });
             }, 3000);
+
+            // Header button functions
+            function signInToGoogle() {
+                // TODO: Implement OAuth Google Sign-In
+                alert("Google Sign-In will be implemented here");
+            }
+
+            function openBackendData() {
+                // Open the Google Sheets document in a new tab
+                const SPREADSHEET_ID =
+                    "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
+                const sheetsUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
+                window.open(sheetsUrl, "_blank");
+            }
         </script>
     </body>
 </html>
