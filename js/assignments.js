@@ -728,6 +728,17 @@ class AssignmentsManager {
           </div>
         </div>
 
+          <!-- Charts Section -->
+          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+            <h3 style="color: #17a2b8; margin: 0 0 15px 0;">📊 Data Charts</h3>
+            <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 6px; border: 2px dashed #ddd;">
+              <div style="font-size: 2rem; margin-bottom: 10px; color: #ccc;">📈</div>
+              <p style="margin: 10px 0 0 0; color: #ff6b35; font-size: 0.9rem; font-weight: bold;">🚧 Under Construction - Not functional yet</p>
+              <p style="margin: 5px 0 0 0; color: #666; font-size: 0.85rem;">Charts and data visualization will appear here</p>
+            </div>
+          </div>
+        </div>
+
         <div style="text-align: center; margin-top: 20px;">
           <button onclick="history.back()" style="background: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
             ← Back to assignments
