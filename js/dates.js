@@ -11,23 +11,40 @@ class DatesManager {
   // DATES RENDERING
   // ========================================
   renderDates() {
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
     const chronologicalContainer =
       document.getElementById("chronologicalDates");
 
-    if (!chronologicalContainer) return;
+    if (!assignmentsContainer) return;
+
+    // Clear the chronological dates container since we're using assignmentsContainer
+    if (chronologicalContainer) {
+      chronologicalContainer.innerHTML = "";
+    }
 
     // Skip loading state - show cards directly
     if (sheetsAPI.data.length === 0) {
+      assignmentsContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <p>No route data available. Click a tab to load data.</p>
+        </div>
+      `;
       return;
     }
 
-    // Use shared function with no title - just show cards
-    assignmentsManager.renderAllUpcomingRoutes({
-      title: "",
-      emoji: "",
+    // Get all upcoming routes in chronological order
+    const upcomingRoutes = assignmentsManager.getUpcomingRoutes(8);
+
+    // Render using unified renderer without market grouping
+    assignmentsManager.renderUnifiedAssignments({
+      routes: upcomingRoutes,
+      title: "Upcoming Routes",
+      emoji: "📅",
+      color: "#007bff",
+      groupByMarket: false,
       showPrintButton: false,
-      limit: 8,
-      renderInDatesContainer: true,
     });
   }
 
