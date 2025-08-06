@@ -6,6 +6,7 @@ class SheetsAPI {
   constructor() {
     this.data = [];
     this.recoveryData = [];
+    this.deliveryData = [];
     this.inventoryData = [];
     this.contactsData = [];
     this.isLoading = false;
@@ -59,6 +60,7 @@ class SheetsAPI {
       // Also fetch recovery routes, box inventory, and contacts data
       await Promise.all([
         this.fetchRecoveryData(),
+        this.fetchDeliveryData(),
         this.fetchInventoryData(),
         this.fetchContactsData(),
       ]);
@@ -108,6 +110,48 @@ class SheetsAPI {
       console.log(`✅ Loaded ${this.recoveryData.length} recovery routes`);
     } catch (error) {
       console.log("Recovery data not available (this is optional):", error);
+    }
+  }
+
+  // ========================================
+  // SPFM DELIVERY DATA
+  // ========================================
+  async fetchDeliveryData() {
+    try {
+      // Try to fetch SPFM delivery routes from the "SPFM Delivery" sheet tab
+      const deliveryRange = "SPFM Delivery!A:P";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${deliveryRange}?key=${API_KEY}`;
+      console.log("🚚 Attempting to fetch SPFM delivery routes...");
+
+      const response = await this.fetchWithRetry(url);
+      if (!response.ok) {
+        console.log("SPFM Delivery tab not found - skipping delivery routes");
+        return;
+      }
+
+      const result = await response.json();
+
+      if (!result.values || result.values.length < 2) {
+        console.log("SPFM Delivery tab is empty - skipping delivery routes");
+        return;
+      }
+
+      // Convert delivery rows to JavaScript objects
+      const headers = result.values[0];
+      this.deliveryData = result.values.slice(1).map((row) => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
+
+      console.log(`✅ Loaded ${this.deliveryData.length} SPFM delivery routes`);
+    } catch (error) {
+      console.log(
+        "SPFM Delivery data not available (this is optional):",
+        error,
+      );
     }
   }
 

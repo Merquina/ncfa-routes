@@ -89,6 +89,8 @@ class AssignmentsManager {
   renderSingleAssignmentCard(route) {
     if (route.type === "recovery") {
       return this.renderRecoveryCard(route);
+    } else if (route.type === "spfm-delivery") {
+      return this.renderSPFMDeliveryCard(route);
     } else {
       return this.renderSPFMCard(route);
     }
@@ -472,6 +474,9 @@ class AssignmentsManager {
     const recoveryDates = datesManager.generateWeeklyRecoveryDates();
     const upcomingRecoveryRoutes = recoveryDates.slice(0, 4);
 
+    // Get Monday delivery routes
+    const mondayDeliveryDates = datesManager.generateMondayDeliveryDates();
+
     const allRoutes = [];
 
     // Add SPFM routes with displayDate
@@ -493,9 +498,19 @@ class AssignmentsManager {
         displayDate: route.parsed.toLocaleDateString("en-US", {
           weekday: "long",
           year: "numeric",
-          month: "long",
+          month: "short",
           day: "numeric",
         }),
+      });
+    });
+
+    // Add Monday delivery routes
+    mondayDeliveryDates.forEach((route) => {
+      allRoutes.push({
+        ...route,
+        type: "spfm-delivery",
+        sortDate: route.sortDate,
+        displayDate: route.displayDate,
       });
     });
 
@@ -537,6 +552,8 @@ class AssignmentsManager {
 
     if (route.type === "recovery") {
       this.renderRecoveryDetailedView(route);
+    } else if (route.type === "spfm-delivery") {
+      this.renderSPFMDeliveryDetailedView(route);
     } else {
       this.renderSPFMDetailedView(route);
     }
@@ -798,6 +815,28 @@ class AssignmentsManager {
     return `https://maps.google.com/maps/dir/${waypoints.join("/")}`;
   }
 
+  renderSPFMDeliveryCard(route) {
+    return `
+      <div onclick="assignmentsManager.openDetailedView('${route._routeId}')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
+          ${route.displayDate}
+        </div>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
+          ${route.startTime || route.Time || "TBD"}
+        </div>
+        <div style="font-size: 0.85rem; color: #ff8c00; margin-bottom: 4px;">
+          👨‍🌾 ${route.market || "SPFM Delivery"}
+        </div>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
+          ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : '<span style="color: #800020; font-style: italic;">Need worker</span>'}
+        </div>
+        <div style="font-size: 0.9rem; color: #666;">
+          ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
+        </div>
+      </div>
+    `;
+  }
+
   buildRecoveryGoogleMapsUrl(stops) {
     if (stops.length === 0) return "#";
 
@@ -813,6 +852,90 @@ class AssignmentsManager {
       return `https://maps.google.com/maps?q=${waypoints[0]}`;
 
     return `https://maps.google.com/maps/dir/${waypoints.join("/")}`;
+  }
+
+  renderSPFMDeliveryDetailedView(route) {
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
+
+    const stops = [];
+    for (let i = 1; i <= 10; i++) {
+      const stop =
+        route[`Stop ${i}`] || route[`stop${i}`] || route[`stop ${i}`];
+      const contact =
+        route[`Contact ${i}`] || route[`contact${i}`] || route[`contact ${i}`];
+      if (stop && stop.trim()) {
+        stops.push({ location: stop.trim(), contact: contact?.trim() });
+      }
+    }
+
+    const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
+
+    assignmentsContainer.innerHTML = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #ff8c00;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "SPFM Delivery"}</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.startTime || route.Time || "TBD"}</p>
+
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+              🖨️ Print this assignment
+            </button>
+            <button onclick="window.open('${googleMapsUrl}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+              🗺️ Full route on Google Maps
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 15px;">
+          ${stops
+            .map(
+              (stop, index) => `
+            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
+              <h3 style="color: #ff8c00; margin: 0 0 15px 0;">📍 Stop ${index + 1}${(() => {
+                const contact = sheetsAPI.getAddressFromContacts(stop.location);
+                return contact && contact.contactName
+                  ? ` - ${contact.contactName}`
+                  : ` - ${stop.location}`;
+              })()}</h3>
+              <div style="margin-bottom: 10px;">
+                <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                  📍 ${(() => {
+                    const contact = sheetsAPI.getAddressFromContacts(
+                      stop.location,
+                    );
+                    return contact && contact.address
+                      ? contact.address
+                      : stop.location;
+                  })()}
+                </button>
+                ${
+                  stop.contact
+                    ? `
+                  <button onclick="window.open('tel:${stop.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                    📞 ${stop.contact}
+                  </button>
+                `
+                    : ""
+                }
+              </div>
+              ${route.Notes ? `<p style="margin: 10px 0 0 0; color: #666; font-style: italic;">${route.Notes}</p>` : ""}
+            </div>
+          `,
+            )
+            .join("")}
+
+          ${stops.length === 0 ? '<div style="background: white; padding: 15px; border-radius: 8px; text-align: center; color: #999;">No stops found for this route</div>' : ""}
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="history.back()" style="background: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            ← Back to assignments
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   printAssignment() {

@@ -494,6 +494,80 @@ class DatesManager {
     return recoveryDates;
   }
 
+  // ========================================
+  // MONDAY DELIVERY DATE GENERATION
+  // ========================================
+  generateMondayDeliveryDates() {
+    const deliveryDates = [];
+    const today = new Date();
+
+    console.log("🔍 Debug: generateMondayDeliveryDates called");
+    console.log("🔍 Debug: sheetsAPI.deliveryData:", sheetsAPI.deliveryData);
+
+    // Get all Sunday SPFM markets
+    const sundayMarkets = sheetsAPI.data.filter((route) => {
+      const routeDate = new Date(route.date);
+      return routeDate.getDay() === 0; // Sunday = 0
+    });
+
+    console.log("🔍 Debug: Found Sunday markets:", sundayMarkets);
+
+    // For each Sunday market, find the corresponding delivery route
+    sundayMarkets.forEach((sundayMarket) => {
+      const marketLocation = sundayMarket.market;
+      console.log("🔍 Debug: Processing Sunday market:", marketLocation);
+
+      // Find delivery route for this market location
+      const deliveryRoute = sheetsAPI.deliveryData.find((delivery) => {
+        const foodFrom = delivery["Food from"] || delivery["food from"] || "";
+        return (
+          foodFrom.toLowerCase().trim() === marketLocation.toLowerCase().trim()
+        );
+      });
+
+      if (deliveryRoute) {
+        console.log("🔍 Debug: Found matching delivery route:", deliveryRoute);
+
+        // Calculate next Monday after this Sunday market
+        const sundayDate = new Date(sundayMarket.date);
+        const mondayDate = new Date(sundayDate);
+        mondayDate.setDate(sundayDate.getDate() + 1); // Next day (Monday)
+
+        // Only include future dates
+        if (mondayDate >= today) {
+          const mondayDelivery = {
+            date: mondayDate.toLocaleDateString("en-US"),
+            displayDate: mondayDate.toLocaleDateString("en-US"),
+            parsed: mondayDate,
+            type: "spfm-delivery",
+            emoji: "👨‍🌾",
+            color: "#ff8c00", // orange like SPFM
+            market: `${marketLocation} Delivery`,
+            dayName: "Monday",
+            startTime: deliveryRoute.startTime || deliveryRoute.Time || "TBD",
+            Time: deliveryRoute.Time || deliveryRoute.startTime || "TBD",
+            Worker: deliveryRoute.Worker || deliveryRoute.worker,
+            van: deliveryRoute.van || deliveryRoute.Van,
+            // Copy all stop data
+            ...deliveryRoute,
+            sortDate: mondayDate,
+          };
+
+          console.log("🔍 Debug: Generated Monday delivery:", mondayDelivery);
+          deliveryDates.push(mondayDelivery);
+        }
+      } else {
+        console.log(
+          "🔍 Debug: No delivery route found for market:",
+          marketLocation,
+        );
+      }
+    });
+
+    console.log("🔍 Debug: Final Monday delivery dates array:", deliveryDates);
+    return deliveryDates;
+  }
+
   calculateNextOccurrence(dayName, occurrence) {
     const dayMap = {
       sunday: 0,
