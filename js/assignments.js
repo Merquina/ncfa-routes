@@ -668,10 +668,9 @@ class AssignmentsManager {
             <div style="display: flex; align-items: center; gap: 10px;">
               <input type="number" id="totalWeight" placeholder="Enter weight" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; width: 150px;" step="0.1" min="0">
               <span style="color: #666; font-weight: bold;">lbs</span>
-              <button onclick="saveWeight()" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Save Weight</button>
+              <button onclick="saveWeight()" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Save</button>
             </div>
-            <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem; font-style: italic;">Enter the total weight collected during this route</p>
-            <p style="margin: 5px 0 0 0; color: #ff6b35; font-size: 0.85rem; font-weight: bold;">🚧 Under Construction - Save functionality not yet implemented</p>
+            <p style="margin: 10px 0 0 0; color: #ff6b35; font-size: 0.85rem; font-weight: bold;">🚧 Under Construction - Save functionality not yet implemented</p>
           </div>
 
           <!-- Dropoff Section -->
