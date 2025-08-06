@@ -499,18 +499,11 @@ class DatesManager {
                 `🔍 Debug: Generated recovery route for ${dayName}, occurrence ${occurrence}:`,
                 recoveryRoute,
               );
-              console.log(`🔍 Debug: Route has stops:`, {
-                "Stop 1": recoveryRoute["Stop 1"],
-                "Stop 2": recoveryRoute["Stop 2"],
-                "Stop 3": recoveryRoute["Stop 3"],
-              });
               recoveryDates.push(recoveryRoute);
             }
           }
         } else {
-          console.log(
-            `🔍 Debug: No day name found for route ${index}, dayName: "${dayName}", stop1: "${stop1}"`,
-          );
+          console.log(`🔍 Debug: No day name found for route ${index}`);
         }
       });
     } else {
@@ -652,23 +645,18 @@ class DatesManager {
     if (targetDay === undefined) return null;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to avoid time zone issues
+    today.setHours(0, 0, 0, 0);
 
+    // Calculate the first occurrence of this weekday from today
     const currentDay = today.getDay();
-
-    // Find the next occurrence of this day of the week
     let daysUntilNext = (targetDay - currentDay + 7) % 7;
     if (daysUntilNext === 0) {
-      daysUntilNext = 7; // If today is the target day, get next week's
+      daysUntilNext = 7; // If today is the target day, start with next week
     }
 
-    // Create the base date (next occurrence of this weekday)
-    const baseDate = new Date(today);
-    baseDate.setDate(today.getDate() + daysUntilNext);
-
-    // Add weeks for subsequent occurrences
-    const targetDate = new Date(baseDate);
-    targetDate.setDate(baseDate.getDate() + occurrence * 7);
+    // Calculate the target date by adding the base days plus occurrence weeks
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysUntilNext + occurrence * 7);
 
     return targetDate;
   }
