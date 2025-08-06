@@ -419,6 +419,13 @@ class AssignmentsManager {
   getVanEmoji(vanName) {
     if (!vanName) return "🚐";
 
+    const vanName_lower = vanName.toLowerCase();
+
+    // Specific emoji mappings
+    if (vanName_lower.includes("green bean")) return "🟢";
+    if (vanName_lower.includes("tooth")) return "🦷";
+    if (vanName_lower.includes("peapod")) return "🟢";
+
     const vanIcons = {
       "Van 1": "🚐",
       "Van 2": "🚌",
