@@ -292,13 +292,10 @@ class SheetsAPI {
 
     // Enhanced normalize function to handle more variations
     const normalize = (str) => {
-      return str
-        .toLowerCase()
-        .trim()
+      return normalizeText(str)
         .replace(/[''`]/g, "") // Remove apostrophes and quotes
         .replace(/[-\s]+/g, " ") // Replace dashes and multiple spaces with single space
-        .replace(/\s+/g, " ") // Normalize multiple spaces to single space
-        .trim();
+        .replace(/\s+/g, " "); // Normalize multiple spaces to single space
     };
 
     console.log(`🔍 Debug: Searching for "${name}" in contacts...`);
@@ -313,12 +310,10 @@ class SheetsAPI {
     // Try multiple matching strategies
     let contact = null;
 
-    // Strategy 1: Exact match (case insensitive)
+    // Strategy 1: Exact match (flexible text matching)
     contact = this.contactsData.find((contact) => {
       if (!contact.Location) return false;
-      return (
-        contact.Location.toLowerCase().trim() === name.toLowerCase().trim()
-      );
+      return flexibleTextMatch(contact.Location, name);
     });
 
     if (contact) {
@@ -373,7 +368,10 @@ class SheetsAPI {
         (worker) => {
           if (worker && typeof worker === "string") {
             const normalized = worker.trim();
-            if (normalized !== "" && normalized.toUpperCase() !== "CANCELLED") {
+            if (
+              normalized !== "" &&
+              !flexibleTextMatch(normalized, "CANCELLED")
+            ) {
               workers.add(normalized);
             }
           }
@@ -386,7 +384,7 @@ class SheetsAPI {
       const worker = route.Worker;
       if (worker && typeof worker === "string") {
         const normalized = worker.trim();
-        if (normalized !== "" && normalized.toLowerCase() !== "worker") {
+        if (normalized !== "" && !flexibleTextMatch(normalized, "worker")) {
           workers.add(normalized);
         }
       }
@@ -396,35 +394,36 @@ class SheetsAPI {
   }
 
   getWorkerAssignments(workerName) {
-    const normalizedWorker = workerName.trim().toLowerCase();
-
     // Get SPFM assignments
     const spfmAssignments = this.data.filter((route) => {
-      const worker1 = (route.worker1 || "").trim().toLowerCase();
-      const worker2 = (route.worker2 || "").trim().toLowerCase();
-      const worker3 = (route.worker3 || "").trim().toLowerCase();
-      const worker4 = (route.worker4 || "").trim().toLowerCase();
+      const worker1 = (route.worker1 || "").trim();
+      const worker2 = (route.worker2 || "").trim();
+      const worker3 = (route.worker3 || "").trim();
+      const worker4 = (route.worker4 || "").trim();
 
       return (
-        worker1 === normalizedWorker ||
-        worker2 === normalizedWorker ||
-        worker3 === normalizedWorker ||
-        worker4 === normalizedWorker
+        flexibleTextMatch(worker1, workerName) ||
+        flexibleTextMatch(worker2, workerName) ||
+        flexibleTextMatch(worker3, workerName) ||
+        flexibleTextMatch(worker4, workerName)
       );
     });
 
     // Get recovery assignments
     const recoveryAssignments = this.recoveryData.filter((route) => {
-      const routeWorker = (route.Worker || "").trim().toLowerCase();
-      return routeWorker === normalizedWorker;
+      const routeWorker = (route.Worker || "").trim();
+      return flexibleTextMatch(routeWorker, workerName);
     });
 
     // Get SPFM Delivery assignments
     const deliveryAssignments = this.deliveryData.filter((route) => {
-      const worker1 = (route.worker1 || "").trim().toLowerCase();
-      const worker2 = (route.worker2 || "").trim().toLowerCase();
+      const worker1 = (route.worker1 || "").trim();
+      const worker2 = (route.worker2 || "").trim();
 
-      return worker1 === normalizedWorker || worker2 === normalizedWorker;
+      return (
+        flexibleTextMatch(worker1, workerName) ||
+        flexibleTextMatch(worker2, workerName)
+      );
     });
 
     console.log(`🔍 Debug getWorkerAssignments for ${workerName}:`);

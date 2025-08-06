@@ -98,7 +98,7 @@ class AssignmentsManager {
 
   renderSPFMCard(route) {
     const workers = [route.worker1, route.worker2, route.worker3, route.worker4]
-      .filter((w) => w && w.trim() && w.toLowerCase() !== "cancelled")
+      .filter((w) => w && w.trim() && !flexibleTextMatch(w, "cancelled"))
       .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
 
     const vans = [route.van1, route.van2]
@@ -185,12 +185,12 @@ class AssignmentsManager {
 
     // Get SPFM routes for this worker (not completed)
     const workerSPFMRoutes = assignments.spfm.filter((route) => {
-      const status = (route.status || route.Status || "").toLowerCase();
+      const status = route.status || route.Status || "";
       const routeDate = new Date(route.date);
       console.log(
         `🔍 Route ${route.routeId}: status="${status}", date=${route.date}, dateObj=${routeDate}, future=${routeDate >= today}`,
       );
-      return status !== "completed" && routeDate >= today;
+      return !flexibleTextMatch(status, "completed") && routeDate >= today;
     });
 
     // Generate recovery dates using Screen 2's logic
@@ -258,7 +258,7 @@ class AssignmentsManager {
                   day: "numeric",
                   year: "numeric",
                 }),
-                _routeId: `delivery-${dayName.toLowerCase()}-${occurrence}`,
+                _routeId: `delivery-${normalizeText(dayName)}-${occurrence}`,
               });
             }
           }
@@ -313,7 +313,7 @@ class AssignmentsManager {
       saturday: 6,
     };
 
-    const targetDay = dayMap[dayName.toLowerCase()];
+    const targetDay = dayMap[normalizeText(dayName)];
     if (targetDay === undefined) return null;
 
     const today = new Date();
@@ -369,13 +369,11 @@ class AssignmentsManager {
 
     // Find recovery routes for this worker and day
     const recoveryRoutes = sheetsAPI.recoveryData.filter((route) => {
-      const routeWorker = (route.Worker || "").trim().toLowerCase();
-      const routeDay = (route["recovery route"] || route.Day || "")
-        .trim()
-        .toLowerCase();
+      const routeWorker = (route.Worker || "").trim();
+      const routeDay = (route["recovery route"] || route.Day || "").trim();
       return (
-        routeWorker === worker.toLowerCase() &&
-        routeDay === dayName.toLowerCase()
+        flexibleTextMatch(routeWorker, worker) &&
+        flexibleTextMatch(routeDay, dayName)
       );
     });
 
@@ -429,7 +427,7 @@ class AssignmentsManager {
   getWorkerEmoji(workerName) {
     if (!workerName || workerName.trim() === "") return "👤";
 
-    if (workerName.trim().toLowerCase().includes("volunteer")) {
+    if (flexibleTextIncludes(workerName, "volunteer")) {
       return "👤";
     }
 
@@ -444,8 +442,8 @@ class AssignmentsManager {
       Volunteer: "👤",
     };
 
-    const workerIcon = Object.keys(workerIcons).find(
-      (key) => key.toLowerCase() === workerName.trim().toLowerCase(),
+    const workerIcon = Object.keys(workerIcons).find((key) =>
+      flexibleTextMatch(key, workerName),
     );
 
     return workerIcon ? workerIcons[workerIcon] : "👤";
@@ -498,9 +496,9 @@ class AssignmentsManager {
 
     // Get SPFM routes (not completed)
     const allSPFMRoutes = sheetsAPI.data.filter((route) => {
-      const status = (route.status || route.Status || "").toLowerCase();
+      const status = route.status || route.Status || "";
       const routeDate = new Date(route.date);
-      return status !== "completed" && routeDate >= today;
+      return !flexibleTextMatch(status, "completed") && routeDate >= today;
     });
 
     // Get recovery routes

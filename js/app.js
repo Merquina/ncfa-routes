@@ -16,6 +16,55 @@ const SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
 let currentTab = "box"; // 'box', 'date', or 'worker'
 
 // ========================================
+// TEXT NORMALIZATION UTILITIES
+// ========================================
+
+/**
+ * Normalizes text for flexible matching by handling apostrophes and common variations
+ * @param {string} text - Text to normalize
+ * @returns {string} - Normalized text
+ */
+function normalizeText(text) {
+  if (!text || typeof text !== "string") return "";
+
+  return (
+    text
+      .trim()
+      .toLowerCase()
+      // Replace various apostrophe characters with standard one
+      .replace(/[''`]/g, "'")
+      // Remove extra whitespace
+      .replace(/\s+/g, " ")
+  );
+}
+
+/**
+ * Flexible text comparison that handles apostrophe variations
+ * @param {string} text1 - First text to compare
+ * @param {string} text2 - Second text to compare
+ * @returns {boolean} - True if texts match flexibly
+ */
+function flexibleTextMatch(text1, text2) {
+  return normalizeText(text1) === normalizeText(text2);
+}
+
+/**
+ * Check if text includes another text with flexible apostrophe handling
+ * @param {string} text - Text to search in
+ * @param {string} searchTerm - Term to search for
+ * @returns {boolean} - True if text includes search term
+ */
+function flexibleTextIncludes(text, searchTerm) {
+  return normalizeText(text).includes(normalizeText(searchTerm));
+}
+
+// Example usage:
+// flexibleTextMatch("don't", "don't") -> true
+// flexibleTextMatch("Samuel", "samuel") -> true
+// flexibleTextIncludes("volunteer work", "volunteer") -> true
+// normalizeText("Don't work") -> "don't work"
+
+// ========================================
 // APPLICATION INITIALIZATION
 // ========================================
 async function initializeApp() {

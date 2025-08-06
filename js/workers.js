@@ -106,12 +106,12 @@ class WorkersManager {
   getWorkerEmoji(workerName) {
     if (!workerName || workerName.trim() === "") return "👤";
 
-    if (workerName.trim().toLowerCase().includes("volunteer")) {
+    if (flexibleTextIncludes(workerName, "volunteer")) {
       return "👤";
     }
 
-    const workerIcon = Object.keys(this.workerIcons).find(
-      (key) => key.toLowerCase() === workerName.trim().toLowerCase(),
+    const workerIcon = Object.keys(this.workerIcons).find((key) =>
+      flexibleTextMatch(key, workerName),
     );
 
     return workerIcon ? this.workerIcons[workerIcon] : "👤";

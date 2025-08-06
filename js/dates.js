@@ -96,7 +96,7 @@ class DatesManager {
         const workers = routes
           .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
           .filter(Boolean)
-          .filter((w) => w.toLowerCase() !== "cancelled")
+          .filter((w) => !flexibleTextMatch(w, "cancelled"))
           .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
           .join(", ");
 
@@ -131,7 +131,7 @@ class DatesManager {
         (route) =>
           route["recovery route"] &&
           route.Worker &&
-          route.Worker.toLowerCase() !== "worker",
+          !flexibleTextMatch(route.Worker, "worker"),
       )
       .map((route) => {
         const calculatedDate = this.getNextDateForDay(route["recovery route"]);
@@ -305,13 +305,8 @@ class DatesManager {
 
     // Get all SPFM dates with market info, excluding completed routes
     const allSPFMRoutes = sheetsAPI.data.filter((route) => {
-      const status = (
-        route["Status"] ||
-        route["status"] ||
-        route["A"] ||
-        ""
-      ).toLowerCase();
-      return status !== "completed";
+      const status = route["Status"] || route["status"] || route["A"] || "";
+      return !flexibleTextMatch(status, "completed");
     });
 
     const spfmDates = [
@@ -363,7 +358,7 @@ class DatesManager {
       if (
         item.type === "recovery" &&
         item.dayName &&
-        item.dayName.toLowerCase() === "tuesday"
+        flexibleTextMatch(item.dayName, "tuesday")
       ) {
         return true;
       }
@@ -402,7 +397,7 @@ class DatesManager {
       if (
         item.type === "recovery" &&
         item.dayName &&
-        item.dayName.toLowerCase() === "tuesday"
+        flexibleTextMatch(item.dayName, "tuesday")
       ) {
         return true;
       }
@@ -543,7 +538,7 @@ class DatesManager {
             const nextDate = this.calculateNextOccurrence(dayName, occurrence);
             if (nextDate && nextDate >= today) {
               const dateString = nextDate.toLocaleDateString("en-US");
-              const dateKey = `${dateString}-${dayName.toLowerCase()}`;
+              const dateKey = `${dateString}-${normalizeText(dayName)}`;
 
               // Check if we've already added this date/day combination
               if (seenDates.has(dateKey)) {
@@ -575,11 +570,11 @@ class DatesManager {
               console.log(
                 `🔍 Debug: Adding ${dayName} for ${dateString} (occurrence ${occurrence})`,
               );
-              if (dayName.toLowerCase() === "tuesday") {
+              if (flexibleTextMatch(dayName, "tuesday")) {
                 console.log(
                   `🚨 TUESDAY DEBUG: Adding Tuesday recovery for ${dateString}, total Tuesday routes so far:`,
-                  recoveryDates.filter(
-                    (r) => r.dayName.toLowerCase() === "tuesday",
+                  recoveryDates.filter((r) =>
+                    flexibleTextMatch(r.dayName, "tuesday"),
                   ).length + 1,
                 );
               }
@@ -595,7 +590,7 @@ class DatesManager {
     }
 
     const tuesdayRoutes = recoveryDates.filter(
-      (r) => r.dayName && r.dayName.toLowerCase() === "tuesday",
+      (r) => r.dayName && flexibleTextMatch(r.dayName, "tuesday"),
     );
     console.log("🔍 Debug: Final recovery dates array:", recoveryDates.length);
     console.log(
@@ -667,8 +662,8 @@ class DatesManager {
         // Handle multiple markets separated by comma
         const foodFromMarkets = foodFrom
           .split(",")
-          .map((m) => m.trim().toLowerCase());
-        const targetMarket = marketLocation.toLowerCase().trim();
+          .map((m) => normalizeText(m));
+        const targetMarket = normalizeText(marketLocation);
 
         // Check for exact match or partial match
         return foodFromMarkets.some(
@@ -740,7 +735,7 @@ class DatesManager {
       saturday: 6,
     };
 
-    const targetDay = dayMap[dayName.toLowerCase()];
+    const targetDay = dayMap[normalizeText(dayName)];
     if (targetDay === undefined) return null;
 
     const today = new Date();
@@ -776,7 +771,7 @@ class DatesManager {
   getWorkerEmoji(workerName) {
     if (!workerName || workerName.trim() === "") return "👤";
 
-    if (workerName.trim().toLowerCase().includes("volunteer")) {
+    if (flexibleTextIncludes(workerName, "volunteer")) {
       return "👤";
     }
 
@@ -791,8 +786,8 @@ class DatesManager {
       Volunteer: "👤",
     };
 
-    const workerIcon = Object.keys(workerIcons).find(
-      (key) => key.toLowerCase() === workerName.trim().toLowerCase(),
+    const workerIcon = Object.keys(workerIcons).find((key) =>
+      flexibleTextMatch(key, workerName),
     );
 
     return workerIcon ? workerIcons[workerIcon] : "👤";
