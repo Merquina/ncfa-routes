@@ -472,6 +472,8 @@ class DatesManager {
                 dayName: dayName,
                 worker: route.Worker || route.worker,
                 location: route.Location || route.location || "Recovery Route",
+                startTime: route.startTime || route.Time,
+                Time: route.Time || route.startTime,
               };
               console.log(
                 `🔍 Debug: Generated recovery route for ${dayName}, occurrence ${occurrence}:`,
