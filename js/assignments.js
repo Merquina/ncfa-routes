@@ -607,6 +607,17 @@ class AssignmentsManager {
           <!-- At Market Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
             <h3 style="color: #ff8c00; margin: 0 0 15px 0;">🏪 At Market</h3>
+            ${
+              route.market
+                ? `
+              <div style="margin-bottom: 15px;">
+                <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.market)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                  📍 ${route.market}
+                </button>
+              </div>
+              `
+                : ""
+            }
             ${atMarket
               .map(
                 (item) => `
