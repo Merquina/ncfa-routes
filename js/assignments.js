@@ -799,8 +799,8 @@ class AssignmentsManager {
                 })()}
               </div>
               ${(() => {
-                const notes =
-                  route.Notes || route["Special Instructions"] || "";
+                const contact = sheetsAPI.getAddressFromContacts(stop.location);
+                const notes = contact && contact.notes ? contact.notes : "";
                 return notes.trim()
                   ? `<p style="margin: 10px 0 0 0; color: #666;">${notes}</p>`
                   : "";

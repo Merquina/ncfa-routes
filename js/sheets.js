@@ -294,6 +294,7 @@ class SheetsAPI {
           address: contact.Address || "",
           phone: contact.Phone || "",
           contactName: contact.Contact || contact.Location || "",
+          notes: contact["Notes/ Special Instructions"] || "",
         }
       : null;
   }
