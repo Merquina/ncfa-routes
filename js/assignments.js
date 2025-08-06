@@ -709,7 +709,7 @@ class AssignmentsManager {
               <input type="number" id="totalWeight" placeholder="Enter weight" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; width: 150px;" step="0.1" min="0">
               <span style="color: #666; font-weight: bold;">lbs</span>
             </div>
-            <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem; font-style: italic;">Weight will be saved to spreadsheet when you submit</p>
+            <p style="margin: 10px 0 0 0; color: #ff6b35; font-size: 0.9rem; font-weight: bold;">⚠️ Under Construction - Not functional yet</p>
           </div>
 
           <!-- Back at Office Section -->
