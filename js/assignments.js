@@ -139,7 +139,7 @@ class AssignmentsManager {
           ${route.displayDate}
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${route.Time || "TBD"}
+          ${route.startTime || route.Time || "TBD"}
         </div>
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">
           🛒 Recovery Route
@@ -716,7 +716,7 @@ class AssignmentsManager {
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #007bff; margin: 0 0 10px 0;">🛒 ${route.dayName || route["recovery route"] || "Recovery"} Route</h2>
-          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.Time || "TBD"}</p>
+          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.startTime || route.Time || "TBD"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
