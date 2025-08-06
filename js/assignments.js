@@ -779,26 +779,20 @@ class AssignmentsManager {
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
               <h3 style="color: #007bff; margin: 0 0 15px 0;">📍 Stop ${index + 1} - ${stop.location}</h3>
               <div style="margin-bottom: 10px;">
-                <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                  📍 ${(() => {
-                    const contact = sheetsAPI.getAddressFromContacts(
-                      stop.location,
-                    );
-                    return contact && contact.address
-                      ? contact.address
-                      : stop.location;
-                  })()}
-                </button>
+                ${(() => {
+                  const contact = sheetsAPI.getAddressFromContacts(
+                    stop.location,
+                  );
+                  return contact && contact.address
+                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">${contact.address}</button>`
+                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">${stop.location}</button>`;
+                })()}
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
                     stop.location,
                   );
                   return contact && contact.phone
-                    ? `
-                  <button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                    📞 ${contact.contactName && contact.phone ? `${contact.contactName} - ${contact.phone}` : contact.phone}
-                  </button>
-                    `
+                    ? `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">${contact.phone}</button>`
                     : "";
                 })()}
               </div>
@@ -806,7 +800,7 @@ class AssignmentsManager {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 const notes = contact && contact.notes ? contact.notes : "";
                 return notes.trim()
-                  ? `<p style="margin: 10px 0 0 0; color: #666;">${notes}</p>`
+                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;">Notes: ${notes}</p>`
                   : "";
               })()}
             </div>
