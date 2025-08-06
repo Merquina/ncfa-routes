@@ -559,8 +559,19 @@ class DatesManager {
         console.log(
           `🔍 Debug: Comparing "${foodFrom}" with "${marketLocation}"`,
         );
-        return (
-          foodFrom.toLowerCase().trim() === marketLocation.toLowerCase().trim()
+
+        // Handle multiple markets separated by comma
+        const foodFromMarkets = foodFrom
+          .split(",")
+          .map((m) => m.trim().toLowerCase());
+        const targetMarket = marketLocation.toLowerCase().trim();
+
+        // Check for exact match or partial match
+        return foodFromMarkets.some(
+          (market) =>
+            market === targetMarket ||
+            targetMarket.includes(market) ||
+            market.includes(targetMarket),
         );
       });
 
