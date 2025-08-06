@@ -279,11 +279,18 @@ class SheetsAPI {
   // HELPER METHODS
   // ========================================
   getAddressFromContacts(name) {
+    console.log(`🔍 Debug: Looking up address for "${name}"`);
+    console.log(
+      `🔍 Debug: contactsData available:`,
+      this.contactsData?.length || 0,
+    );
+
     if (!this.contactsData || this.contactsData.length === 0) {
+      console.log(`🔍 Debug: No contacts data available for "${name}"`);
       return null;
     }
 
-    // Normalize function to make matching more flexible
+    // Enhanced normalize function to handle more variations
     const normalize = (str) => {
       return str
         .toLowerCase()
@@ -294,60 +301,67 @@ class SheetsAPI {
         .trim();
     };
 
-    const normalizedName = normalize(name);
+    console.log(`🔍 Debug: Searching for "${name}" in contacts...`);
+    console.log(
+      `🔍 Debug: Available contacts:`,
+      this.contactsData.map((c) => ({
+        Location: c.Location,
+        Address: c.Address,
+      })),
+    );
 
-    const contact = this.contactsData.find((contact) => {
+    // Try multiple matching strategies
+    let contact = null;
+
+    // Strategy 1: Exact match (case insensitive)
+    contact = this.contactsData.find((contact) => {
       if (!contact.Location) return false;
-
-      const normalizedLocation = normalize(contact.Location);
-
-      // Try exact match first
-      if (normalizedLocation === normalizedName) {
-        return true;
-      }
-
-      // Try partial matches (both ways)
-      if (
-        normalizedLocation.includes(normalizedName) ||
-        normalizedName.includes(normalizedLocation)
-      ) {
-        return true;
-      }
-
-      // Try word-by-word matching
-      const nameWords = normalizedName
-        .split(" ")
-        .filter((word) => word.length > 2);
-      const locationWords = normalizedLocation
-        .split(" ")
-        .filter((word) => word.length > 2);
-
-      if (nameWords.length > 0 && locationWords.length > 0) {
-        const matchingWords = nameWords.filter((word) =>
-          locationWords.some(
-            (locWord) => locWord.includes(word) || word.includes(locWord),
-          ),
-        );
-        // Consider it a match if most words match
-        if (
-          matchingWords.length >=
-          Math.min(nameWords.length, locationWords.length) * 0.6
-        ) {
-          return true;
-        }
-      }
-
-      return false;
+      return (
+        contact.Location.toLowerCase().trim() === name.toLowerCase().trim()
+      );
     });
 
-    return contact
-      ? {
-          address: contact.Address || "",
-          phone: contact.Phone || "",
-          contactName: contact.Contact || contact.Location || "",
-          notes: contact["Notes/ Special Instructions"] || "",
-        }
-      : null;
+    if (contact) {
+      console.log(`🔍 Debug: Found exact match for "${name}"`);
+    } else {
+      // Strategy 2: Exact match after normalizing apostrophes and spaces
+      const normalizedName = normalize(name);
+      contact = this.contactsData.find((contact) => {
+        if (!contact.Location) return false;
+        const normalizedLocation = normalize(contact.Location);
+        return normalizedLocation === normalizedName;
+      });
+
+      if (contact) {
+        console.log(`🔍 Debug: Found normalized match for "${name}"`);
+      }
+    }
+
+    if (contact) {
+      console.log(`🔍 Debug: Found contact for "${name}":`, {
+        Location: contact.Location,
+        Address: contact.Address,
+        Phone: contact.Phone,
+      });
+      const finalAddress = contact.Address || contact.Location || "";
+
+      return {
+        address: finalAddress,
+        phone: contact.Phone || "",
+        contactName: contact.Contact || contact.Location || "",
+        notes: contact["Notes/ Special Instructions"] || contact.Notes || "",
+      };
+    } else {
+      console.log(`🔍 Debug: No contact found for "${name}"`);
+      console.log(
+        `🔍 Debug: Available locations:`,
+        this.contactsData
+          .map((c) => c.Location)
+          .filter(Boolean)
+          .slice(0, 5),
+      );
+      return null;
+    }
   }
 
   getAllWorkers() {

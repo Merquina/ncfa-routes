@@ -89,7 +89,7 @@ class AssignmentsManager {
   renderSingleAssignmentCard(route) {
     if (route.type === "recovery") {
       return this.renderRecoveryCard(route);
-    } else if (route.type === "spfm-delivery") {
+    } else if (route.type === "spfm-delivery" || route.type === "spfm") {
       return this.renderSPFMDeliveryCard(route);
     } else {
       return this.renderSPFMCard(route);
@@ -236,6 +236,23 @@ class AssignmentsManager {
 
     // Add recovery routes
     allRoutes.push(...allRecoveryDates);
+
+    // Add Monday delivery routes for this worker
+    const mondayDeliveryDates = datesManager.generateMondayDeliveryDates();
+    mondayDeliveryDates.forEach((route) => {
+      // Check if this Monday delivery route is assigned to this worker
+      const workerNames = [route.worker1, route.worker2]
+        .filter(Boolean)
+        .map((w) => w.toLowerCase());
+      if (workerNames.includes(workerName.toLowerCase())) {
+        allRoutes.push({
+          ...route,
+          type: "spfm-delivery",
+          sortDate: route.parsed || new Date(route.date),
+          _routeId: `monday-delivery-${route.date}`,
+        });
+      }
+    });
 
     // Sort all routes by date and take only next 4
     const upcomingRoutes = allRoutes
@@ -552,7 +569,7 @@ class AssignmentsManager {
 
     if (route.type === "recovery") {
       this.renderRecoveryDetailedView(route);
-    } else if (route.type === "spfm-delivery") {
+    } else if (route.type === "spfm-delivery" || route.type === "spfm") {
       this.renderSPFMDeliveryDetailedView(route);
     } else {
       this.renderSPFMDetailedView(route);
@@ -589,7 +606,7 @@ class AssignmentsManager {
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            <button onclick="window.open('${googleMapsUrl}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            <button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🗺️ Full route on Google Maps
             </button>
           </div>
@@ -605,7 +622,7 @@ class AssignmentsManager {
                 ${materialsOffice
                   .map(
                     (item) => `
-                  <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                     <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                   </label>
                 `,
@@ -618,7 +635,7 @@ class AssignmentsManager {
                 ${materialsStorage
                   .map(
                     (item) => `
-                  <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                     <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                   </label>
                 `,
@@ -636,16 +653,14 @@ class AssignmentsManager {
               route.market
                 ? `
               <div style="margin-bottom: 15px;">
-                <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.market)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                  📍 ${(() => {
-                    const contact = sheetsAPI.getAddressFromContacts(
-                      route.market,
-                    );
-                    return contact && contact.address
-                      ? contact.address
-                      : route.market;
-                  })()}
-                </button>
+                ${(() => {
+                  const contact = sheetsAPI.getAddressFromContacts(
+                    route.market,
+                  );
+                  const addressToUse =
+                    contact && contact.address ? contact.address : route.market;
+                  return `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(addressToUse)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📍 ${addressToUse}</button>`;
+                })()}
               </div>
               `
                 : ""
@@ -653,7 +668,7 @@ class AssignmentsManager {
             ${atMarket
               .map(
                 (item) => `
-              <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+              <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                 <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
               </label>
             `,
@@ -662,16 +677,7 @@ class AssignmentsManager {
             ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
           </div>
 
-          <!-- Total Weight Section -->
-          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
-            <h3 style="color: #28a745; margin: 0 0 15px 0;">⚖️ Total Weight</h3>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <input type="number" id="totalWeight" placeholder="Enter weight" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; width: 150px;" step="0.1" min="0">
-              <span style="color: #666; font-weight: bold;">lbs</span>
-              <button onclick="saveWeight()" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Save</button>
-            </div>
-            <p style="margin: 10px 0 0 0; color: #ff6b35; font-size: 0.85rem; font-weight: bold;">🚧 Under Construction - Save functionality not yet implemented</p>
-          </div>
+
 
           <!-- Dropoff Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
@@ -680,16 +686,16 @@ class AssignmentsManager {
               ${
                 route.dropOff
                   ? `
-                <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.dropOff)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                  📍 ${(() => {
-                    const contact = sheetsAPI.getAddressFromContacts(
-                      route.dropOff,
-                    );
-                    return contact && contact.address
+                ${(() => {
+                  const contact = sheetsAPI.getAddressFromContacts(
+                    route.dropOff,
+                  );
+                  const addressToUse =
+                    contact && contact.address
                       ? contact.address
                       : route.dropOff;
-                  })()}
-                </button>
+                  return `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(addressToUse)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${addressToUse}</button>`;
+                })()}
               `
                   : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'
               }
@@ -711,7 +717,7 @@ class AssignmentsManager {
             ${backAtOffice
               .map(
                 (item) => `
-              <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+              <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                 <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
               </label>
             `,
@@ -730,6 +736,11 @@ class AssignmentsManager {
         </div>
       </div>
     `;
+
+    // Remove any total weight sections that might be added dynamically
+    setTimeout(() => {
+      this.removeWeightSections();
+    }, 100);
   }
 
   renderRecoveryDetailedView(route) {
@@ -785,15 +796,15 @@ class AssignmentsManager {
                     stop.location,
                   );
                   return contact && contact.address
-                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">${contact.address}</button>`
-                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">${stop.location}</button>`;
+                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${contact.address}</button>`
+                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${stop.location}</button>`;
                 })()}
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
                     stop.location,
                   );
                   return contact && contact.phone
-                    ? `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">${contact.phone}</button>`
+                    ? `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contact.phone}</button>`
                     : "";
                 })()}
               </div>
@@ -801,7 +812,7 @@ class AssignmentsManager {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 const notes = contact && contact.notes ? contact.notes : "";
                 return notes.trim()
-                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;">Notes: ${notes}</p>`
+                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong> ${notes}</p>`
                   : "";
               })()}
             </div>
@@ -823,8 +834,19 @@ class AssignmentsManager {
 
   buildSPFMGoogleMapsUrl(route) {
     const waypoints = [];
-    if (route.market) waypoints.push(encodeURIComponent(route.market));
-    if (route.dropOff) waypoints.push(encodeURIComponent(route.dropOff));
+
+    // Check for different field name variations used in SPFM routes
+    const market =
+      route.market || route.Market || route.Location || route.location;
+    const dropOff =
+      route.dropOff ||
+      route.DropOff ||
+      route["Drop Off"] ||
+      route.Destination ||
+      route.destination;
+
+    if (market) waypoints.push(encodeURIComponent(market));
+    if (dropOff) waypoints.push(encodeURIComponent(dropOff));
 
     if (waypoints.length === 0) return "#";
     if (waypoints.length === 1)
@@ -885,6 +907,8 @@ class AssignmentsManager {
     );
 
     const stops = [];
+
+    // First try to get stops from delivery format (Stop 1, Stop 2, etc.)
     for (let i = 1; i <= 10; i++) {
       const stop =
         route[`Stop ${i}`] || route[`stop${i}`] || route[`stop ${i}`];
@@ -895,45 +919,65 @@ class AssignmentsManager {
       }
     }
 
+    // If no delivery stops found, use traditional SPFM structure
+    if (stops.length === 0) {
+      // Add market as first stop
+      if (route.market && route.market.trim()) {
+        stops.push({
+          location: route.market.trim(),
+          contact: route.contact?.trim(),
+        });
+      }
+
+      // Add dropoff as second stop
+      if (route.dropOff && route.dropOff.trim()) {
+        stops.push({
+          location: route.dropOff.trim(),
+          contact: route.contact?.trim(),
+        });
+      }
+    }
+
     const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
 
     assignmentsContainer.innerHTML = `
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #ff8c00;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "SPFM Delivery"}</h2>
-          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.startTime || route.Time || "TBD"}</p>
+          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "SPFM"} Route</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || route.Time || "TBD"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            <button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-              🗺️ Full route on Google Maps
-            </button>
+            ${stops.length > 0 ? `<button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">🗺️ Full route on Google Maps</button>` : ""}
           </div>
         </div>
 
+        ${
+          stops.length > 0
+            ? `
         <div style="display: grid; gap: 15px;">
           ${stops
             .map(
               (stop, index) => `
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
-              <h3 style="color: #ff8c00; margin: 0 0 15px 0;">${index + 1} - ${stop.location}</h3>
+              <h3 style="color: #ff8c00; margin: 0 0 15px 0;">${stops.length > 1 ? `${index + 1} - ` : ""}${stop.location}</h3>
               <div style="margin-bottom: 10px;">
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
                     stop.location,
                   );
                   return contact && contact.address
-                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">${contact.address}</button>`
-                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">${stop.location}</button>`;
+                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${contact.address}</button>`
+                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${stop.location}</button>`;
                 })()}
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
                     stop.location,
                   );
                   return contact && contact.phone
-                    ? `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">${contact.phone}</button>`
+                    ? `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contact.phone}</button>`
                     : "";
                 })()}
               </div>
@@ -941,16 +985,27 @@ class AssignmentsManager {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 const notes = contact && contact.notes ? contact.notes : "";
                 return notes.trim()
-                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;">Notes: ${notes}</p>`
+                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong> ${notes}</p>`
                   : "";
               })()}
             </div>
           `,
             )
             .join("")}
-
-          ${stops.length === 0 ? '<div style="background: white; padding: 15px; border-radius: 8px; text-align: center; color: #999;">No stops found for this route</div>' : ""}
         </div>
+        `
+            : `
+        <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; color: #666;">
+          <div style="font-size: 2rem; margin-bottom: 15px;">📍</div>
+          <h3 style="color: #ff8c00; margin-bottom: 15px;">Route Information</h3>
+          <p style="margin-bottom: 10px;"><strong>Market:</strong> ${route.market || "Not specified"}</p>
+          <p style="margin-bottom: 10px;"><strong>Start Time:</strong> ${route.startTime || route.Time || "TBD"}</p>
+          ${route.dropOff ? `<p style="margin-bottom: 10px;"><strong>Drop Off:</strong> ${route.dropOff}</p>` : ""}
+          ${route.contact ? `<p style="margin-bottom: 10px;"><strong>Contact:</strong> ${route.contact}</p>` : ""}
+          <p style="margin-top: 15px; font-style: italic; color: #999;">No detailed stops available for this route</p>
+        </div>
+        `
+        }
 
         <div style="text-align: center; margin-top: 20px;">
           <button onclick="history.back()" style="background: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
@@ -964,21 +1019,30 @@ class AssignmentsManager {
   printAssignment() {
     window.print();
   }
-}
+  // Remove total weight sections from the DOM
+  removeWeightSections() {
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
+    if (!assignmentsContainer) return;
 
-// Global function for saving weight data
-function saveWeight() {
-  const weightInput = document.getElementById("totalWeight");
-  const weight = weightInput?.value;
-
-  if (!weight || weight <= 0) {
-    alert("Please enter a valid weight");
-    return;
+    // Remove any elements containing "total weight", "Total Weight", or weight-related content
+    const weightElements = assignmentsContainer.querySelectorAll("*");
+    weightElements.forEach((element) => {
+      const text = element.textContent || element.innerText || "";
+      if (
+        text.toLowerCase().includes("total weight") ||
+        text.toLowerCase().includes("save functionality") ||
+        (text.toLowerCase().includes("under construction") &&
+          text.toLowerCase().includes("save")) ||
+        (text.toLowerCase().includes("lbs") &&
+          text.toLowerCase().includes("save"))
+      ) {
+        element.remove();
+        console.log("🗑️ Removed weight section:", text.substring(0, 50));
+      }
+    });
   }
-
-  // TODO: Implement API call to save weight to spreadsheet
-  console.log("Saving weight:", weight, "lbs");
-  alert(`Weight of ${weight} lbs will be saved when API is implemented`);
 }
 
 // Export instance

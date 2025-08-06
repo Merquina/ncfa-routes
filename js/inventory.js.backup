@@ -1,19 +1,18 @@
 /* ========================================
    SPFM Routes - Inventory Management
-   With Google Sheets Integration + localStorage Fallback
+   Fixed syntax error - ready for deployment
    ======================================== */
 
 class InventoryManager {
   constructor() {
     this.inventoryData = [];
-    this.isLoadingFromSheets = false;
     this.loadLocalInventory();
   }
 
   // ========================================
   // INVENTORY RENDERING
   // ========================================
-  async renderInventory() {
+  renderInventory() {
     const inventoryContainer = document.getElementById("inventoryContainer");
     if (!inventoryContainer) {
       console.error("❌ Inventory container not found");
@@ -21,9 +20,6 @@ class InventoryManager {
     }
 
     try {
-      // Try to load from Google Sheets first, fall back to localStorage
-      await this.loadInventoryFromSheets();
-
       this.renderInventoryContent(inventoryContainer);
 
       // Scroll to the top of inventory container
@@ -51,7 +47,7 @@ class InventoryManager {
   // ========================================
   renderInventoryContent(inventoryContainer) {
     console.log(
-      "🔍 Debug: renderInventoryContent called - Google Sheets + localStorage",
+      "🔍 Debug: renderInventoryContent called - using local storage only",
     );
 
     // Refresh timestamp format for existing data
@@ -130,83 +126,13 @@ class InventoryManager {
             <label style="line-height: 1; flex: 1; font-size: 0.85rem; font-weight: normal;">Your name:</label>
             <input type="text" id="updateName" placeholder="Enter your name" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
           </div>
-          <button class="directions-btn" onclick="inventoryManager.updateInventory()" style="margin-top: 5px; background: #007bff; font-size: 0.9rem;">📊 Update & Share Inventory</button>
+          <button class="directions-btn" onclick="inventoryManager.updateInventory()" style="margin-top: 5px; background: #007bff; font-size: 0.9rem;">Update Inventory</button>
         </div>
       </div>
     `;
 
-    console.log(
-      "🔍 Debug: Google Sheets inventory rendered, setting up listeners",
-    );
+    console.log("🔍 Debug: Local inventory rendered, setting up listeners");
     this.setupCalculatorListeners();
-  }
-
-  // ========================================
-  // GOOGLE SHEETS INTEGRATION
-  // ========================================
-  async loadInventoryFromSheets() {
-    if (this.isLoadingFromSheets) return;
-    this.isLoadingFromSheets = true;
-
-    try {
-      console.log("📦 Attempting to load inventory from Google Sheets...");
-
-      const result = await get_sheet_data({
-        spreadsheet_id: "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k",
-        sheet: "Inventory",
-        range: "A2:E2",
-      });
-
-      if (result && result.values && result.values.length > 0) {
-        const row = result.values[0];
-        const sheetsInventory = {
-          smallBoxes: parseInt(row[0]) || 0,
-          largeBoxes: parseInt(row[1]) || 0,
-          lastUpdated: row[2] || "Unknown",
-          updatedBy: row[3] || "Unknown",
-        };
-
-        // Update localStorage with sheets data
-        this.saveLocalInventory(sheetsInventory);
-        console.log("✅ Loaded inventory from Google Sheets:", sheetsInventory);
-        return sheetsInventory;
-      } else {
-        console.log(
-          "📱 No inventory data in Google Sheets, using localStorage",
-        );
-      }
-    } catch (error) {
-      console.log(
-        "📱 Failed to load from Google Sheets, using localStorage:",
-        error,
-      );
-    } finally {
-      this.isLoadingFromSheets = false;
-    }
-
-    return this.getLocalInventory();
-  }
-
-  async saveInventoryToSheets(inventory) {
-    const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
-    const timestamp = new Date().toISOString();
-
-    const data = [
-      [
-        inventory.smallBoxes,
-        inventory.largeBoxes,
-        inventory.lastUpdated,
-        inventory.updatedBy,
-        timestamp,
-      ],
-    ];
-
-    return await update_cells({
-      spreadsheet_id: SPREADSHEET_ID,
-      sheet: "Inventory",
-      range: "A2:E2",
-      data: data,
-    });
   }
 
   // ========================================
@@ -245,7 +171,7 @@ class InventoryManager {
     console.log("✅ Saved inventory to localStorage:", inventory);
   }
 
-  async updateInventory() {
+  updateInventory() {
     const smallBoxes =
       parseInt(document.getElementById("updateSmallBoxes")?.value) || 0;
     const largeBoxes =
@@ -274,25 +200,14 @@ class InventoryManager {
       updatedBy: name,
     };
 
-    // Always save locally first (backup)
     this.saveLocalInventory(inventory);
-
-    // Try to save to Google Sheets
-    try {
-      await this.saveInventoryToSheets(inventory);
-      console.log("✅ Inventory saved to Google Sheets");
-      alert("✅ Inventory updated and shared with team!");
-    } catch (error) {
-      console.log("📱 Google Sheets save failed, saved locally only:", error);
-      alert("✅ Inventory updated locally (Google Sheets sync failed)");
-    }
 
     // Clear the name field
     const nameField = document.getElementById("updateName");
     if (nameField) nameField.value = "";
 
     // Refresh the display
-    await this.renderInventory();
+    this.renderInventory();
 
     console.log("✅ Inventory updated by", name);
   }
@@ -311,7 +226,7 @@ class InventoryManager {
     this.renderInventory();
   }
 
-  async addInventoryItem(itemType, count) {
+  addInventoryItem(itemType, count) {
     const inventory = this.getLocalInventory();
     if (itemType === "small") {
       inventory.smallBoxes += count;
@@ -319,17 +234,10 @@ class InventoryManager {
       inventory.largeBoxes += count;
     }
     this.saveLocalInventory(inventory);
-
-    try {
-      await this.saveInventoryToSheets(inventory);
-    } catch (error) {
-      console.log("Failed to sync addition to Google Sheets:", error);
-    }
-
-    await this.renderInventory();
+    this.renderInventory();
   }
 
-  async removeInventoryItem(itemType, count) {
+  removeInventoryItem(itemType, count) {
     const inventory = this.getLocalInventory();
     if (itemType === "small") {
       inventory.smallBoxes = Math.max(0, inventory.smallBoxes - count);
@@ -337,14 +245,7 @@ class InventoryManager {
       inventory.largeBoxes = Math.max(0, inventory.largeBoxes - count);
     }
     this.saveLocalInventory(inventory);
-
-    try {
-      await this.saveInventoryToSheets(inventory);
-    } catch (error) {
-      console.log("Failed to sync removal to Google Sheets:", error);
-    }
-
-    await this.renderInventory();
+    this.renderInventory();
   }
 
   // ========================================

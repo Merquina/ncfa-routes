@@ -318,16 +318,26 @@ class DatesManager {
       ...new Set(allSPFMRoutes.map((route) => route.date).filter(Boolean)),
     ].map((date) => {
       const routes = allSPFMRoutes.filter((route) => route.date === date);
-      const market =
-        routes.length > 0
-          ? routes[0].market || routes[0].Market || "Market"
-          : "Market";
+      const markets = routes.map(
+        (route) => route.market || route.Market || "Market",
+      );
+      const uniqueMarkets = [...new Set(markets)];
+
+      let displayText;
+      if (uniqueMarkets.length === 1) {
+        displayText = uniqueMarkets[0];
+      } else {
+        displayText = `${routes.length} Markets`;
+      }
+
       return {
         date: date,
         type: "spfm",
         emoji: "👨‍🌾",
         color: "#007bff", // blue
-        market: market,
+        market: displayText,
+        markets: uniqueMarkets,
+        routeCount: routes.length,
       };
     });
 
@@ -346,9 +356,68 @@ class DatesManager {
     );
 
     const combinedDates = [...spfmDates, ...recoveryDates];
-    console.log("🔍 Debug: Combined dates:", combinedDates.length);
+    console.log("🔍 Debug: Combined dates before dedup:", combinedDates.length);
 
-    const parsedDates = combinedDates.map((item) => {
+    // Debug: Check for Tuesday routes in combined data
+    const tuesdayItems = combinedDates.filter((item) => {
+      if (
+        item.type === "recovery" &&
+        item.dayName &&
+        item.dayName.toLowerCase() === "tuesday"
+      ) {
+        return true;
+      }
+      if (item.date && new Date(item.date).getDay() === 2) {
+        // Tuesday is day 2
+        return true;
+      }
+      return false;
+    });
+    console.log(
+      `🚨 TUESDAY DEBUG: Found ${tuesdayItems.length} Tuesday items in combined dates:`,
+      tuesdayItems,
+    );
+
+    // Remove duplicates based on date and type
+    const seenDates = new Set();
+    const deduplicatedDates = combinedDates.filter((item) => {
+      const key = `${item.date}-${item.type}`;
+      if (seenDates.has(key)) {
+        console.log(
+          `🔍 Debug: Removing duplicate ${item.type} for ${item.date}`,
+        );
+        return false;
+      }
+      seenDates.add(key);
+      return true;
+    });
+
+    console.log(
+      "🔍 Debug: Combined dates after dedup:",
+      deduplicatedDates.length,
+    );
+
+    // Debug: Check for Tuesday routes after dedup
+    const tuesdayAfterDedup = deduplicatedDates.filter((item) => {
+      if (
+        item.type === "recovery" &&
+        item.dayName &&
+        item.dayName.toLowerCase() === "tuesday"
+      ) {
+        return true;
+      }
+      if (item.date && new Date(item.date).getDay() === 2) {
+        // Tuesday is day 2
+        return true;
+      }
+      return false;
+    });
+    console.log(
+      `🚨 TUESDAY DEBUG: Found ${tuesdayAfterDedup.length} Tuesday items after dedup:`,
+      tuesdayAfterDedup,
+    );
+
+    const parsedDates = deduplicatedDates.map((item) => {
       const parsed = new Date(item.date);
       console.log(
         `🔍 Debug: Parsing date "${item.date}" -> ${parsed}, isValid: ${!isNaN(parsed.getTime())}`,
@@ -412,9 +481,7 @@ class DatesManager {
             const routeCount = routes.length;
             const marketName =
               dateItem.type === "spfm"
-                ? routeCount > 1
-                  ? `${routeCount} Routes`
-                  : routes[0]?.market || "Market"
+                ? dateItem.market || "Market"
                 : "Recovery";
             const bgColor = dateItem.type === "spfm" ? "#fff3e0" : "#e3f2fd"; // Orange tint for SPFM, Blue tint for Recovery
             const borderColor =
@@ -451,6 +518,7 @@ class DatesManager {
   generateWeeklyRecoveryDates() {
     const recoveryDates = [];
     const today = new Date();
+    const seenDates = new Set(); // Track seen dates to prevent duplicates
 
     console.log("🔍 Debug: generateWeeklyRecoveryDates called");
     console.log("🔍 Debug: sheetsAPI.recoveryData:", sheetsAPI.recoveryData);
@@ -468,14 +536,27 @@ class DatesManager {
         const stop1 = route["Stop 1"] || route["stop1"] || "";
         console.log(`🔍 Debug: Day name extracted: ${dayName}`);
         console.log(`🔍 Debug: Stop 1 extracted: ${stop1}`);
+
         if (dayName && stop1.trim() !== "") {
           // Generate next 12 occurrences of this recovery route
           for (let occurrence = 0; occurrence < 12; occurrence++) {
             const nextDate = this.calculateNextOccurrence(dayName, occurrence);
             if (nextDate && nextDate >= today) {
+              const dateString = nextDate.toLocaleDateString("en-US");
+              const dateKey = `${dateString}-${dayName.toLowerCase()}`;
+
+              // Check if we've already added this date/day combination
+              if (seenDates.has(dateKey)) {
+                console.log(
+                  `🔍 Debug: Skipping duplicate ${dayName} for ${dateString}`,
+                );
+                continue;
+              }
+
+              seenDates.add(dateKey);
               const recoveryRoute = {
                 ...route,
-                date: nextDate.toLocaleDateString("en-US"),
+                date: dateString,
                 displayDate: nextDate.toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
@@ -491,6 +572,17 @@ class DatesManager {
                 startTime: route.startTime || route.Time || "TBD",
                 Time: route.Time || route.startTime || "TBD",
               };
+              console.log(
+                `🔍 Debug: Adding ${dayName} for ${dateString} (occurrence ${occurrence})`,
+              );
+              if (dayName.toLowerCase() === "tuesday") {
+                console.log(
+                  `🚨 TUESDAY DEBUG: Adding Tuesday recovery for ${dateString}, total Tuesday routes so far:`,
+                  recoveryDates.filter(
+                    (r) => r.dayName.toLowerCase() === "tuesday",
+                  ).length + 1,
+                );
+              }
               recoveryDates.push(recoveryRoute);
             }
           }
@@ -502,7 +594,17 @@ class DatesManager {
       console.log("🔍 Debug: No recovery data found or empty array");
     }
 
-    console.log("🔍 Debug: Final recovery dates array:", recoveryDates);
+    const tuesdayRoutes = recoveryDates.filter(
+      (r) => r.dayName && r.dayName.toLowerCase() === "tuesday",
+    );
+    console.log("🔍 Debug: Final recovery dates array:", recoveryDates.length);
+    console.log(
+      `🚨 TUESDAY DEBUG: Total Tuesday recovery routes generated: ${tuesdayRoutes.length}`,
+    );
+    console.log(
+      `🚨 TUESDAY DEBUG: Tuesday dates:`,
+      tuesdayRoutes.map((r) => r.date),
+    );
     return recoveryDates;
   }
 
