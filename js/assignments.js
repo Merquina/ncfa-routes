@@ -702,6 +702,16 @@ class AssignmentsManager {
             </div>
           </div>
 
+          <!-- Total Weight Section -->
+          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+            <h3 style="color: #28a745; margin: 0 0 15px 0;">⚖️ Total Weight</h3>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="number" id="totalWeight" placeholder="Enter weight" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; width: 150px;" step="0.1" min="0">
+              <span style="color: #666; font-weight: bold;">lbs</span>
+            </div>
+            <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem; font-style: italic;">Weight will be saved to spreadsheet when you submit</p>
+          </div>
+
           <!-- Back at Office Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #6c757d;">
             <h3 style="color: #6c757d; margin: 0 0 15px 0;">🏢 Back at Office</h3>
