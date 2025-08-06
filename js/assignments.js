@@ -671,6 +671,7 @@ class AssignmentsManager {
               <button onclick="saveWeight()" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Save Weight</button>
             </div>
             <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem; font-style: italic;">Enter the total weight collected during this route</p>
+            <p style="margin: 5px 0 0 0; color: #ff6b35; font-size: 0.85rem; font-weight: bold;">🚧 Under Construction - Save functionality not yet implemented</p>
           </div>
 
           <!-- Dropoff Section -->
