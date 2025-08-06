@@ -601,7 +601,7 @@ class AssignmentsManager {
             <h3 style="color: #17a2b8; margin: 0 0 15px 0;">🏢 At the Office</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
               <div>
-                <h4 style="margin: 0 0 10px 0; color: #666;">🏢 Office Materials</h4>
+                <h4 style="margin: 0 0 10px 0; color: #666;">📁</h4>
                 ${materialsOffice
                   .map(
                     (item) => `
@@ -614,7 +614,7 @@ class AssignmentsManager {
                 ${materialsOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
               </div>
               <div>
-                <h4 style="margin: 0 0 10px 0; color: #666;">📦 Storage Materials</h4>
+                <h4 style="margin: 0 0 10px 0; color: #666;">📦</h4>
                 ${materialsStorage
                   .map(
                     (item) => `
