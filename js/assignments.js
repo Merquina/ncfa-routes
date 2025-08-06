@@ -754,7 +754,7 @@ class AssignmentsManager {
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            <button onclick="window.open('${googleMapsUrl}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            <button data-maps-url="${googleMapsUrl.replace(/"/g, "&quot;")}" onclick="window.open(this.getAttribute('data-maps-url'), '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🗺️ Full route on Google Maps
             </button>
           </div>
@@ -898,7 +898,7 @@ class AssignmentsManager {
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            <button onclick="window.open('${googleMapsUrl}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            <button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🗺️ Full route on Google Maps
             </button>
           </div>
