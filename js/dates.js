@@ -513,6 +513,7 @@ class DatesManager {
 
     console.log("🔍 Debug: generateMondayDeliveryDates called");
     console.log("🔍 Debug: sheetsAPI.deliveryData:", sheetsAPI.deliveryData);
+    console.log("🔍 Debug: sheetsAPI.data (SPFM routes):", sheetsAPI.data);
 
     // Check if delivery data exists
     if (!sheetsAPI.deliveryData || sheetsAPI.deliveryData.length === 0) {
@@ -525,7 +526,11 @@ class DatesManager {
     // Get all Sunday SPFM markets
     const sundayMarkets = sheetsAPI.data.filter((route) => {
       const routeDate = new Date(route.date);
-      return routeDate.getDay() === 0; // Sunday = 0
+      const isSunday = routeDate.getDay() === 0; // Sunday = 0
+      console.log(
+        `🔍 Debug: Route date ${route.date}, day: ${routeDate.getDay()}, isSunday: ${isSunday}`,
+      );
+      return isSunday;
     });
 
     console.log("🔍 Debug: Found Sunday markets:", sundayMarkets);
@@ -562,10 +567,12 @@ class DatesManager {
             color: "#ff8c00", // orange like SPFM
             market: `${marketLocation} Delivery`,
             dayName: "Monday",
-            startTime: deliveryRoute.startTime || deliveryRoute.Time || "TBD",
-            Time: deliveryRoute.Time || deliveryRoute.startTime || "TBD",
-            Worker: deliveryRoute.Worker || deliveryRoute.worker,
-            van: deliveryRoute.van || deliveryRoute.Van,
+            startTime: deliveryRoute.startTime || "TBD",
+            Time: deliveryRoute.startTime || "TBD",
+            Worker: deliveryRoute.worker1 || "",
+            worker1: deliveryRoute.worker1 || "",
+            worker2: deliveryRoute.worker2 || "",
+            van: deliveryRoute.Van || "",
             // Copy all stop data
             ...deliveryRoute,
             sortDate: mondayDate,

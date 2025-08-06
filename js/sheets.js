@@ -108,6 +108,7 @@ class SheetsAPI {
       });
 
       console.log(`✅ Loaded ${this.recoveryData.length} recovery routes`);
+      console.log("🔍 Debug: Sample recovery route:", this.recoveryData[0]);
     } catch (error) {
       console.log("Recovery data not available (this is optional):", error);
     }
@@ -147,6 +148,8 @@ class SheetsAPI {
       });
 
       console.log(`✅ Loaded ${this.deliveryData.length} SPFM delivery routes`);
+      console.log("🔍 Debug: Sample delivery route:", this.deliveryData[0]);
+      console.log("🔍 Debug: All delivery data:", this.deliveryData);
     } catch (error) {
       console.log(
         "SPFM Delivery data not available (this is optional):",

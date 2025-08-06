@@ -844,7 +844,14 @@ class AssignmentsManager {
           👨‍🌾 ${route.market || "SPFM Delivery"}
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : '<span style="color: #800020; font-style: italic;">Need worker</span>'}
+          ${(() => {
+            const workers = [route.worker1, route.worker2]
+              .filter((w) => w && w.trim())
+              .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
+            return workers.length > 0
+              ? workers.join(", ")
+              : '<span style="color: #800020; font-style: italic;">Need worker</span>';
+          })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
           ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
