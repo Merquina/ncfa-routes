@@ -95,7 +95,7 @@ class AssignmentsManager {
       .map((v) => `${this.getVanEmoji(v)} ${v}`);
 
     return `
-      <div style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00;">
+      <div onclick="assignmentsManager.openDetailedView('spfm', ${JSON.stringify(route).replace(/"/g, '&quot;')})" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate || route.date} - ${route.market || "Market"}
         </div>
@@ -125,7 +125,7 @@ class AssignmentsManager {
 
   renderRecoveryCard(route) {
     return `
-      <div style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff;">
+      <div onclick="assignmentsManager.openDetailedView('recovery', ${JSON.stringify(route).replace(/"/g, '&quot;')})" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate} at ${route.Time || "TBD"}
         </div>
@@ -552,6 +552,96 @@ class AssignmentsManager {
       });
     }
   }
+
+  // ========================================
+  // DETAILED VIEW FUNCTIONALITY
+  // ========================================
+
+  openDetailedView(type, route) {
+    const assignmentsContainer = document.getElementById("assignmentsContainer");
+    if (!assignmentsContainer) return;
+
+    if (type === 'spfm') {
+      this.renderSPFMDetailedView(route);
+    } else if (type === 'recovery') {
+      this.renderRecoveryDetailedView(route);
+    }
+  }
+
+  renderSPFMDetailedView(route) {
+    const assignmentsContainer = document.getElementById("assignmentsContainer");
+
+    const materialsOffice = (route.materials_office || '').split(',').filter(item => item.trim());
+    const materialsStorage = (route.materials_storage || '').split(',').filter(item => item.trim());
+    const atMarket = (route.atmarket || '').split(',').filter(item => item.trim());
+    const backAtOffice = (route.backatoffice || '').split(',').filter(item => item.trim());
+
+    const googleMapsUrl = this.buildSPFMGoogleMapsUrl(route);
+
+    assignmentsContainer.innerHTML = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #ff8c00;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || 'Market'} - SPFM Route</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || 'TBD'}</p>
+
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+              🖨️ Print this assignment
+            </button>
+            <button onclick="window.open('${googleMapsUrl}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+              🗺️ Full route on Google Maps
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 20px;">
+          <!-- At the Office Section -->
+          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+            <h3 style="color: #17a2b8; margin: 0 0 15px 0;">🏢 At the Office</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div>
+                <h4 style="margin: 0 0 10px 0; color: #666;">Materials (Office)</h4>
+                ${materialsOffice.map(item => `
+                  <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+                    <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+                  </label>
+                `).join('')}
+                ${materialsOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ''}
+              </div>
+              <div>
+                <h4 style="margin: 0 0 10px 0; color: #666;">Materials (Storage)</h4>
+                ${materialsStorage.map(item => `
+                  <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+                    <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+                  </label>
+                `).join('')}
+                ${materialsStorage.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ''}
+              </div>
+            </div>
+          </div>
+
+          <!-- At Market Section -->
+          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
+            <h3 style="color: #ff8c00; margin: 0 0 15px 0;">🏪 At Market</h3>
+            ${atMarket.map(item => `
+              <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+                <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+              </label>
+            `).join('')}
+            ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ''}
+          </div>
+
+          <!-- Dropoff Section -->
+          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+            <h3 style="color: #28a745; margin: 0 0 15px 0;">📍 Dropoff</h3>
+            <div style="margin-bottom: 10px;">
+              ${route.dropOff ? `
+                <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.dropOff)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                  📍 ${route.dropOff}
+                </button>
+              ` : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'}
+              ${route.contact ? `
+                <button onclick="window.open('tel:${route.contact}', '_blank')" style="background: #007bff; color: white; border: none
 }
 
 // Export instance
