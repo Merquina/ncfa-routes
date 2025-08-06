@@ -283,11 +283,62 @@ class SheetsAPI {
       return null;
     }
 
-    const contact = this.contactsData.find(
-      (contact) =>
-        contact.Location &&
-        contact.Location.toLowerCase().trim() === name.toLowerCase().trim(),
-    );
+    // Normalize function to make matching more flexible
+    const normalize = (str) => {
+      return str
+        .toLowerCase()
+        .trim()
+        .replace(/[''`]/g, "") // Remove apostrophes and quotes
+        .replace(/[-\s]+/g, " ") // Replace dashes and multiple spaces with single space
+        .replace(/\s+/g, " ") // Normalize multiple spaces to single space
+        .trim();
+    };
+
+    const normalizedName = normalize(name);
+
+    const contact = this.contactsData.find((contact) => {
+      if (!contact.Location) return false;
+
+      const normalizedLocation = normalize(contact.Location);
+
+      // Try exact match first
+      if (normalizedLocation === normalizedName) {
+        return true;
+      }
+
+      // Try partial matches (both ways)
+      if (
+        normalizedLocation.includes(normalizedName) ||
+        normalizedName.includes(normalizedLocation)
+      ) {
+        return true;
+      }
+
+      // Try word-by-word matching
+      const nameWords = normalizedName
+        .split(" ")
+        .filter((word) => word.length > 2);
+      const locationWords = normalizedLocation
+        .split(" ")
+        .filter((word) => word.length > 2);
+
+      if (nameWords.length > 0 && locationWords.length > 0) {
+        const matchingWords = nameWords.filter((word) =>
+          locationWords.some(
+            (locWord) => locWord.includes(word) || word.includes(locWord),
+          ),
+        );
+        // Consider it a match if most words match
+        if (
+          matchingWords.length >=
+          Math.min(nameWords.length, locationWords.length) * 0.6
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    });
 
     return contact
       ? {
