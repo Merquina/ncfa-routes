@@ -675,7 +675,7 @@ class AssignmentsManager {
 
           <!-- Dropoff Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
-            <h3 style="color: #28a745; margin: 0 0 15px 0;">📍 Dropoff</h3>
+            <h3 style="color: #28a745; margin: 0 0 15px 0;">🚚 Dropoff - ${route.dropOff || "Location TBD"}</h3>
             <div style="margin-bottom: 10px;">
               ${
                 route.dropOff
