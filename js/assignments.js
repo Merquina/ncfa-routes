@@ -109,13 +109,15 @@ class AssignmentsManager {
           ${(() => {
             const teamSlots = [...workers];
             while (teamSlots.length < 3) {
-              teamSlots.push("Need worker");
+              teamSlots.push(
+                '<span style="color: #800020; font-style: italic;">Need worker</span>',
+              );
             }
             return teamSlots.slice(0, 3).join(", ");
           })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${vans.join(", ") || "No vans assigned"}
+          ${vans.join(", ") || '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
         </div>
       </div>
     `;
@@ -142,13 +144,15 @@ class AssignmentsManager {
               );
             }
             while (teamSlots.length < 3) {
-              teamSlots.push("Need worker");
+              teamSlots.push(
+                '<span style="color: #800020; font-style: italic;">Need worker</span>',
+              );
             }
             return teamSlots.slice(0, 3).join(", ");
           })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : "No vans assigned"}
+          ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
         </div>
       </div>
     `;
