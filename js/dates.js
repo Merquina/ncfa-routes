@@ -514,6 +514,14 @@ class DatesManager {
     console.log("🔍 Debug: generateMondayDeliveryDates called");
     console.log("🔍 Debug: sheetsAPI.deliveryData:", sheetsAPI.deliveryData);
 
+    // Check if delivery data exists
+    if (!sheetsAPI.deliveryData || sheetsAPI.deliveryData.length === 0) {
+      console.log(
+        "🔍 Debug: No delivery data available, returning empty array",
+      );
+      return deliveryDates;
+    }
+
     // Get all Sunday SPFM markets
     const sundayMarkets = sheetsAPI.data.filter((route) => {
       const routeDate = new Date(route.date);

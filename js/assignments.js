@@ -725,15 +725,37 @@ class AssignmentsManager {
     );
 
     const stops = [];
+    console.log("🔍 Debug: Processing recovery route:", route);
+    console.log("🔍 Debug: Available route keys:", Object.keys(route));
+
     for (let i = 1; i <= 10; i++) {
+      // Try multiple possible column name formats
       const stop =
-        route[`Stop ${i}`] || route[`stop${i}`] || route[`stop ${i}`];
+        route[`Stop ${i}`] ||
+        route[`stop${i}`] ||
+        route[`stop ${i}`] ||
+        route[`Stop${i}`] ||
+        route[`STOP ${i}`] ||
+        route[`STOP${i}`];
+
       const contact =
-        route[`Contact ${i}`] || route[`contact${i}`] || route[`contact ${i}`];
+        route[`Contact ${i}`] ||
+        route[`contact${i}`] ||
+        route[`contact ${i}`] ||
+        route[`Contact${i}`] ||
+        route[`CONTACT ${i}`] ||
+        route[`CONTACT${i}`];
+
+      console.log(
+        `🔍 Debug: Stop ${i} - Found: "${stop}", Contact: "${contact}"`,
+      );
+
       if (stop && stop.trim()) {
         stops.push({ location: stop.trim(), contact: contact?.trim() });
       }
     }
+
+    console.log("🔍 Debug: Final stops array:", stops);
 
     const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
 
