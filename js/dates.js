@@ -472,33 +472,25 @@ class DatesManager {
           // Generate next 12 occurrences of this recovery route
           for (let occurrence = 0; occurrence < 12; occurrence++) {
             const nextDate = this.calculateNextOccurrence(dayName, occurrence);
-            if (nextDate) {
+            if (nextDate && nextDate >= today) {
               const recoveryRoute = {
+                ...route,
                 date: nextDate.toLocaleDateString("en-US"),
+                displayDate: nextDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                }),
                 parsed: nextDate,
                 type: "recovery",
                 emoji: "🛒",
-                color: "#ff8c00", // orange
+                color: "#ff8c00",
                 dayName: dayName,
-                worker: route.Worker || route.worker,
-                location: route.Location || route.location || "Recovery Route",
-                startTime: route.startTime || route.Time,
-                Time: route.Time || route.startTime,
-                // Copy all stop data for detailed view
-                "Stop 1": route["Stop 1"],
-                "Stop 2": route["Stop 2"],
-                "Stop 3": route["Stop 3"],
-                "Stop 4": route["Stop 4"],
-                "Stop 5": route["Stop 5"],
-                "Stop 6": route["Stop 6"],
-                "Stop 7": route["Stop 7"],
-                // Copy all original route data
-                ...route,
+                sortDate: nextDate,
+                startTime: route.startTime || route.Time || "TBD",
+                Time: route.Time || route.startTime || "TBD",
               };
-              console.log(
-                `🔍 Debug: Generated recovery route for ${dayName}, occurrence ${occurrence}:`,
-                recoveryRoute,
-              );
               recoveryDates.push(recoveryRoute);
             }
           }
@@ -645,18 +637,16 @@ class DatesManager {
     if (targetDay === undefined) return null;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Calculate the first occurrence of this weekday from today
     const currentDay = today.getDay();
-    let daysUntilNext = (targetDay - currentDay + 7) % 7;
-    if (daysUntilNext === 0) {
-      daysUntilNext = 7; // If today is the target day, start with next week
+
+    // Calculate days until next occurrence of this weekday
+    let daysUntilTarget = (targetDay - currentDay + 7) % 7;
+    if (daysUntilTarget === 0 && occurrence === 0) {
+      daysUntilTarget = 7; // If today is the target day, get next week's
     }
 
-    // Calculate the target date by adding the base days plus occurrence weeks
     const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + daysUntilNext + occurrence * 7);
+    targetDate.setDate(today.getDate() + daysUntilTarget + occurrence * 7);
 
     return targetDate;
   }
