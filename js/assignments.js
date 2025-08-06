@@ -128,7 +128,7 @@ class AssignmentsManager {
           ${route.displayDate} at ${route.Time || "TBD"}
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${(route.dayName || route["recovery route"] || route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"} at ${route.Time || "TBD"}
+          ${(route.dayName || route["recovery route"] || route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"} ${route.Time || "TBD"}
         </div>
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">
           🛒 Recovery Route
