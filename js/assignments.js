@@ -545,10 +545,10 @@ class AssignmentsManager {
     const materialsStorage = (route.materials_storage || "")
       .split(",")
       .filter((item) => item.trim());
-    const atMarket = (route.atmarket || "")
+    const atMarket = (route.atMarket || "")
       .split(",")
       .filter((item) => item.trim());
-    const backAtOffice = (route.backatoffice || "")
+    const backAtOffice = (route.backAtOffice || "")
       .split(",")
       .filter((item) => item.trim());
 
