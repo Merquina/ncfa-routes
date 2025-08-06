@@ -83,15 +83,15 @@ class InventoryManager {
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many farmers:</label>
-            <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+            <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many small boxes:</label>
-            <input type="number" id="smallBoxesInput" min="0" value="0" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+            <input type="number" id="smallBoxesInput" min="0" value="0" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many LARGE boxes:</label>
-            <input type="number" id="largeBoxesInput" min="0" value="0" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+            <input type="number" id="largeBoxesInput" min="0" value="0" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
           </div>
           <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 5px;">Calculate Distribution</button>
           <div id="calculationResult" style="padding: 2px; background: #e8f5e8; border-radius: 4px; margin-top: 2px; display: none;">
@@ -107,11 +107,11 @@ class InventoryManager {
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.85rem; font-weight: normal;">small boxes:</label>
-            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;">
+            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.85rem; font-weight: normal;">LARGE boxes:</label>
-            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;">
+            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.85rem; font-weight: normal;">Your name:</label>
