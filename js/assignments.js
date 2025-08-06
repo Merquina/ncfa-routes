@@ -109,7 +109,7 @@ class AssignmentsManager {
           ${(() => {
             const teamSlots = [...workers];
             while (teamSlots.length < 3) {
-              teamSlots.push("Need volunteer");
+              teamSlots.push("Need worker");
             }
             return teamSlots.slice(0, 3).join(", ");
           })()}
@@ -142,7 +142,7 @@ class AssignmentsManager {
               );
             }
             while (teamSlots.length < 3) {
-              teamSlots.push("Need volunteer");
+              teamSlots.push("Need worker");
             }
             return teamSlots.slice(0, 3).join(", ");
           })()}
