@@ -19,9 +19,10 @@ class DatesManager {
 
     if (!assignmentsContainer) return;
 
-    // Clear the chronological dates container since we're using assignmentsContainer
+    // Hide the chronological dates container since we're using assignmentsContainer
     if (chronologicalContainer) {
       chronologicalContainer.innerHTML = "";
+      chronologicalContainer.style.display = "none";
     }
 
     // Skip loading state - show cards directly
