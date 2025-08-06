@@ -47,6 +47,16 @@ class DatesManager {
       groupByMarket: false,
       showPrintButton: false,
     });
+
+    // Scroll to the top of assignments container
+    setTimeout(() => {
+      if (assignmentsContainer) {
+        assignmentsContainer.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
   }
 
   renderSPFMDates(container) {
