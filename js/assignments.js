@@ -612,7 +612,14 @@ class AssignmentsManager {
                 ? `
               <div style="margin-bottom: 15px;">
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.market)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                  📍 ${route.market}
+                  📍 ${(() => {
+                    const contact = sheetsAPI.getAddressFromContacts(
+                      route.market,
+                    );
+                    return contact && contact.address
+                      ? contact.address
+                      : route.market;
+                  })()}
                 </button>
               </div>
               `
@@ -638,7 +645,14 @@ class AssignmentsManager {
                 route.dropOff
                   ? `
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.dropOff)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                  📍 ${route.dropOff}
+                  📍 ${(() => {
+                    const contact = sheetsAPI.getAddressFromContacts(
+                      route.dropOff,
+                    );
+                    return contact && contact.address
+                      ? contact.address
+                      : route.dropOff;
+                  })()}
                 </button>
               `
                   : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'
@@ -722,7 +736,14 @@ class AssignmentsManager {
               <h3 style="color: #007bff; margin: 0 0 15px 0;">📍 Stop ${index + 1}</h3>
               <div style="margin-bottom: 10px;">
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                  📍 ${stop.location}
+                  📍 ${(() => {
+                    const contact = sheetsAPI.getAddressFromContacts(
+                      stop.location,
+                    );
+                    return contact && contact.address
+                      ? contact.address
+                      : stop.location;
+                  })()}
                 </button>
                 ${
                   stop.contact
