@@ -516,12 +516,17 @@ class DatesManager {
     console.log("🔍 Debug: sheetsAPI.data (SPFM routes):", sheetsAPI.data);
 
     // Debug delivery data "Food from" values
-    sheetsAPI.deliveryData.forEach((delivery, index) => {
-      console.log(
-        `🔍 Debug: Delivery ${index} - Food from: "${delivery["Food from"]}", all keys:`,
-        Object.keys(delivery),
-      );
-    });
+    if (sheetsAPI.deliveryData && sheetsAPI.deliveryData.length > 0) {
+      sheetsAPI.deliveryData.forEach((delivery, index) => {
+        console.log(
+          `🔍 Debug: Delivery ${index} - Food from: "${delivery["Food from"]}"`,
+        );
+        console.log(`🔍 Debug: All delivery keys:`, Object.keys(delivery));
+        console.log(`🔍 Debug: Full delivery object:`, delivery);
+      });
+    } else {
+      console.log("🔍 Debug: No delivery data available or empty array");
+    }
 
     // Check if delivery data exists
     if (!sheetsAPI.deliveryData || sheetsAPI.deliveryData.length === 0) {
@@ -551,6 +556,9 @@ class DatesManager {
       // Find delivery route for this market location
       const deliveryRoute = sheetsAPI.deliveryData.find((delivery) => {
         const foodFrom = delivery["Food from"] || delivery["food from"] || "";
+        console.log(
+          `🔍 Debug: Comparing "${foodFrom}" with "${marketLocation}"`,
+        );
         return (
           foodFrom.toLowerCase().trim() === marketLocation.toLowerCase().trim()
         );
