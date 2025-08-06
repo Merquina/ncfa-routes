@@ -419,15 +419,26 @@ class SheetsAPI {
       return routeWorker === normalizedWorker;
     });
 
+    // Get SPFM Delivery assignments
+    const deliveryAssignments = this.deliveryData.filter((route) => {
+      const worker1 = (route.worker1 || "").trim().toLowerCase();
+      const worker2 = (route.worker2 || "").trim().toLowerCase();
+
+      return worker1 === normalizedWorker || worker2 === normalizedWorker;
+    });
+
     console.log(`🔍 Debug getWorkerAssignments for ${workerName}:`);
     console.log("🔍 Recovery data:", this.recoveryData);
     console.log("🔍 SPFM assignments found:", spfmAssignments.length);
     console.log("🔍 Recovery assignments found:", recoveryAssignments.length);
     console.log("🔍 Recovery assignments:", recoveryAssignments);
+    console.log("🔍 Delivery assignments found:", deliveryAssignments.length);
+    console.log("🔍 Delivery assignments:", deliveryAssignments);
 
     return {
       spfm: spfmAssignments,
       recovery: recoveryAssignments,
+      delivery: deliveryAssignments,
     };
   }
 

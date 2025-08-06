@@ -163,7 +163,9 @@ class AssignmentsManager {
   renderWorkerAssignments(workerName, assignments) {
     if (
       !assignments ||
-      (assignments.spfm.length === 0 && assignments.recovery.length === 0)
+      (assignments.spfm.length === 0 &&
+        assignments.recovery.length === 0 &&
+        (!assignments.delivery || assignments.delivery.length === 0))
     ) {
       this.renderUnifiedAssignments({
         routes: [],
@@ -237,22 +239,32 @@ class AssignmentsManager {
     // Add recovery routes
     allRoutes.push(...allRecoveryDates);
 
-    // Add Monday delivery routes for this worker
-    const mondayDeliveryDates = datesManager.generateMondayDeliveryDates();
-    mondayDeliveryDates.forEach((route) => {
-      // Check if this Monday delivery route is assigned to this worker
-      const workerNames = [route.worker1, route.worker2]
-        .filter(Boolean)
-        .map((w) => w.toLowerCase());
-      if (workerNames.includes(workerName.toLowerCase())) {
-        allRoutes.push({
-          ...route,
-          type: "spfm-delivery",
-          sortDate: route.parsed || new Date(route.date),
-          _routeId: `monday-delivery-${route.date}`,
-        });
-      }
-    });
+    // Add delivery assignments from sheets API
+    if (assignments.delivery && assignments.delivery.length > 0) {
+      assignments.delivery.forEach((deliveryRoute) => {
+        // Generate next 12 occurrences for each delivery route
+        const dayName = deliveryRoute.Weekday || deliveryRoute.weekday;
+        if (dayName) {
+          for (let occurrence = 0; occurrence < 12; occurrence++) {
+            const nextDate = this.calculateNextOccurrence(dayName, occurrence);
+            if (nextDate && nextDate >= today) {
+              allRoutes.push({
+                ...deliveryRoute,
+                type: "spfm-delivery",
+                sortDate: nextDate,
+                displayDate: nextDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                }),
+                _routeId: `delivery-${dayName.toLowerCase()}-${occurrence}`,
+              });
+            }
+          }
+        }
+      });
+    }
 
     // Sort all routes by date and take only next 4
     const upcomingRoutes = allRoutes
@@ -264,6 +276,10 @@ class AssignmentsManager {
     console.log(
       "🔍 Original recovery assignments:",
       assignments.recovery.length,
+    );
+    console.log(
+      "🔍 Original delivery assignments:",
+      assignments.delivery ? assignments.delivery.length : 0,
     );
     console.log(
       "🔍 Filtered SPFM routes (not completed):",
