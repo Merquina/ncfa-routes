@@ -779,13 +779,26 @@ class AssignmentsManager {
                   stop.contact
                     ? `
                   <button onclick="window.open('tel:${stop.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                    📞 ${stop.contact}
+                    📞 ${(() => {
+                      const contact = sheetsAPI.getAddressFromContacts(
+                        stop.location,
+                      );
+                      return contact && contact.contactName && contact.phone
+                        ? `${contact.contactName} - ${contact.phone}`
+                        : stop.contact;
+                    })()}
                   </button>
                 `
                     : ""
                 }
               </div>
-              ${route.Notes ? `<p style="margin: 10px 0 0 0; color: #666; font-style: italic;">${route.Notes}</p>` : ""}
+              ${(() => {
+                const notes =
+                  route.Notes || route["Special Instructions"] || "";
+                return notes.trim()
+                  ? `<p style="margin: 10px 0 0 0; color: #666;">${notes}</p>`
+                  : "";
+              })()}
             </div>
           `,
             )
