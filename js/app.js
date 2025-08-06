@@ -185,6 +185,7 @@ function switchTab(tabName, updateUrl = true) {
       break;
     case "charts":
       console.log("🔍 Switching to charts tab");
+      console.log("🔍 Charts tab content should be visible now");
       // Charts functionality is under construction
       // No additional logic needed since HTML already shows placeholder
       break;
@@ -533,6 +534,9 @@ function setupTabHandlers() {
   addMobileHandler(boxBtn, "box");
   addMobileHandler(dateBtn, "date");
   addMobileHandler(workerBtn, "worker");
+
+  // Debug Charts button
+  console.log("🔍 Charts button element:", chartsBtn);
   addMobileHandler(chartsBtn, "charts");
 
   console.log("✅ Tab handlers set up with mobile support");
