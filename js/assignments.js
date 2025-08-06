@@ -136,10 +136,10 @@ class AssignmentsManager {
     return `
       <div onclick="assignmentsManager.openDetailedView('${route._routeId}')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
-          ${route.displayDate} at ${route.Time || "TBD"}
+          ${route.displayDate}
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${(route.dayName || route["recovery route"] || route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"} ${route.Time || "TBD"}
+          ${(route.dayName || route["recovery route"] || route.Day || route["Recovery Routes"] || route.day || "Recovery") + " Route"} at ${route.Time || "TBD"}
         </div>
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">
           🛒 Recovery Route
