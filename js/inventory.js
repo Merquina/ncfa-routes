@@ -21,6 +21,16 @@ class InventoryManager {
 
     try {
       this.renderInventoryContent(inventoryContainer);
+
+      // Scroll to the top of inventory container
+      setTimeout(() => {
+        if (inventoryContainer) {
+          inventoryContainer.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100);
     } catch (error) {
       console.error("❌ Error rendering inventory:", error);
       inventoryContainer.innerHTML = `
