@@ -792,10 +792,18 @@ class AssignmentsManager {
 
   buildRecoveryGoogleMapsUrl(stops) {
     if (stops.length === 0) return "#";
-    if (stops.length === 1)
-      return `https://maps.google.com/maps?q=${encodeURIComponent(stops[0].location)}`;
 
-    const waypoints = stops.map((stop) => encodeURIComponent(stop.location));
+    // Use addresses from contacts when available, fallback to location names
+    const waypoints = stops.map((stop) => {
+      const contact = sheetsAPI.getAddressFromContacts(stop.location);
+      const addressToUse =
+        contact && contact.address ? contact.address : stop.location;
+      return encodeURIComponent(addressToUse);
+    });
+
+    if (waypoints.length === 1)
+      return `https://maps.google.com/maps?q=${waypoints[0]}`;
+
     return `https://maps.google.com/maps/dir/${waypoints.join("/")}`;
   }
 
