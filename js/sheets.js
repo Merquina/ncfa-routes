@@ -282,7 +282,7 @@ class SheetsAPI {
       ? {
           address: contact.Address || "",
           phone: contact.Phone || "",
-          contactName: contact["Contact Name"] || contact.Location || "",
+          contactName: contact.Contact || contact.Location || "",
         }
       : null;
   }
