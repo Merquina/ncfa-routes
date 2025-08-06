@@ -515,6 +515,14 @@ class DatesManager {
     console.log("🔍 Debug: sheetsAPI.deliveryData:", sheetsAPI.deliveryData);
     console.log("🔍 Debug: sheetsAPI.data (SPFM routes):", sheetsAPI.data);
 
+    // Debug delivery data "Food from" values
+    sheetsAPI.deliveryData.forEach((delivery, index) => {
+      console.log(
+        `🔍 Debug: Delivery ${index} - Food from: "${delivery["Food from"]}", all keys:`,
+        Object.keys(delivery),
+      );
+    });
+
     // Check if delivery data exists
     if (!sheetsAPI.deliveryData || sheetsAPI.deliveryData.length === 0) {
       console.log(
