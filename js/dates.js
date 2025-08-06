@@ -484,16 +484,33 @@ class DatesManager {
                 location: route.Location || route.location || "Recovery Route",
                 startTime: route.startTime || route.Time,
                 Time: route.Time || route.startTime,
+                // Copy all stop data for detailed view
+                "Stop 1": route["Stop 1"],
+                "Stop 2": route["Stop 2"],
+                "Stop 3": route["Stop 3"],
+                "Stop 4": route["Stop 4"],
+                "Stop 5": route["Stop 5"],
+                "Stop 6": route["Stop 6"],
+                "Stop 7": route["Stop 7"],
+                // Copy all original route data
+                ...route,
               };
               console.log(
                 `🔍 Debug: Generated recovery route for ${dayName}, occurrence ${occurrence}:`,
                 recoveryRoute,
               );
+              console.log(`🔍 Debug: Route has stops:`, {
+                "Stop 1": recoveryRoute["Stop 1"],
+                "Stop 2": recoveryRoute["Stop 2"],
+                "Stop 3": recoveryRoute["Stop 3"],
+              });
               recoveryDates.push(recoveryRoute);
             }
           }
         } else {
-          console.log(`🔍 Debug: No day name found for route ${index}`);
+          console.log(
+            `🔍 Debug: No day name found for route ${index}, dayName: "${dayName}", stop1: "${stop1}"`,
+          );
         }
       });
     } else {
@@ -635,16 +652,23 @@ class DatesManager {
     if (targetDay === undefined) return null;
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to avoid time zone issues
+
     const currentDay = today.getDay();
 
-    // Calculate days until next occurrence of this weekday
-    let daysUntilTarget = (targetDay - currentDay + 7) % 7;
-    if (daysUntilTarget === 0 && occurrence === 0) {
-      daysUntilTarget = 7; // If today is the target day, get next week's
+    // Find the next occurrence of this day of the week
+    let daysUntilNext = (targetDay - currentDay + 7) % 7;
+    if (daysUntilNext === 0) {
+      daysUntilNext = 7; // If today is the target day, get next week's
     }
 
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + daysUntilTarget + occurrence * 7);
+    // Create the base date (next occurrence of this weekday)
+    const baseDate = new Date(today);
+    baseDate.setDate(today.getDate() + daysUntilNext);
+
+    // Add weeks for subsequent occurrences
+    const targetDate = new Date(baseDate);
+    targetDate.setDate(baseDate.getDate() + occurrence * 7);
 
     return targetDate;
   }
