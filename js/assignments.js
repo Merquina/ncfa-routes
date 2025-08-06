@@ -773,12 +773,7 @@ class AssignmentsManager {
             .map(
               (stop, index) => `
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
-              <h3 style="color: #007bff; margin: 0 0 15px 0;">📍 Stop ${index + 1}${(() => {
-                const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                return contact && contact.contactName
-                  ? ` - ${contact.contactName}`
-                  : ` - ${stop.location}`;
-              })()}</h3>
+              <h3 style="color: #007bff; margin: 0 0 15px 0;">📍 Stop ${index + 1} - ${stop.location}</h3>
               <div style="margin-bottom: 10px;">
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
                   📍 ${(() => {
