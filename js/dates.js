@@ -589,7 +589,12 @@ class DatesManager {
         if (mondayDate >= today) {
           const mondayDelivery = {
             date: mondayDate.toLocaleDateString("en-US"),
-            displayDate: mondayDate.toLocaleDateString("en-US"),
+            displayDate: mondayDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }),
             parsed: mondayDate,
             type: "spfm-delivery",
             emoji: "👨‍🌾",
