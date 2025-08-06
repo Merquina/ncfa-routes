@@ -728,30 +728,15 @@ class AssignmentsManager {
     console.log("🔍 Debug: Processing recovery route:", route);
     console.log("🔍 Debug: Available route keys:", Object.keys(route));
 
-    for (let i = 1; i <= 10; i++) {
-      // Try multiple possible column name formats
-      const stop =
-        route[`Stop ${i}`] ||
-        route[`stop${i}`] ||
-        route[`stop ${i}`] ||
-        route[`Stop${i}`] ||
-        route[`STOP ${i}`] ||
-        route[`STOP${i}`];
+    for (let i = 1; i <= 7; i++) {
+      // Use exact column names from Recovery sheet
+      const stop = route[`Stop ${i}`];
 
-      const contact =
-        route[`Contact ${i}`] ||
-        route[`contact${i}`] ||
-        route[`contact ${i}`] ||
-        route[`Contact${i}`] ||
-        route[`CONTACT ${i}`] ||
-        route[`CONTACT${i}`];
-
-      console.log(
-        `🔍 Debug: Stop ${i} - Found: "${stop}", Contact: "${contact}"`,
-      );
+      console.log(`🔍 Debug: Stop ${i} - Found: "${stop}"`);
 
       if (stop && stop.trim()) {
-        stops.push({ location: stop.trim(), contact: contact?.trim() });
+        // No contact columns in Recovery sheet, so contact will be null
+        stops.push({ location: stop.trim(), contact: null });
       }
     }
 
@@ -797,22 +782,18 @@ class AssignmentsManager {
                       : stop.location;
                   })()}
                 </button>
-                ${
-                  stop.contact
+                ${(() => {
+                  const contact = sheetsAPI.getAddressFromContacts(
+                    stop.location,
+                  );
+                  return contact && contact.phone
                     ? `
-                  <button onclick="window.open('tel:${stop.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                    📞 ${(() => {
-                      const contact = sheetsAPI.getAddressFromContacts(
-                        stop.location,
-                      );
-                      return contact && contact.contactName && contact.phone
-                        ? `${contact.contactName} - ${contact.phone}`
-                        : stop.contact;
-                    })()}
+                  <button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                    📞 ${contact.contactName && contact.phone ? `${contact.contactName} - ${contact.phone}` : contact.phone}
                   </button>
-                `
-                    : ""
-                }
+                    `
+                    : "";
+                })()}
               </div>
               ${(() => {
                 const notes =
