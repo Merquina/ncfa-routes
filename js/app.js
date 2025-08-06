@@ -183,6 +183,11 @@ function switchTab(tabName, updateUrl = true) {
         console.error("❌ workersManager not available");
       }
       break;
+    case "charts":
+      console.log("🔍 Switching to charts tab");
+      // Charts functionality is under construction
+      // No additional logic needed since HTML already shows placeholder
+      break;
   }
 }
 
@@ -492,6 +497,7 @@ function setupTabHandlers() {
   const boxBtn = document.getElementById("boxTabBtn");
   const dateBtn = document.getElementById("dateTabBtn");
   const workerBtn = document.getElementById("workerTabBtn");
+  const chartsBtn = document.getElementById("chartsTabBtn");
 
   // iPhone/mobile-specific event handling
   function addMobileHandler(btn, tabName) {
@@ -527,6 +533,7 @@ function setupTabHandlers() {
   addMobileHandler(boxBtn, "box");
   addMobileHandler(dateBtn, "date");
   addMobileHandler(workerBtn, "worker");
+  addMobileHandler(chartsBtn, "charts");
 
   console.log("✅ Tab handlers set up with mobile support");
 }
@@ -537,7 +544,7 @@ function setupTabHandlers() {
 function initializeRouting() {
   // Get current hash from URL
   const hash = window.location.hash.slice(1); // Remove #
-  const validTabs = ["box", "date", "worker"];
+  const validTabs = ["box", "date", "worker", "charts"];
   const initialTab = validTabs.includes(hash) ? hash : "box";
 
   // Set initial tab without updating URL (since URL already has it)
