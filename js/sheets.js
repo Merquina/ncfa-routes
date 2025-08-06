@@ -150,6 +150,14 @@ class SheetsAPI {
       console.log(`✅ Loaded ${this.deliveryData.length} SPFM delivery routes`);
       console.log("🔍 Debug: Sample delivery route:", this.deliveryData[0]);
       console.log("🔍 Debug: All delivery data:", this.deliveryData);
+
+      // Debug each delivery route's Food from column
+      this.deliveryData.forEach((delivery, index) => {
+        console.log(
+          `🔍 DELIVERY ${index}: Food from = "${delivery["Food from"]}"`,
+        );
+        console.log(`🔍 DELIVERY ${index}: All keys =`, Object.keys(delivery));
+      });
     } catch (error) {
       console.log(
         "SPFM Delivery data not available (this is optional):",
