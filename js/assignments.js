@@ -425,6 +425,7 @@ class AssignmentsManager {
     if (vanName_lower.includes("green bean")) return "🟢";
     if (vanName_lower.includes("tooth")) return "🦷";
     if (vanName_lower.includes("peapod")) return "🟢";
+    if (vanName_lower.includes("marshmallow")) return "🍫";
 
     const vanIcons = {
       "Van 1": "🚐",
