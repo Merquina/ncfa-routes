@@ -146,19 +146,11 @@ class AssignmentsManager {
         <div style="font-size: 0.85rem; color: #007bff; margin-bottom: 4px;">
           🛒 Recovery Route
         </div>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
+          ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : '<span style="color: #800020; font-style: italic;">Need worker</span>'}
+        </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${(() => {
-            const stops = [];
-            for (let i = 1; i <= 7; i++) {
-              const stop = route[`Stop ${i}`];
-              if (stop && stop.trim()) {
-                stops.push(stop.trim());
-              }
-            }
-            return stops.length > 0
-              ? stops.slice(0, 3).join(" • ") + (stops.length > 3 ? "..." : "")
-              : '<span style="color: #800020; font-style: italic;">No stops listed</span>';
-          })()}
+          ${route.Van ? `${this.getVanEmoji(route.Van)} ${route.Van}` : '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
         </div>
       </div>
     `;
@@ -670,6 +662,16 @@ class AssignmentsManager {
             ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
           </div>
 
+          <!-- Total Weight Section -->
+          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+            <h3 style="color: #28a745; margin: 0 0 15px 0;">⚖️ Total Weight</h3>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="number" id="totalWeight" placeholder="Enter weight" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; width: 150px;" step="0.1" min="0">
+              <span style="color: #666; font-weight: bold;">lbs</span>
+            </div>
+            <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem; font-style: italic;">Enter the total weight collected during this route</p>
+          </div>
+
           <!-- Dropoff Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
             <h3 style="color: #28a745; margin: 0 0 15px 0;">📍 Dropoff</h3>
@@ -700,16 +702,6 @@ class AssignmentsManager {
                   : ""
               }
             </div>
-          </div>
-
-          <!-- Total Weight Section -->
-          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
-            <h3 style="color: #28a745; margin: 0 0 15px 0;">⚖️ Total Weight</h3>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <input type="number" id="totalWeight" placeholder="Enter weight" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; width: 150px;" step="0.1" min="0">
-              <span style="color: #666; font-weight: bold;">lbs</span>
-            </div>
-            <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem; font-style: italic;">Enter the total weight collected during this route</p>
           </div>
 
           <!-- Back at Office Section -->
