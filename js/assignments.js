@@ -612,7 +612,7 @@ class AssignmentsManager {
                 ? `
               <div style="margin-bottom: 15px;">
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.market)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                  📍 Market Location: ${route.market}
+                  📍 ${route.market}
                 </button>
               </div>
               `
@@ -638,7 +638,7 @@ class AssignmentsManager {
                 route.dropOff
                   ? `
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.dropOff)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                  📍 Dropoff Location: ${route.dropOff}
+                  📍 ${route.dropOff}
                 </button>
               `
                   : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'
@@ -647,7 +647,7 @@ class AssignmentsManager {
                 route.contact
                   ? `
                 <button onclick="window.open('tel:${route.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                  📞 Contact: ${route.contact}
+                  📞 ${route.contact}
                 </button>
               `
                   : ""
@@ -722,13 +722,13 @@ class AssignmentsManager {
               <h3 style="color: #007bff; margin: 0 0 15px 0;">📍 Stop ${index + 1}</h3>
               <div style="margin-bottom: 10px;">
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                  📍 Location: ${stop.location}
+                  📍 ${stop.location}
                 </button>
                 ${
                   stop.contact
                     ? `
                   <button onclick="window.open('tel:${stop.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                    📞 Contact: ${stop.contact}
+                    📞 ${stop.contact}
                   </button>
                 `
                     : ""
