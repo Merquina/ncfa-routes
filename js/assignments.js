@@ -106,7 +106,13 @@ class AssignmentsManager {
           👨‍🌾 SPFM Route
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${workers.join(", ") || "No team assigned"}
+          ${(() => {
+            const teamSlots = [...workers];
+            while (teamSlots.length < 3) {
+              teamSlots.push("Need volunteer");
+            }
+            return teamSlots.slice(0, 3).join(", ");
+          })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
           ${vans.join(", ") || "No vans assigned"}
@@ -128,7 +134,18 @@ class AssignmentsManager {
           🛒 Recovery Route
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : "No team assigned"}
+          ${(() => {
+            const teamSlots = [];
+            if (route.Worker) {
+              teamSlots.push(
+                `${this.getWorkerEmoji(route.Worker)} ${route.Worker}`,
+              );
+            }
+            while (teamSlots.length < 3) {
+              teamSlots.push("Need volunteer");
+            }
+            return teamSlots.slice(0, 3).join(", ");
+          })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
           ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : "No vans assigned"}
