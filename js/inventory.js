@@ -87,31 +87,7 @@ class InventoryManager {
         }
       </div>
 
-      <!-- Section 2: Box Calculator (${cacheBreaker}) -->
-      <div style="margin-bottom: 10px; margin-top: 2px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
-        <h4>🧮 Box Calculator</h4>
-        <div style="display: grid; gap: 8px; margin-top: 5px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many farmers:</label>
-            <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many small boxes:</label>
-            <input type="number" id="smallBoxesInput" min="0" value="0" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <label style="line-height: 1; flex: 1; font-size: 0.9rem;">How many LARGE boxes:</label>
-            <input type="number" id="largeBoxesInput" min="0" value="0" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
-          </div>
-          <button class="directions-btn" onclick="inventoryManager.calculateDistribution()" style="margin-top: 5px;">Calculate Distribution</button>
-          <div id="calculationResult" style="padding: 2px; background: #e8f5e8; border-radius: 4px; margin-top: 2px; display: none;">
-            <h4 style="margin: 2px 0; font-size: 0.9rem;">Give to each farmer:</h4>
-            <div id="distributionText" style="margin: 2px 0;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 3: Update Inventory (${cacheBreaker}) -->
+      <!-- Section 2: Update Inventory (${cacheBreaker}) -->
       <div style="margin-top: 2px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 100vw; box-sizing: border-box;">
         <h4>📝 Update Inventory</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
@@ -132,8 +108,7 @@ class InventoryManager {
       </div>
     `;
 
-    console.log("🔍 Debug: Local inventory rendered, setting up listeners");
-    this.setupCalculatorListeners();
+    console.log("🔍 Debug: Local inventory rendered");
   }
 
   // ========================================
