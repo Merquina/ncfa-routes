@@ -668,6 +668,7 @@ class AssignmentsManager {
             <div style="display: flex; align-items: center; gap: 10px;">
               <input type="number" id="totalWeight" placeholder="Enter weight" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 1rem; width: 150px;" step="0.1" min="0">
               <span style="color: #666; font-weight: bold;">lbs</span>
+              <button onclick="saveWeight()" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Save Weight</button>
             </div>
             <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9rem; font-style: italic;">Enter the total weight collected during this route</p>
           </div>
@@ -965,6 +966,21 @@ class AssignmentsManager {
   printAssignment() {
     window.print();
   }
+}
+
+// Global function for saving weight data
+function saveWeight() {
+  const weightInput = document.getElementById("totalWeight");
+  const weight = weightInput?.value;
+
+  if (!weight || weight <= 0) {
+    alert("Please enter a valid weight");
+    return;
+  }
+
+  // TODO: Implement API call to save weight to spreadsheet
+  console.log("Saving weight:", weight, "lbs");
+  alert(`Weight of ${weight} lbs will be saved when API is implemented`);
 }
 
 // Export instance
