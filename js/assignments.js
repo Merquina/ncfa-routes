@@ -1,16 +1,16 @@
 /* ========================================
    SPFM Routes - Assignments Management
-   Fresh rewrite to fix syntax errors
    ======================================== */
 
 class AssignmentsManager {
   constructor() {
-    this.currentAssignment = null;
+    this.currentRoutes = []; // Store current routes for detailed view access
   }
 
   // ========================================
-  // UNIFIED ASSIGNMENT CARD RENDERER
+  // UNIFIED ASSIGNMENTS RENDERING
   // ========================================
+
   renderUnifiedAssignments(config) {
     const {
       routes,
@@ -27,6 +27,9 @@ class AssignmentsManager {
     );
     if (!assignmentsContainer) return;
 
+    // Store routes for detailed view access
+    this.currentRoutes = routes;
+
     if (!routes || routes.length === 0) {
       assignmentsContainer.innerHTML = `
         <div style="text-align: center; padding: 40px; color: #666; background: #f8f9fa; margin: 10px; border-radius: 8px;">
@@ -38,26 +41,37 @@ class AssignmentsManager {
       return;
     }
 
-    let html = ``;
+    let html = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid ${color};">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <div style="font-size: 2rem; margin-bottom: 5px;">${emoji}</div>
+          <h3 style="margin: 0; color: ${color};">${title}</h3>
+          <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
+        </div>
+    `;
 
-    // Only add header section if title is provided
-    if (title && title.trim() !== "") {
-      html += `
-        <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid ${color};">
-          <div style="text-align: center; margin-bottom: 15px;">
-            <div style="font-size: 2rem; margin-bottom: 5px;">${emoji}</div>
-            <h3 style="margin: 0; color: ${color};">${title}</h3>
-            <div style="border-top: 2px solid #ddd; margin: 10px 20px;"></div>
-          </div>
-      `;
+    if (groupByMarket) {
+      const routesByMarket = {};
+      routes.forEach((route) => {
+        const market = route.market || "Unknown Market";
+        if (!routesByMarket[market]) routesByMarket[market] = [];
+        routesByMarket[market].push(route);
+      });
+
+      Object.keys(routesByMarket).forEach((market) => {
+        html += `<h4 style="color: ${color}; margin-top: 20px;">${market}</h4>`;
+        routesByMarket[market].forEach((route, index) => {
+          route._routeId = `${market}_${index}`;
+          html += this.renderSingleAssignmentCard(route);
+        });
+      });
+    } else {
+      routes.forEach((route, index) => {
+        route._routeId = `route_${index}`;
+        html += this.renderSingleAssignmentCard(route);
+      });
     }
 
-    // Render all routes with identical cards
-    routes.forEach((route) => {
-      html += this.renderSingleAssignmentCard(route);
-    });
-
-    // Add single print button (same for both screens for now)
     if (showPrintButton) {
       html += `
         <div style="text-align: center; margin-top: 20px;">
@@ -68,20 +82,15 @@ class AssignmentsManager {
       `;
     }
 
-    if (title && title.trim() !== "") {
-      html += `</div>`;
-    }
+    html += `</div>`;
     assignmentsContainer.innerHTML = html;
   }
 
-  // ========================================
-  // SINGLE ASSIGNMENT CARD RENDERER
-  // ========================================
   renderSingleAssignmentCard(route) {
-    if (route.type === "spfm") {
-      return this.renderSPFMCard(route);
-    } else {
+    if (route.type === "recovery") {
       return this.renderRecoveryCard(route);
+    } else {
+      return this.renderSPFMCard(route);
     }
   }
 
@@ -95,7 +104,7 @@ class AssignmentsManager {
       .map((v) => `${this.getVanEmoji(v)} ${v}`);
 
     return `
-      <div onclick="assignmentsManager.openDetailedView('spfm', ${JSON.stringify(route).replace(/"/g, '&quot;')})" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+      <div onclick="assignmentsManager.openDetailedView('${route._routeId}')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate || route.date} - ${route.market || "Market"}
         </div>
@@ -125,7 +134,7 @@ class AssignmentsManager {
 
   renderRecoveryCard(route) {
     return `
-      <div onclick="assignmentsManager.openDetailedView('recovery', ${JSON.stringify(route).replace(/"/g, '&quot;')})" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+      <div onclick="assignmentsManager.openDetailedView('${route._routeId}')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate} at ${route.Time || "TBD"}
         </div>
@@ -148,14 +157,8 @@ class AssignmentsManager {
   // ========================================
   // WORKER ASSIGNMENTS RENDERING
   // ========================================
+
   renderWorkerAssignments(workerName, assignments) {
-    const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
-    );
-    if (!assignmentsContainer) return;
-
-    const workerEmoji = this.getWorkerEmoji(workerName);
-
     if (
       !assignments ||
       (assignments.spfm.length === 0 && assignments.recovery.length === 0)
@@ -163,7 +166,7 @@ class AssignmentsManager {
       this.renderUnifiedAssignments({
         routes: [],
         title: `${workerName}'s Upcoming Assignments`,
-        emoji: workerEmoji,
+        emoji: this.getWorkerEmoji(workerName),
         color: "#007bff",
         groupByMarket: false,
         printButtonText: "Print Assignment",
@@ -255,7 +258,7 @@ class AssignmentsManager {
     this.renderUnifiedAssignments({
       routes: upcomingRoutes,
       title: `${workerName}'s Upcoming Assignments`,
-      emoji: workerEmoji,
+      emoji: this.getWorkerEmoji(workerName),
       color: "#007bff",
       groupByMarket: false,
       printButtonText: "Print Assignment",
@@ -296,19 +299,20 @@ class AssignmentsManager {
   // ========================================
   // DATE ASSIGNMENTS RENDERING
   // ========================================
-  renderDateAssignments(date, routes) {
-    // Convert routes to unified format
-    const unifiedRoutes = routes.map((route) => ({
-      ...route,
-      type: "spfm",
-      displayDate: date,
-    }));
 
-    const formattedDate = this.formatDateForDisplay(date);
+  renderDateAssignments(date, spfmRoutes, recoveryRoute) {
+    const allRoutes = [...spfmRoutes];
+    if (recoveryRoute) allRoutes.push(recoveryRoute);
 
-    // Use unified renderer with market grouping
+    const formattedDate = new Date(date).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
     this.renderUnifiedAssignments({
-      routes: unifiedRoutes,
+      routes: allRoutes,
       title: formattedDate,
       emoji: "📅",
       color: "#007bff",
@@ -362,17 +366,11 @@ class AssignmentsManager {
 
     recoveryRoutes.forEach((route) => {
       html += `
-        <div style="background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
-          <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
-            📍 ${route.Location || "Location"}
-          </div>
-          <div style="display: grid; gap: 4px; font-size: 0.9rem;">
-            <div><strong>Time:</strong> ${route.Time || "Not specified"}</div>
-            <div><strong>Contact:</strong> ${route.Contact || "Not specified"}</div>
-            ${route.Phone ? `<div><strong>Phone:</strong> ${route.Phone}</div>` : ""}
-            ${route.Address ? `<div><strong>Address:</strong> ${route.Address}</div>` : ""}
-            ${route.Notes ? `<div><strong>Notes:</strong> ${route.Notes}</div>` : ""}
-          </div>
+        <div style="background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #007bff;">
+          <h4>Recovery Route Details</h4>
+          <p><strong>Day:</strong> ${dayName}</p>
+          <p><strong>Worker:</strong> ${workerEmoji} ${worker}</p>
+          ${route.Notes ? `<p><strong>Notes:</strong> ${route.Notes}</p>` : ""}
         </div>
       `;
     });
@@ -390,8 +388,9 @@ class AssignmentsManager {
   }
 
   // ========================================
-  // HELPER METHODS
+  // WORKER EMOJI HELPER
   // ========================================
+
   getWorkerEmoji(workerName) {
     if (!workerName || workerName.trim() === "") return "👤";
 
@@ -418,28 +417,23 @@ class AssignmentsManager {
   }
 
   getVanEmoji(vanName) {
-    if (!vanName || vanName.trim() === "") return "🚐";
+    if (!vanName) return "🚐";
 
     const vanIcons = {
-      Tooth: "🦷",
-      "Green Bean": "🫛",
-      Marshmallow: "🧁",
+      "Van 1": "🚐",
+      "Van 2": "🚌",
+      "Van 3": "🚚",
+      "van 1": "🚐",
+      "van 2": "🚌",
+      "van 3": "🚚",
     };
 
-    const vanIcon = Object.keys(vanIcons).find(
-      (key) => key.toLowerCase() === vanName.trim().toLowerCase(),
-    );
-
-    return vanIcon ? vanIcons[vanIcon] : "🚐";
+    return vanIcons[vanName] || "🚐";
   }
 
-  formatDateForDisplay(dateString) {
+  formatDateForDisplay(dateStr) {
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-
+      const date = new Date(dateStr);
       return date.toLocaleDateString("en-US", {
         weekday: "long",
         year: "numeric",
@@ -447,13 +441,14 @@ class AssignmentsManager {
         day: "numeric",
       });
     } catch (error) {
-      return dateString;
+      return dateStr;
     }
   }
 
   // ========================================
-  // SHARED UPCOMING ROUTES FUNCTION
+  // UPCOMING ROUTES
   // ========================================
+
   getUpcomingRoutes(limit = 8) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -469,10 +464,9 @@ class AssignmentsManager {
     const recoveryDates = datesManager.generateWeeklyRecoveryDates();
     const upcomingRecoveryRoutes = recoveryDates.slice(0, 4);
 
-    // Combine all routes
     const allRoutes = [];
 
-    // Add SPFM routes
+    // Add SPFM routes with displayDate
     allSPFMRoutes.forEach((route) => {
       allRoutes.push({
         ...route,
@@ -494,61 +488,33 @@ class AssignmentsManager {
           month: "long",
           day: "numeric",
         }),
-        Worker: route.worker,
-        Location: route.location,
-        Time: route.Time,
-        Notes: route.Notes,
       });
     });
 
-    // Sort by date and return limited results
+    // Sort and limit
     return allRoutes.sort((a, b) => a.sortDate - b.sortDate).slice(0, limit);
   }
 
-  // ========================================
-  // RENDER ALL UPCOMING ROUTES (Shared function)
-  // ========================================
-  renderAllUpcomingRoutes(options = {}) {
-    const {
-      title = "Upcoming Routes",
-      emoji = "📅",
-      showPrintButton = false,
-      limit = 8,
-      renderInDatesContainer = false,
-    } = options;
+  renderAllUpcomingRoutes() {
+    const upcomingRoutes = this.getUpcomingRoutes(8);
 
-    const upcomingRoutes = this.getUpcomingRoutes(limit);
-
-    if (renderInDatesContainer) {
-      // For Screen 2 - render directly in dates container at top
-      const chronologicalContainer =
-        document.getElementById("chronologicalDates");
-      if (chronologicalContainer) {
-        chronologicalContainer.innerHTML = "";
-        chronologicalContainer.style.margin = "0";
-        chronologicalContainer.style.padding = "0";
-
-        // Remove padding from parent tab content for dates tab
-        const dateTab = document.getElementById("dateTab");
-        if (dateTab) {
-          dateTab.style.padding = "0";
-        }
-
-        let html = ``;
-        upcomingRoutes.forEach((route) => {
-          html += this.renderSingleAssignmentCard(route);
-        });
-        chronologicalContainer.innerHTML = html;
-      }
+    if (upcomingRoutes.length === 0) {
+      this.renderUnifiedAssignments({
+        routes: [],
+        title: "All Upcoming Routes",
+        emoji: "📅",
+        color: "#007bff",
+        groupByMarket: true,
+        showPrintButton: true,
+      });
     } else {
-      // For Screen 3 - render in assignments container
       this.renderUnifiedAssignments({
         routes: upcomingRoutes,
-        title: title,
-        emoji: emoji,
+        title: "All Upcoming Routes",
+        emoji: "📅",
         color: "#007bff",
-        groupByMarket: false,
-        showPrintButton: showPrintButton,
+        groupByMarket: true,
+        showPrintButton: true,
       });
     }
   }
@@ -557,32 +523,42 @@ class AssignmentsManager {
   // DETAILED VIEW FUNCTIONALITY
   // ========================================
 
-  openDetailedView(type, route) {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
-    if (!assignmentsContainer) return;
+  openDetailedView(routeId) {
+    const route = this.currentRoutes.find((r) => r._routeId === routeId);
+    if (!route) return;
 
-    if (type === 'spfm') {
-      this.renderSPFMDetailedView(route);
-    } else if (type === 'recovery') {
+    if (route.type === "recovery") {
       this.renderRecoveryDetailedView(route);
+    } else {
+      this.renderSPFMDetailedView(route);
     }
   }
 
   renderSPFMDetailedView(route) {
-    const assignmentsContainer = document.getElementById("assignmentsContainer");
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
 
-    const materialsOffice = (route.materials_office || '').split(',').filter(item => item.trim());
-    const materialsStorage = (route.materials_storage || '').split(',').filter(item => item.trim());
-    const atMarket = (route.atmarket || '').split(',').filter(item => item.trim());
-    const backAtOffice = (route.backatoffice || '').split(',').filter(item => item.trim());
+    const materialsOffice = (route.materials_office || "")
+      .split(",")
+      .filter((item) => item.trim());
+    const materialsStorage = (route.materials_storage || "")
+      .split(",")
+      .filter((item) => item.trim());
+    const atMarket = (route.atmarket || "")
+      .split(",")
+      .filter((item) => item.trim());
+    const backAtOffice = (route.backatoffice || "")
+      .split(",")
+      .filter((item) => item.trim());
 
     const googleMapsUrl = this.buildSPFMGoogleMapsUrl(route);
 
     assignmentsContainer.innerHTML = `
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #ff8c00;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || 'Market'} - SPFM Route</h2>
-          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || 'TBD'}</p>
+          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "Market"} - SPFM Route</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || "TBD"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
@@ -601,21 +577,29 @@ class AssignmentsManager {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
               <div>
                 <h4 style="margin: 0 0 10px 0; color: #666;">Materials (Office)</h4>
-                ${materialsOffice.map(item => `
+                ${materialsOffice
+                  .map(
+                    (item) => `
                   <label style="display: block; margin-bottom: 5px; cursor: pointer;">
                     <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                   </label>
-                `).join('')}
-                ${materialsOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ''}
+                `,
+                  )
+                  .join("")}
+                ${materialsOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
               </div>
               <div>
                 <h4 style="margin: 0 0 10px 0; color: #666;">Materials (Storage)</h4>
-                ${materialsStorage.map(item => `
+                ${materialsStorage
+                  .map(
+                    (item) => `
                   <label style="display: block; margin-bottom: 5px; cursor: pointer;">
                     <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                   </label>
-                `).join('')}
-                ${materialsStorage.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ''}
+                `,
+                  )
+                  .join("")}
+                ${materialsStorage.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
               </div>
             </div>
           </div>
@@ -623,25 +607,164 @@ class AssignmentsManager {
           <!-- At Market Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
             <h3 style="color: #ff8c00; margin: 0 0 15px 0;">🏪 At Market</h3>
-            ${atMarket.map(item => `
+            ${atMarket
+              .map(
+                (item) => `
               <label style="display: block; margin-bottom: 5px; cursor: pointer;">
                 <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
               </label>
-            `).join('')}
-            ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ''}
+            `,
+              )
+              .join("")}
+            ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
           </div>
 
           <!-- Dropoff Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
             <h3 style="color: #28a745; margin: 0 0 15px 0;">📍 Dropoff</h3>
             <div style="margin-bottom: 10px;">
-              ${route.dropOff ? `
+              ${
+                route.dropOff
+                  ? `
                 <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(route.dropOff)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
                   📍 ${route.dropOff}
                 </button>
-              ` : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'}
-              ${route.contact ? `
-                <button onclick="window.open('tel:${route.contact}', '_blank')" style="background: #007bff; color: white; border: none
+              `
+                  : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'
+              }
+              ${
+                route.contact
+                  ? `
+                <button onclick="window.open('tel:${route.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                  📞 ${route.contact}
+                </button>
+              `
+                  : ""
+              }
+            </div>
+          </div>
+
+          <!-- Back at Office Section -->
+          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #6c757d;">
+            <h3 style="color: #6c757d; margin: 0 0 15px 0;">🏢 Back at Office</h3>
+            ${backAtOffice
+              .map(
+                (item) => `
+              <label style="display: block; margin-bottom: 5px; cursor: pointer;">
+                <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+              </label>
+            `,
+              )
+              .join("")}
+            ${backAtOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="history.back()" style="background: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            ← Back to assignments
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  renderRecoveryDetailedView(route) {
+    const assignmentsContainer = document.getElementById(
+      "assignmentsContainer",
+    );
+
+    const stops = [];
+    for (let i = 1; i <= 10; i++) {
+      const stop =
+        route[`Stop ${i}`] || route[`stop${i}`] || route[`stop ${i}`];
+      const contact =
+        route[`Contact ${i}`] || route[`contact${i}`] || route[`contact ${i}`];
+      if (stop && stop.trim()) {
+        stops.push({ location: stop.trim(), contact: contact?.trim() });
+      }
+    }
+
+    const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
+
+    assignmentsContainer.innerHTML = `
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #007bff; margin: 0 0 10px 0;">🛒 ${route.dayName || route["recovery route"] || "Recovery"} Route</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.Time || "TBD"}</p>
+
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+              🖨️ Print this assignment
+            </button>
+            <button onclick="window.open('${googleMapsUrl}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+              🗺️ Full route on Google Maps
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 15px;">
+          ${stops
+            .map(
+              (stop, index) => `
+            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
+              <h3 style="color: #007bff; margin: 0 0 15px 0;">📍 Stop ${index + 1}</h3>
+              <div style="margin-bottom: 10px;">
+                <button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                  📍 ${stop.location}
+                </button>
+                ${
+                  stop.contact
+                    ? `
+                  <button onclick="window.open('tel:${stop.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                    📞 ${stop.contact}
+                  </button>
+                `
+                    : ""
+                }
+              </div>
+              ${route.Notes ? `<p style="margin: 10px 0 0 0; color: #666; font-style: italic;">${route.Notes}</p>` : ""}
+            </div>
+          `,
+            )
+            .join("")}
+
+          ${stops.length === 0 ? '<div style="background: white; padding: 15px; border-radius: 8px; text-align: center; color: #999;">No stops found for this route</div>' : ""}
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="history.back()" style="background: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            ← Back to assignments
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  buildSPFMGoogleMapsUrl(route) {
+    const waypoints = [];
+    if (route.market) waypoints.push(encodeURIComponent(route.market));
+    if (route.dropOff) waypoints.push(encodeURIComponent(route.dropOff));
+
+    if (waypoints.length === 0) return "#";
+    if (waypoints.length === 1)
+      return `https://maps.google.com/maps?q=${waypoints[0]}`;
+
+    return `https://maps.google.com/maps/dir/${waypoints.join("/")}`;
+  }
+
+  buildRecoveryGoogleMapsUrl(stops) {
+    if (stops.length === 0) return "#";
+    if (stops.length === 1)
+      return `https://maps.google.com/maps?q=${encodeURIComponent(stops[0].location)}`;
+
+    const waypoints = stops.map((stop) => encodeURIComponent(stop.location));
+    return `https://maps.google.com/maps/dir/${waypoints.join("/")}`;
+  }
+
+  printAssignment() {
+    window.print();
+  }
 }
 
 // Export instance
