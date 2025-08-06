@@ -777,7 +777,7 @@ class AssignmentsManager {
             .map(
               (stop, index) => `
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
-              <h3 style="color: #007bff; margin: 0 0 15px 0;">📍 Stop ${index + 1} - ${stop.location}</h3>
+              <h3 style="color: #007bff; margin: 0 0 15px 0;">${index + 1} - ${stop.location}</h3>
               <div style="margin-bottom: 10px;">
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
