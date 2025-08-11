@@ -498,6 +498,7 @@ body {
     }
 
     .header h1 {
+        font-family: var(--header-font);
         font-size: 1.8rem;
         margin-bottom: 4px;
     }
@@ -536,6 +537,7 @@ body {
 
 @media (max-width: 480px) {
     .header h1 {
+        font-family: var(--header-font);
         font-size: 1.5rem;
     }
 

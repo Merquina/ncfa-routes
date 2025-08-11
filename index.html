@@ -205,9 +205,85 @@
         <!-- Initialize app directly -->
         <script>
             // Detailed debugging
-            function updateStatus(msg) {
-                console.log("Status:", msg);
+            function ensureDebugOverlay() {
+                let el = document.getElementById("debugOverlay");
+                if (!el) {
+                    el = document.createElement("div");
+                    el.id = "debugOverlay";
+                    el.style.position = "fixed";
+                    el.style.left = "0";
+                    el.style.right = "0";
+                    el.style.bottom = "0";
+                    el.style.maxHeight = "40vh";
+                    el.style.overflowY = "auto";
+                    el.style.background = "rgba(0,0,0,0.85)";
+                    el.style.color = "#0f0";
+                    el.style.fontFamily = "monospace";
+                    el.style.fontSize = "12px";
+                    el.style.padding = "8px 10px";
+                    el.style.zIndex = "2000";
+                    el.style.display = "none";
+                    el.style.whiteSpace = "pre-wrap";
+                    document.body.appendChild(el);
+                }
+                return el;
             }
+
+            function updateStatus(msg) {
+                try {
+                    const timestamp = new Date()
+                        .toISOString()
+                        .split("T")[1]
+                        .split(".")[0];
+                    console.log("Status:", msg);
+                    const el = ensureDebugOverlay();
+                    const line = document.createElement("div");
+                    line.textContent = `[${timestamp}] ${msg}`;
+                    el.appendChild(line);
+                    // keep last 200 lines
+                    while (el.childNodes.length > 200) {
+                        el.removeChild(el.firstChild);
+                    }
+                    // auto-show on mobile
+                    if (
+                        /(Mobi|Android|iPhone|iPad)/i.test(
+                            navigator.userAgent,
+                        ) ||
+                        window.innerWidth <= 600
+                    ) {
+                        el.style.display = "block";
+                    }
+                    el.scrollTop = el.scrollHeight;
+                } catch (e) {
+                    console.log("updateStatus error:", e);
+                }
+            }
+
+            // Global error listeners to surface issues on mobile
+            window.addEventListener("error", function (e) {
+                updateStatus(
+                    "❌ JS Error: " +
+                        (e?.error?.message || e.message || "Unknown"),
+                );
+            });
+            window.addEventListener("unhandledrejection", function (e) {
+                updateStatus(
+                    "❌ Promise Rejection: " +
+                        (e?.reason?.message || e.reason || "Unknown"),
+                );
+            });
+
+            // Enable overlay by default on mobile
+            document.addEventListener("DOMContentLoaded", function () {
+                const el = ensureDebugOverlay();
+                if (
+                    /(Mobi|Android|iPhone|iPad)/i.test(navigator.userAgent) ||
+                    window.innerWidth <= 600
+                ) {
+                    el.style.display = "block";
+                    updateStatus("📱 Mobile detected - debug overlay enabled");
+                }
+            });
 
             updateStatus("Script started");
 
