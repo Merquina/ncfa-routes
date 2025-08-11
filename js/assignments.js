@@ -773,8 +773,14 @@ class AssignmentsManager {
     console.log("🔍 Debug: Processing recovery route:", route);
     console.log("🔍 Debug: Available route keys:", Object.keys(route));
     console.log("🔍 DEBUG Recovery workers:", sheetsAPI.getAllWorkers(route));
-    console.log("🔍 DEBUG Recovery contacts:", sheetsAPI.getAllRouteContacts(route));
-    console.log("🔍 DEBUG Recovery phones:", sheetsAPI.getAllRoutePhones(route));
+    console.log(
+      "🔍 DEBUG Recovery contacts:",
+      sheetsAPI.getAllRouteContacts(route),
+    );
+    console.log(
+      "🔍 DEBUG Recovery phones:",
+      sheetsAPI.getAllRoutePhones(route),
+    );
 
     for (let i = 1; i <= 7; i++) {
       // Use exact column names from Recovery sheet
@@ -805,9 +811,9 @@ class AssignmentsManager {
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #007bff; margin: 0 0 10px 0;">🛒 ${route.dayName || route["recovery route"] || "Recovery"} Route</h2>
           <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.startTime || route.Time || "TBD"}</p>
-          <p style="margin: 0 0 10px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map(w => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
+          <p style="margin: 0 0 10px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
           <p style="margin: 0 0 10px 0;"><strong>Contacts:</strong> ${contacts.length > 0 ? contacts.join(", ") : "No contacts"}</p>
-          <p style="margin: 0 0 15px 0;"><strong>Phones:</strong> ${phones.length > 0 ? phones.map(p => `📞 ${p}`).join(" ") : "No phones"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Phones:</strong> ${phones.length > 0 ? phones.map((p) => `📞 ${p}`).join(" ") : "No phones"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
@@ -1088,7 +1094,6 @@ class AssignmentsManager {
       }
     });
   }
-}
 
   // ========================================
   // CONTACT DISPLAY HELPERS
@@ -1098,20 +1103,26 @@ class AssignmentsManager {
     const contacts = sheetsAPI.getAllRouteContacts(route);
     const phones = sheetsAPI.getAllRoutePhones(route);
 
-    let html = '';
+    let html = "";
 
     // Show all contacts
     if (contacts.length > 0) {
-      html += contacts.map((contact, index) =>
-        `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`
-      ).join('');
+      html += contacts
+        .map(
+          (contact, index) =>
+            `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`,
+        )
+        .join("");
     }
 
     // Show all phone numbers
     if (phones.length > 0) {
-      html += phones.map((phone, index) =>
-        `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`
-      ).join('');
+      html += phones
+        .map(
+          (phone, index) =>
+            `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`,
+        )
+        .join("");
     }
 
     return html;
@@ -1119,24 +1130,30 @@ class AssignmentsManager {
 
   renderAllContactsForLocation(locationName) {
     const contactData = sheetsAPI.getAddressFromContacts(locationName);
-    if (!contactData) return '';
+    if (!contactData) return "";
 
-    let html = '';
+    let html = "";
 
     // Show all contacts from contacts sheet
     if (contactData.contacts && contactData.contacts.length > 0) {
-      html += contactData.contacts.map((contact, index) =>
-        `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`
-      ).join('');
+      html += contactData.contacts
+        .map(
+          (contact, index) =>
+            `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`,
+        )
+        .join("");
     } else if (contactData.contactName) {
       html += `<p style="margin-bottom: 5px;"><strong>Contact:</strong> ${contactData.contactName}</p>`;
     }
 
     // Show all phone numbers from contacts sheet
     if (contactData.phones && contactData.phones.length > 0) {
-      html += contactData.phones.map((phone, index) =>
-        `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`
-      ).join('');
+      html += contactData.phones
+        .map(
+          (phone, index) =>
+            `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`,
+        )
+        .join("");
     } else if (contactData.phone) {
       html += `<button onclick="window.open('tel:${contactData.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${contactData.phone}</button>`;
     }
