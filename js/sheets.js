@@ -283,13 +283,35 @@ class SheetsAPI {
   getAllWorkers(route) {
     const workers = [];
     let i = 1;
+
+    console.log(`🔍 DEBUG getAllWorkers - Route keys:`, Object.keys(route));
+    console.log(`🔍 DEBUG getAllWorkers - Looking for worker columns...`);
+
     while (route[`worker${i}`]) {
       const worker = route[`worker${i}`].trim();
+      console.log(`🔍 DEBUG getAllWorkers - worker${i}: "${worker}"`);
       if (worker && !flexibleTextMatch(worker, "cancelled")) {
         workers.push(worker);
+        console.log(`🔍 DEBUG getAllWorkers - Added worker: "${worker}"`);
       }
       i++;
     }
+
+    // Also check old single column names for backward compatibility
+    if (workers.length === 0 && (route.Worker || route.worker)) {
+      const singleWorker = (route.Worker || route.worker).trim();
+      console.log(
+        `🔍 DEBUG getAllWorkers - Found single worker column: "${singleWorker}"`,
+      );
+      if (singleWorker && !flexibleTextMatch(singleWorker, "cancelled")) {
+        workers.push(singleWorker);
+        console.log(
+          `🔍 DEBUG getAllWorkers - Added single worker: "${singleWorker}"`,
+        );
+      }
+    }
+
+    console.log(`🔍 DEBUG getAllWorkers - Final workers:`, workers);
     return workers;
   }
 

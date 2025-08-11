@@ -772,6 +772,9 @@ class AssignmentsManager {
     const stops = [];
     console.log("🔍 Debug: Processing recovery route:", route);
     console.log("🔍 Debug: Available route keys:", Object.keys(route));
+    console.log("🔍 DEBUG Recovery workers:", sheetsAPI.getAllWorkers(route));
+    console.log("🔍 DEBUG Recovery contacts:", sheetsAPI.getAllRouteContacts(route));
+    console.log("🔍 DEBUG Recovery phones:", sheetsAPI.getAllRoutePhones(route));
 
     for (let i = 1; i <= 7; i++) {
       // Use exact column names from Recovery sheet
@@ -789,11 +792,22 @@ class AssignmentsManager {
 
     const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
 
+    const workers = sheetsAPI.getAllWorkers(route);
+    const contacts = sheetsAPI.getAllRouteContacts(route);
+    const phones = sheetsAPI.getAllRoutePhones(route);
+
+    console.log("🔍 DEBUG Final workers for display:", workers);
+    console.log("🔍 DEBUG Final contacts for display:", contacts);
+    console.log("🔍 DEBUG Final phones for display:", phones);
+
     assignmentsContainer.innerHTML = `
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #007bff; margin: 0 0 10px 0;">🛒 ${route.dayName || route["recovery route"] || "Recovery"} Route</h2>
           <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.startTime || route.Time || "TBD"}</p>
+          <p style="margin: 0 0 10px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map(w => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
+          <p style="margin: 0 0 10px 0;"><strong>Contacts:</strong> ${contacts.length > 0 ? contacts.join(", ") : "No contacts"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Phones:</strong> ${phones.length > 0 ? phones.map(p => `📞 ${p}`).join(" ") : "No phones"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">

@@ -153,18 +153,39 @@ class DatesManager {
     }
 
     container.innerHTML = recoveryRoutes
-      .map(
-        (route) => `
-                <div class="date-card" onclick="selectRecoveryRoute('${sheetsAPI.getAllWorkers(route)[0]}', '${route["recovery route"]}')">
+      .map((route) => {
+        console.log("🔍 DEBUG Recovery Route Card:", route);
+        console.log("🔍 DEBUG Route keys:", Object.keys(route));
+        console.log(
+          "🔍 DEBUG getAllWorkers result:",
+          sheetsAPI.getAllWorkers(route),
+        );
+        console.log(
+          "🔍 DEBUG getAllRouteContacts result:",
+          sheetsAPI.getAllRouteContacts(route),
+        );
+        console.log(
+          "🔍 DEBUG getAllRoutePhones result:",
+          sheetsAPI.getAllRoutePhones(route),
+        );
+
+        const workers = sheetsAPI.getAllWorkers(route);
+        const firstWorker = workers[0] || "No Worker";
+        const workerDisplay =
+          workers.length > 0
+            ? workers
+                .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
+                .join(", ")
+            : "No workers assigned";
+
+        return `
+                <div class="date-card" onclick="selectRecoveryRoute('${firstWorker}', '${route["recovery route"]}')">
                     <h3>${route.calculatedDate || route["recovery route"]}</h3>
-                    <p><strong>Worker:</strong> ${sheetsAPI
-                      .getAllWorkers(route)
-                      .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
-                      .join(", ")}</p>
+                    <p><strong>Worker:</strong> ${workerDisplay}</p>
                     <p><strong>Type:</strong> Recovery Route</p>
                 </div>
-            `,
-      )
+            `;
+      })
       .join("");
   }
 
@@ -260,13 +281,32 @@ class DatesManager {
   }
 
   selectRecoveryRoute(worker, dayName) {
-    const route = sheetsAPI.recoveryData.find(
-      (r) =>
-        sheetsAPI.getAllWorkers(r).includes(worker) &&
-        r["recovery route"] === dayName,
+    console.log("🔍 DEBUG selectRecoveryRoute called with:", {
+      worker,
+      dayName,
+    });
+    console.log(
+      "🔍 DEBUG recoveryData available:",
+      sheetsAPI.recoveryData.length,
+    );
+    console.log(
+      "🔍 DEBUG First few recovery routes:",
+      sheetsAPI.recoveryData.slice(0, 3),
     );
 
-    if (!route) return;
+    const route = sheetsAPI.recoveryData.find((r) => {
+      const workers = sheetsAPI.getAllWorkers(r);
+      console.log(
+        `🔍 DEBUG Checking route: ${r["recovery route"]}, workers: ${workers}, matches worker: ${workers.includes(worker)}, matches day: ${r["recovery route"] === dayName}`,
+      );
+      return workers.includes(worker) && r["recovery route"] === dayName;
+    });
+
+    console.log("🔍 DEBUG Found route:", route);
+    if (!route) {
+      console.log("🔍 DEBUG No route found for worker/day combination");
+      return;
+    }
 
     const calculatedDate = this.getNextDateForDay(dayName);
     route.calculatedDate = calculatedDate;
