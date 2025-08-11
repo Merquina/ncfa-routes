@@ -280,7 +280,7 @@ class SheetsAPI {
   // ========================================
 
   // Get all numbered worker columns from a route object
-  getAllWorkers(route) {
+  getAllWorkersFromRoute(route) {
     const workers = [];
     let i = 1;
 
@@ -423,7 +423,7 @@ class SheetsAPI {
 
   // Check if any worker or volunteer column contains volunteer-related text
   hasVolunteers(route) {
-    const allWorkers = this.getAllWorkers(route);
+    const allWorkers = this.getAllWorkersFromRoute(route);
     const allVolunteers = this.getAllVolunteers(route);
 
     return (
@@ -539,7 +539,7 @@ class SheetsAPI {
 
     // Get workers from SPFM data
     this.data.forEach((route) => {
-      const routeWorkers = this.getAllWorkers(route);
+      const routeWorkers = this.getAllWorkersFromRoute(route);
       routeWorkers.forEach((worker) => {
         workers.add(worker);
       });
@@ -547,7 +547,7 @@ class SheetsAPI {
 
     // Get workers from Recovery data
     this.recoveryData.forEach((route) => {
-      const routeWorkers = this.getAllWorkers(route);
+      const routeWorkers = this.getAllWorkersFromRoute(route);
       routeWorkers.forEach((worker) => {
         workers.add(worker);
       });
@@ -559,7 +559,7 @@ class SheetsAPI {
   getWorkerAssignments(workerName) {
     // Get SPFM assignments
     const spfmAssignments = this.data.filter((route) => {
-      const routeWorkers = this.getAllWorkers(route);
+      const routeWorkers = this.getAllWorkersFromRoute(route);
       return routeWorkers.some((worker) =>
         flexibleTextMatch(worker, workerName),
       );
@@ -567,7 +567,7 @@ class SheetsAPI {
 
     // Get recovery assignments
     const recoveryAssignments = this.recoveryData.filter((route) => {
-      const routeWorkers = this.getAllWorkers(route);
+      const routeWorkers = this.getAllWorkersFromRoute(route);
       return routeWorkers.some((worker) =>
         flexibleTextMatch(worker, workerName),
       );
@@ -575,7 +575,7 @@ class SheetsAPI {
 
     // Get SPFM Delivery assignments
     const deliveryAssignments = this.deliveryData.filter((route) => {
-      const routeWorkers = this.getAllWorkers(route);
+      const routeWorkers = this.getAllWorkersFromRoute(route);
       return routeWorkers.some((worker) =>
         flexibleTextMatch(worker, workerName),
       );

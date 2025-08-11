@@ -98,7 +98,7 @@ class AssignmentsManager {
 
   renderSPFMCard(route) {
     const workers = sheetsAPI
-      .getAllWorkers(route)
+      .getAllWorkersFromRoute(route)
       .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
 
     const vans = sheetsAPI
@@ -148,7 +148,7 @@ class AssignmentsManager {
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
           ${(() => {
-            const workers = sheetsAPI.getAllWorkers(route);
+            const workers = sheetsAPI.getAllWorkersFromRoute(route);
             return workers.length > 0
               ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ")
               : '<span style="color: #800020; font-style: italic;">Need worker</span>';
@@ -379,7 +379,7 @@ class AssignmentsManager {
 
     // Find recovery routes for this worker and day
     const recoveryRoutes = sheetsAPI.recoveryData.filter((route) => {
-      const routeWorkers = sheetsAPI.getAllWorkers(route);
+      const routeWorkers = sheetsAPI.getAllWorkersFromRoute(route);
       const routeDay = (route["recovery route"] || route.Day || "").trim();
       return (
         routeWorkers.some((w) => flexibleTextMatch(w, worker)) &&
@@ -772,7 +772,10 @@ class AssignmentsManager {
     const stops = [];
     console.log("🔍 Debug: Processing recovery route:", route);
     console.log("🔍 Debug: Available route keys:", Object.keys(route));
-    console.log("🔍 DEBUG Recovery workers:", sheetsAPI.getAllWorkers(route));
+    console.log(
+      "🔍 DEBUG Recovery workers:",
+      sheetsAPI.getAllWorkersFromRoute(route),
+    );
     console.log(
       "🔍 DEBUG Recovery contacts:",
       sheetsAPI.getAllRouteContacts(route),
@@ -798,7 +801,7 @@ class AssignmentsManager {
 
     const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
 
-    const workers = sheetsAPI.getAllWorkers(route);
+    const workers = sheetsAPI.getAllWorkersFromRoute(route);
     const contacts = sheetsAPI.getAllRouteContacts(route);
     const phones = sheetsAPI.getAllRoutePhones(route);
 
@@ -911,7 +914,7 @@ class AssignmentsManager {
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
           ${(() => {
             const workers = sheetsAPI
-              .getAllWorkers(route)
+              .getAllWorkersFromRoute(route)
               .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
             return workers.length > 0
               ? workers.join(", ")

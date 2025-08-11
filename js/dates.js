@@ -94,7 +94,7 @@ class DatesManager {
       .map((dateObj) => {
         const routes = sheetsAPI.getRoutesByDate(dateObj.original);
         const workers = routes
-          .flatMap((r) => sheetsAPI.getAllWorkers(r))
+          .flatMap((r) => sheetsAPI.getAllWorkersFromRoute(r))
           .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
           .join(", ");
 
@@ -127,7 +127,8 @@ class DatesManager {
     const recoveryRoutes = sheetsAPI.recoveryData
       .filter(
         (route) =>
-          route["recovery route"] && sheetsAPI.getAllWorkers(route).length > 0,
+          route["recovery route"] &&
+          sheetsAPI.getAllWorkersFromRoute(route).length > 0,
       )
       .map((route) => {
         const calculatedDate = this.getNextDateForDay(route["recovery route"]);
@@ -158,7 +159,7 @@ class DatesManager {
         console.log("🔍 DEBUG Route keys:", Object.keys(route));
         console.log(
           "🔍 DEBUG getAllWorkers result:",
-          sheetsAPI.getAllWorkers(route),
+          sheetsAPI.getAllWorkersFromRoute(route),
         );
         console.log(
           "🔍 DEBUG getAllRouteContacts result:",
@@ -169,7 +170,7 @@ class DatesManager {
           sheetsAPI.getAllRoutePhones(route),
         );
 
-        const workers = sheetsAPI.getAllWorkers(route);
+        const workers = sheetsAPI.getAllWorkersFromRoute(route);
         const firstWorker = workers[0] || "No Worker";
         const workerDisplay =
           workers.length > 0
@@ -295,7 +296,7 @@ class DatesManager {
     );
 
     const route = sheetsAPI.recoveryData.find((r) => {
-      const workers = sheetsAPI.getAllWorkers(r);
+      const workers = sheetsAPI.getAllWorkersFromRoute(r);
       console.log(
         `🔍 DEBUG Checking route: ${r["recovery route"]}, workers: ${workers}, matches worker: ${workers.includes(worker)}, matches day: ${r["recovery route"] === dayName}`,
       );
