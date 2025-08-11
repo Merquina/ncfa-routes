@@ -2,6 +2,10 @@
    SPFM Routes - Main Stylesheet
    ======================================== */
 
+/* Font Imports */
+@import url("https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=OpenDyslexic:wght@400;700&display=swap");
+
 /* Root Variables */
 :root {
     --primary-color: #4a4a4a;
@@ -17,12 +21,13 @@
     --border-radius: 8px;
     --transition: all 0.3s ease;
     --tab-height: 70px;
+    --header-font: "Black Ops One", cursive;
+    --body-font: "OpenDyslexic", sans-serif;
 }
 
 /* Base Styles */
 body {
-    font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--body-font);
     background: var(--light-gray);
     min-height: 100vh;
     margin: 0;
@@ -59,8 +64,9 @@ body {
 }
 
 .header h1 {
+    font-family: var(--header-font);
     font-size: 2.2rem;
-    font-weight: 300;
+    font-weight: 400;
     margin: 0 0 8px 0;
 }
 
