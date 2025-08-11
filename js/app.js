@@ -69,19 +69,54 @@ function flexibleTextIncludes(text, searchTerm) {
 // ========================================
 async function initializeApp() {
   console.log("🚀 initializeApp called");
-  updateVersionStatus("initializeApp started");
+  updateStatus("🚀 initializeApp started");
 
   try {
-    updateVersionStatus("Showing loading...");
+    updateStatus("Showing loading...");
     showLoading();
     console.log("🚀 Starting SPFM Routes app...");
-    updateVersionStatus("Initializing UI...");
+    updateStatus("Initializing UI...");
+
+    // Check if required modules are loaded
+    const modules = [
+      "inventoryManager",
+      "datesManager",
+      "workersManager",
+      "assignmentsManager",
+      "sheetsAPI",
+    ];
+    modules.forEach((module) => {
+      const exists = window[module] ? "✅" : "❌";
+      console.log(
+        `${exists} Module ${module}: ${window[module] ? "loaded" : "missing"}`,
+      );
+      updateStatus(
+        `${exists} ${module}: ${window[module] ? "loaded" : "missing"}`,
+      );
+    });
+
+    // Check if DOM elements exist
+    const elements = [
+      "boxTabBtn",
+      "dateTabBtn",
+      "workerTabBtn",
+      "chartsTabBtn",
+    ];
+    elements.forEach((id) => {
+      const exists = document.getElementById(id) ? "✅" : "❌";
+      console.log(
+        `${exists} Element ${id}: ${document.getElementById(id) ? "found" : "missing"}`,
+      );
+      updateStatus(
+        `${exists} Element ${id}: ${document.getElementById(id) ? "found" : "missing"}`,
+      );
+    });
 
     // Initialize UI (no API needed - only inventory uses local storage)
     initializeUI();
     console.log("✅ UI initialized");
 
-    updateVersionStatus("Setting up views...");
+    updateStatus("Setting up views...");
     // Initialize URL routing and set view based on URL
     initializeRouting();
     console.log("✅ Routing initialized");
@@ -90,12 +125,12 @@ async function initializeApp() {
     setupTabHandlers();
 
     console.log("✅ App initialized successfully");
-    updateVersionStatus("✅ Ready - API loads on demand");
+    updateStatus("✅ Ready - API loads on demand");
   } catch (error) {
     console.error("❌ Application initialization failed:", error);
     console.error("Error details:", error.stack);
     showError("Failed to initialize application: " + error.message);
-    updateVersionStatus("❌ Error: " + error.message);
+    updateStatus("❌ Error: " + error.message);
   }
 }
 
@@ -118,6 +153,9 @@ function initializeUI() {
 // TAB MANAGEMENT
 // ========================================
 function switchTab(tabName, updateUrl = true) {
+  console.log(`🔄 switchTab called with: ${tabName}, updateUrl: ${updateUrl}`);
+  updateStatus(`🔄 Switching to ${tabName} tab`);
+
   currentTab = tabName;
 
   // Update URL if requested
@@ -543,31 +581,56 @@ setTimeout(waitForModules, 100);
 // ========================================
 function setupTabHandlers() {
   console.log("Setting up tab handlers...");
+  updateStatus("Setting up tab handlers...");
 
   const boxBtn = document.getElementById("boxTabBtn");
   const dateBtn = document.getElementById("dateTabBtn");
   const workerBtn = document.getElementById("workerTabBtn");
   const chartsBtn = document.getElementById("chartsTabBtn");
 
+  console.log("Tab buttons found:", {
+    boxBtn: !!boxBtn,
+    dateBtn: !!dateBtn,
+    workerBtn: !!workerBtn,
+    chartsBtn: !!chartsBtn,
+  });
+  updateStatus(
+    `Tab buttons: box=${!!boxBtn} date=${!!dateBtn} worker=${!!workerBtn} charts=${!!chartsBtn}`,
+  );
+
   // Tap/click handler with minimal interference
   function addMobileHandler(btn, tabName) {
-    if (!btn) return;
+    if (!btn) {
+      console.log(`❌ Button not found for ${tabName}`);
+      return;
+    }
+
+    console.log(`✅ Setting up handlers for ${tabName} tab`);
 
     // Primary click handler (works on desktop and most mobiles)
-    btn.addEventListener("click", function () {
-      console.log(`${tabName} tab activated`);
+    btn.addEventListener("click", function (e) {
+      console.log(`🔥 ${tabName} tab CLICKED!`);
+      updateStatus(`🔥 ${tabName} tab clicked`);
       switchTab(tabName, true);
     });
 
     // Optional touch handler without blocking defaults
     btn.addEventListener(
       "touchend",
-      function () {
-        console.log(`${tabName} tab activated (touch)`);
+      function (e) {
+        console.log(`👆 ${tabName} tab TOUCHED!`);
+        updateStatus(`👆 ${tabName} tab touched`);
         switchTab(tabName, true);
       },
       { passive: true },
     );
+
+    // Fallback onclick
+    btn.onclick = function () {
+      console.log(`📱 ${tabName} fallback onclick!`);
+      updateStatus(`📱 ${tabName} fallback onclick`);
+      switchTab(tabName, true);
+    };
   }
 
   addMobileHandler(boxBtn, "box");
@@ -579,6 +642,7 @@ function setupTabHandlers() {
   addMobileHandler(chartsBtn, "charts");
 
   console.log("✅ Tab handlers set up with mobile support");
+  updateStatus("✅ Tab handlers set up");
 }
 
 // ========================================
