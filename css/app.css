@@ -4,28 +4,7 @@
 
 /* Font Imports */
 @import url("https://fonts.googleapis.com/css2?family=Barrio:wght@400&display=swap");
-@font-face {
-    font-family: "OpenDyslexic";
-    src:
-        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Regular.woff2")
-            format("woff2"),
-        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Regular.woff")
-            format("woff");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
-@font-face {
-    font-family: "OpenDyslexic";
-    src:
-        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Bold.woff2")
-            format("woff2"),
-        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Bold.woff")
-            format("woff");
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-}
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap");
 
 /* Root Variables */
 :root {
@@ -43,7 +22,7 @@
     --transition: all 0.3s ease;
     --tab-height: 70px;
     --header-font: "Barrio", cursive;
-    --body-font: "OpenDyslexic", sans-serif;
+    --body-font: "Atkinson Hyperlegible", sans-serif;
 }
 
 /* Base Styles */
