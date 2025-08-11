@@ -420,7 +420,7 @@ class AssignmentsManager {
             const notes = route.Notes || "";
 
             let notesContent = "";
-            if (contactName) {
+            if (contactName && contactName.trim()) {
               notesContent += `• Contact person: ${contactName}`;
             }
             if (notes.trim()) {
@@ -429,7 +429,7 @@ class AssignmentsManager {
             }
 
             return notesContent
-              ? `<p><strong>Notes:</strong><br>${notesContent}</p>`
+              ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong><br>${notesContent}</p>`
               : "";
           })()}
         </div>
@@ -870,14 +870,20 @@ class AssignmentsManager {
               </div>
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const contactName =
-                  contact && contact.contactName ? contact.contactName : "";
+                const routeContacts = sheetsAPI.getAllRouteContacts(route);
                 const notes = contact && contact.notes ? contact.notes : "";
 
                 let notesContent = "";
-                if (contactName) {
-                  notesContent += `• Contact person: ${contactName}`;
+                // Add contact persons from route data (contact1, contact2, etc.) only if they have values
+                if (routeContacts.length > 0) {
+                  routeContacts.forEach((contactPerson, index) => {
+                    if (contactPerson && contactPerson.trim()) {
+                      if (notesContent) notesContent += "<br>";
+                      notesContent += `• Contact person: ${contactPerson.trim()}`;
+                    }
+                  });
                 }
+                // Add notes from contacts sheet
                 if (notes.trim()) {
                   if (notesContent) notesContent += "<br>";
                   notesContent += `• ${notes}`;
@@ -1060,14 +1066,14 @@ class AssignmentsManager {
               </div>
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const contactName =
-                  contact && contact.contactName ? contact.contactName : "";
                 const notes = contact && contact.notes ? contact.notes : "";
 
                 let notesContent = "";
-                if (contactName) {
-                  notesContent += `• Contact person: ${contactName}`;
+                // Add contact person from stop-specific contact first
+                if (stop.contact && stop.contact.trim()) {
+                  notesContent += `• Contact person: ${stop.contact.trim()}`;
                 }
+                // Add notes from contacts sheet
                 if (notes.trim()) {
                   if (notesContent) notesContent += "<br>";
                   notesContent += `• ${notes}`;
