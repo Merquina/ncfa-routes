@@ -723,15 +723,12 @@ class AssignmentsManager {
               `
                   : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'
               }
-              ${
-                route.contact
-                  ? `
-                <button onclick="window.open('tel:${route.contact}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                  📞 ${route.contact}
-                </button>
-              `
-                  : ""
-              }
+              ${(() => {
+                const contacts = sheetsAPI.getAllRouteContacts(route);
+                return contacts.length > 0
+                  ? `<button onclick="window.open('tel:${contacts[0]}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contacts[0]}</button>`
+                  : "";
+              })()}
             </div>
           </div>
 
@@ -954,7 +951,7 @@ class AssignmentsManager {
       if (route.market && route.market.trim()) {
         stops.push({
           location: route.market.trim(),
-          contact: route.contact?.trim(),
+          contact: sheetsAPI.getAllRouteContacts(route)[0]?.trim(),
         });
       }
 
@@ -962,7 +959,7 @@ class AssignmentsManager {
       if (route.dropOff && route.dropOff.trim()) {
         stops.push({
           location: route.dropOff.trim(),
-          contact: route.contact?.trim(),
+          contact: sheetsAPI.getAllRouteContacts(route)[0]?.trim(),
         });
       }
     }
@@ -1030,7 +1027,12 @@ class AssignmentsManager {
           <p style="margin-bottom: 10px;"><strong>Market:</strong> ${route.market || "Not specified"}</p>
           <p style="margin-bottom: 10px;"><strong>Start Time:</strong> ${route.startTime || route.Time || "TBD"}</p>
           ${route.dropOff ? `<p style="margin-bottom: 10px;"><strong>Drop Off:</strong> ${route.dropOff}</p>` : ""}
-          ${route.contact ? `<p style="margin-bottom: 10px;"><strong>Contact:</strong> ${route.contact}</p>` : ""}
+          ${(() => {
+            const contacts = sheetsAPI.getAllRouteContacts(route);
+            return contacts.length > 0
+              ? `<p style="margin-bottom: 10px;"><strong>Contact:</strong> ${contacts[0]}</p>`
+              : "";
+          })()}
           <p style="margin-top: 15px; font-style: italic; color: #999;">No detailed stops available for this route</p>
         </div>
         `
@@ -1071,6 +1073,61 @@ class AssignmentsManager {
         console.log("🗑️ Removed weight section:", text.substring(0, 50));
       }
     });
+  }
+}
+
+  // ========================================
+  // CONTACT DISPLAY HELPERS
+  // ========================================
+
+  renderAllContacts(route) {
+    const contacts = sheetsAPI.getAllRouteContacts(route);
+    const phones = sheetsAPI.getAllRoutePhones(route);
+
+    let html = '';
+
+    // Show all contacts
+    if (contacts.length > 0) {
+      html += contacts.map((contact, index) =>
+        `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`
+      ).join('');
+    }
+
+    // Show all phone numbers
+    if (phones.length > 0) {
+      html += phones.map((phone, index) =>
+        `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`
+      ).join('');
+    }
+
+    return html;
+  }
+
+  renderAllContactsForLocation(locationName) {
+    const contactData = sheetsAPI.getAddressFromContacts(locationName);
+    if (!contactData) return '';
+
+    let html = '';
+
+    // Show all contacts from contacts sheet
+    if (contactData.contacts && contactData.contacts.length > 0) {
+      html += contactData.contacts.map((contact, index) =>
+        `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`
+      ).join('');
+    } else if (contactData.contactName) {
+      html += `<p style="margin-bottom: 5px;"><strong>Contact:</strong> ${contactData.contactName}</p>`;
+    }
+
+    // Show all phone numbers from contacts sheet
+    if (contactData.phones && contactData.phones.length > 0) {
+      html += contactData.phones.map((phone, index) =>
+        `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`
+      ).join('');
+    } else if (contactData.phone) {
+      html += `<button onclick="window.open('tel:${contactData.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${contactData.phone}</button>`;
+    }
+
+    return html;
   }
 }
 

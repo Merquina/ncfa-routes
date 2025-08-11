@@ -321,6 +321,84 @@ class SheetsAPI {
     return volunteers;
   }
 
+  // Get all numbered contact columns from a contact object
+  getAllContacts(contact) {
+    const contacts = [];
+    let i = 1;
+    while (contact[`contact${i}`] || contact[`Contact${i}`]) {
+      const contactPerson = (
+        contact[`contact${i}`] ||
+        contact[`Contact${i}`] ||
+        ""
+      ).trim();
+      if (contactPerson) {
+        contacts.push(contactPerson);
+      }
+      i++;
+    }
+    return contacts;
+  }
+
+  // Get all numbered phone columns from a contact object
+  getAllPhones(contact) {
+    const phones = [];
+    let i = 1;
+    while (contact[`phone${i}`] || contact[`Phone${i}`]) {
+      const phone = (contact[`phone${i}`] || contact[`Phone${i}`] || "").trim();
+      if (phone) {
+        phones.push(phone);
+      }
+      i++;
+    }
+    return phones;
+  }
+
+  // Get all numbered contact columns from a route object
+  getAllRouteContacts(route) {
+    const contacts = [];
+    let i = 1;
+    while (route[`contact${i}`] || route[`Contact${i}`]) {
+      const contact = (
+        route[`contact${i}`] ||
+        route[`Contact${i}`] ||
+        ""
+      ).trim();
+      if (contact) {
+        contacts.push(contact);
+      }
+      i++;
+    }
+    // Fallback to old single column if no numbered columns exist
+    if (contacts.length === 0 && (route.contact || route.Contact)) {
+      const singleContact = (route.contact || route.Contact).trim();
+      if (singleContact) {
+        contacts.push(singleContact);
+      }
+    }
+    return contacts;
+  }
+
+  // Get all numbered phone columns from a route object
+  getAllRoutePhones(route) {
+    const phones = [];
+    let i = 1;
+    while (route[`phone${i}`] || route[`Phone${i}`]) {
+      const phone = (route[`phone${i}`] || route[`Phone${i}`] || "").trim();
+      if (phone) {
+        phones.push(phone);
+      }
+      i++;
+    }
+    // Fallback to old single column if no numbered columns exist
+    if (phones.length === 0 && (route.phone || route.Phone)) {
+      const singlePhone = (route.phone || route.Phone).trim();
+      if (singlePhone) {
+        phones.push(singlePhone);
+      }
+    }
+    return phones;
+  }
+
   // Check if any worker or volunteer column contains volunteer-related text
   hasVolunteers(route) {
     const allWorkers = this.getAllWorkers(route);
@@ -394,11 +472,32 @@ class SheetsAPI {
       });
       const finalAddress = contact.Address || contact.Location || "";
 
+      // Get all numbered contacts and phones
+      const allContacts = this.getAllContacts(contact);
+      const allPhones = this.getAllPhones(contact);
+
+      // Fallback to old single column names if no numbered columns exist
+      const contactName =
+        allContacts.length > 0
+          ? allContacts[0]
+          : contact.Contact || contact.contact || contact.Location || "";
+
+      const phone =
+        allPhones.length > 0
+          ? allPhones[0]
+          : contact.Phone || contact.phone || "";
+
       return {
         address: finalAddress,
-        phone: contact.Phone || "",
-        contactName: contact.Contact || contact.Location || "",
-        notes: contact["Notes/ Special Instructions"] || contact.Notes || "",
+        phone: phone,
+        phones: allPhones, // All phone numbers available
+        contactName: contactName,
+        contacts: allContacts, // All contact names available
+        notes:
+          contact["Notes/ Special Instructions"] ||
+          contact.Notes ||
+          contact.notes ||
+          "",
       };
     } else {
       console.log(`🔍 Debug: No contact found for "${name}"`);
