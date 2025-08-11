@@ -94,9 +94,7 @@ class DatesManager {
       .map((dateObj) => {
         const routes = sheetsAPI.getRoutesByDate(dateObj.original);
         const workers = routes
-          .flatMap((r) => [r.worker1, r.worker2, r.worker3, r.worker4])
-          .filter(Boolean)
-          .filter((w) => !flexibleTextMatch(w, "cancelled"))
+          .flatMap((r) => sheetsAPI.getAllWorkers(r))
           .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
           .join(", ");
 
@@ -129,9 +127,7 @@ class DatesManager {
     const recoveryRoutes = sheetsAPI.recoveryData
       .filter(
         (route) =>
-          route["recovery route"] &&
-          route.Worker &&
-          !flexibleTextMatch(route.Worker, "worker"),
+          route["recovery route"] && sheetsAPI.getAllWorkers(route).length > 0,
       )
       .map((route) => {
         const calculatedDate = this.getNextDateForDay(route["recovery route"]);
@@ -159,9 +155,12 @@ class DatesManager {
     container.innerHTML = recoveryRoutes
       .map(
         (route) => `
-                <div class="date-card" onclick="selectRecoveryRoute('${route.Worker}', '${route["recovery route"]}')">
+                <div class="date-card" onclick="selectRecoveryRoute('${sheetsAPI.getAllWorkers(route)[0]}', '${route["recovery route"]}')">
                     <h3>${route.calculatedDate || route["recovery route"]}</h3>
-                    <p><strong>Worker:</strong> ${workersManager.getWorkerEmoji(route.Worker)} ${route.Worker}</p>
+                    <p><strong>Worker:</strong> ${sheetsAPI
+                      .getAllWorkers(route)
+                      .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
+                      .join(", ")}</p>
                     <p><strong>Type:</strong> Recovery Route</p>
                 </div>
             `,
@@ -262,7 +261,9 @@ class DatesManager {
 
   selectRecoveryRoute(worker, dayName) {
     const route = sheetsAPI.recoveryData.find(
-      (r) => r.Worker === worker && r["recovery route"] === dayName,
+      (r) =>
+        sheetsAPI.getAllWorkers(r).includes(worker) &&
+        r["recovery route"] === dayName,
     );
 
     if (!route) return;
@@ -700,10 +701,9 @@ class DatesManager {
             dayName: "Monday",
             startTime: deliveryRoute.startTime || "TBD",
             Time: deliveryRoute.startTime || "TBD",
-            Worker: deliveryRoute.worker1 || "",
             worker1: deliveryRoute.worker1 || "",
             worker2: deliveryRoute.worker2 || "",
-            van: deliveryRoute.Van || "",
+            van1: deliveryRoute.van1 || "",
             // Copy all stop data
             ...deliveryRoute,
             sortDate: mondayDate,

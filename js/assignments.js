@@ -97,12 +97,12 @@ class AssignmentsManager {
   }
 
   renderSPFMCard(route) {
-    const workers = [route.worker1, route.worker2, route.worker3, route.worker4]
-      .filter((w) => w && w.trim() && !flexibleTextMatch(w, "cancelled"))
+    const workers = sheetsAPI
+      .getAllWorkers(route)
       .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
 
-    const vans = [route.van1, route.van2]
-      .filter((v) => v && v.trim())
+    const vans = sheetsAPI
+      .getAllVans(route)
       .map((v) => `${this.getVanEmoji(v)} ${v}`);
 
     return `
@@ -147,10 +147,20 @@ class AssignmentsManager {
           🛒 Recovery Route
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${route.Worker ? `${this.getWorkerEmoji(route.Worker)} ${route.Worker}` : '<span style="color: #800020; font-style: italic;">Need worker</span>'}
+          ${(() => {
+            const workers = sheetsAPI.getAllWorkers(route);
+            return workers.length > 0
+              ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ")
+              : '<span style="color: #800020; font-style: italic;">Need worker</span>';
+          })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${route.Van ? `${this.getVanEmoji(route.Van)} ${route.Van}` : '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
+          ${(() => {
+            const vans = sheetsAPI.getAllVans(route);
+            return vans.length > 0
+              ? vans.map((v) => `${this.getVanEmoji(v)} ${v}`).join(", ")
+              : '<span style="color: #800020; font-style: italic;">No vans assigned</span>';
+          })()}
         </div>
       </div>
     `;
@@ -369,10 +379,10 @@ class AssignmentsManager {
 
     // Find recovery routes for this worker and day
     const recoveryRoutes = sheetsAPI.recoveryData.filter((route) => {
-      const routeWorker = (route.Worker || "").trim();
+      const routeWorkers = sheetsAPI.getAllWorkers(route);
       const routeDay = (route["recovery route"] || route.Day || "").trim();
       return (
-        flexibleTextMatch(routeWorker, worker) &&
+        routeWorkers.some((w) => flexibleTextMatch(w, worker)) &&
         flexibleTextMatch(routeDay, dayName)
       );
     });
@@ -883,8 +893,8 @@ class AssignmentsManager {
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
           ${(() => {
-            const workers = [route.worker1, route.worker2]
-              .filter((w) => w && w.trim())
+            const workers = sheetsAPI
+              .getAllWorkers(route)
               .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
             return workers.length > 0
               ? workers.join(", ")
@@ -892,7 +902,12 @@ class AssignmentsManager {
           })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${route.van ? `${this.getVanEmoji(route.van)} ${route.van}` : '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
+          ${(() => {
+            const vans = sheetsAPI.getAllVans(route);
+            return vans.length > 0
+              ? vans.map((v) => `${this.getVanEmoji(v)} ${v}`).join(", ")
+              : '<span style="color: #800020; font-style: italic;">No vans assigned</span>';
+          })()}
         </div>
       </div>
     `;

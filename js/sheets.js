@@ -278,6 +278,60 @@ class SheetsAPI {
   // ========================================
   // HELPER METHODS
   // ========================================
+
+  // Get all numbered worker columns from a route object
+  getAllWorkers(route) {
+    const workers = [];
+    let i = 1;
+    while (route[`worker${i}`]) {
+      const worker = route[`worker${i}`].trim();
+      if (worker && !flexibleTextMatch(worker, "cancelled")) {
+        workers.push(worker);
+      }
+      i++;
+    }
+    return workers;
+  }
+
+  // Get all numbered van columns from a route object
+  getAllVans(route) {
+    const vans = [];
+    let i = 1;
+    while (route[`van${i}`]) {
+      const van = route[`van${i}`].trim();
+      if (van) {
+        vans.push(van);
+      }
+      i++;
+    }
+    return vans;
+  }
+
+  // Get all numbered volunteer columns from a route object
+  getAllVolunteers(route) {
+    const volunteers = [];
+    let i = 1;
+    while (route[`volunteer${i}`]) {
+      const volunteer = route[`volunteer${i}`].trim();
+      if (volunteer) {
+        volunteers.push(volunteer);
+      }
+      i++;
+    }
+    return volunteers;
+  }
+
+  // Check if any worker or volunteer column contains volunteer-related text
+  hasVolunteers(route) {
+    const allWorkers = this.getAllWorkers(route);
+    const allVolunteers = this.getAllVolunteers(route);
+
+    return (
+      allVolunteers.length > 0 ||
+      allWorkers.some((worker) => flexibleTextIncludes(worker, "volunteer"))
+    );
+  }
+
   getAddressFromContacts(name) {
     console.log(`🔍 Debug: Looking up address for "${name}"`);
     console.log(
@@ -364,30 +418,18 @@ class SheetsAPI {
 
     // Get workers from SPFM data
     this.data.forEach((route) => {
-      [route.worker1, route.worker2, route.worker3, route.worker4].forEach(
-        (worker) => {
-          if (worker && typeof worker === "string") {
-            const normalized = worker.trim();
-            if (
-              normalized !== "" &&
-              !flexibleTextMatch(normalized, "CANCELLED")
-            ) {
-              workers.add(normalized);
-            }
-          }
-        },
-      );
+      const routeWorkers = this.getAllWorkers(route);
+      routeWorkers.forEach((worker) => {
+        workers.add(worker);
+      });
     });
 
     // Get workers from Recovery data
     this.recoveryData.forEach((route) => {
-      const worker = route.Worker;
-      if (worker && typeof worker === "string") {
-        const normalized = worker.trim();
-        if (normalized !== "" && !flexibleTextMatch(normalized, "worker")) {
-          workers.add(normalized);
-        }
-      }
+      const routeWorkers = this.getAllWorkers(route);
+      routeWorkers.forEach((worker) => {
+        workers.add(worker);
+      });
     });
 
     return Array.from(workers).sort();
@@ -396,33 +438,25 @@ class SheetsAPI {
   getWorkerAssignments(workerName) {
     // Get SPFM assignments
     const spfmAssignments = this.data.filter((route) => {
-      const worker1 = (route.worker1 || "").trim();
-      const worker2 = (route.worker2 || "").trim();
-      const worker3 = (route.worker3 || "").trim();
-      const worker4 = (route.worker4 || "").trim();
-
-      return (
-        flexibleTextMatch(worker1, workerName) ||
-        flexibleTextMatch(worker2, workerName) ||
-        flexibleTextMatch(worker3, workerName) ||
-        flexibleTextMatch(worker4, workerName)
+      const routeWorkers = this.getAllWorkers(route);
+      return routeWorkers.some((worker) =>
+        flexibleTextMatch(worker, workerName),
       );
     });
 
     // Get recovery assignments
     const recoveryAssignments = this.recoveryData.filter((route) => {
-      const routeWorker = (route.Worker || "").trim();
-      return flexibleTextMatch(routeWorker, workerName);
+      const routeWorkers = this.getAllWorkers(route);
+      return routeWorkers.some((worker) =>
+        flexibleTextMatch(worker, workerName),
+      );
     });
 
     // Get SPFM Delivery assignments
     const deliveryAssignments = this.deliveryData.filter((route) => {
-      const worker1 = (route.worker1 || "").trim();
-      const worker2 = (route.worker2 || "").trim();
-
-      return (
-        flexibleTextMatch(worker1, workerName) ||
-        flexibleTextMatch(worker2, workerName)
+      const routeWorkers = this.getAllWorkers(route);
+      return routeWorkers.some((worker) =>
+        flexibleTextMatch(worker, workerName),
       );
     });
 
