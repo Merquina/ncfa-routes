@@ -413,7 +413,25 @@ class AssignmentsManager {
           <h4>Recovery Route Details</h4>
           <p><strong>Day:</strong> ${dayName}</p>
           <p><strong>Worker:</strong> ${workerEmoji} ${worker}</p>
-          ${route.Notes ? `<p><strong>Notes:</strong> ${route.Notes}</p>` : ""}
+          ${(() => {
+            const routeContacts = sheetsAPI.getAllRouteContacts(route);
+            const contactName =
+              routeContacts.length > 0 ? routeContacts[0] : "";
+            const notes = route.Notes || "";
+
+            let notesContent = "";
+            if (contactName) {
+              notesContent += `• Contact person: ${contactName}`;
+            }
+            if (notes.trim()) {
+              if (notesContent) notesContent += "<br>";
+              notesContent += `• ${notes}`;
+            }
+
+            return notesContent
+              ? `<p><strong>Notes:</strong><br>${notesContent}</p>`
+              : "";
+          })()}
         </div>
       `;
     });
@@ -814,9 +832,7 @@ class AssignmentsManager {
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #007bff; margin: 0 0 10px 0;">🛒 ${route.dayName || route["recovery route"] || "Recovery"} Route</h2>
           <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.startTime || route.Time || "TBD"}</p>
-          <p style="margin: 0 0 10px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
-          <p style="margin: 0 0 10px 0;"><strong>Contacts:</strong> ${contacts.length > 0 ? contacts.join(", ") : "No contacts"}</p>
-          <p style="margin: 0 0 15px 0;"><strong>Phones:</strong> ${phones.length > 0 ? phones.map((p) => `📞 ${p}`).join(" ") : "No phones"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
@@ -854,9 +870,21 @@ class AssignmentsManager {
               </div>
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
+                const contactName =
+                  contact && contact.contactName ? contact.contactName : "";
                 const notes = contact && contact.notes ? contact.notes : "";
-                return notes.trim()
-                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong> ${notes}</p>`
+
+                let notesContent = "";
+                if (contactName) {
+                  notesContent += `• Contact person: ${contactName}`;
+                }
+                if (notes.trim()) {
+                  if (notesContent) notesContent += "<br>";
+                  notesContent += `• ${notes}`;
+                }
+
+                return notesContent
+                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong><br>${notesContent}</p>`
                   : "";
               })()}
             </div>
@@ -1032,9 +1060,21 @@ class AssignmentsManager {
               </div>
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
+                const contactName =
+                  contact && contact.contactName ? contact.contactName : "";
                 const notes = contact && contact.notes ? contact.notes : "";
-                return notes.trim()
-                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong> ${notes}</p>`
+
+                let notesContent = "";
+                if (contactName) {
+                  notesContent += `• Contact person: ${contactName}`;
+                }
+                if (notes.trim()) {
+                  if (notesContent) notesContent += "<br>";
+                  notesContent += `• ${notes}`;
+                }
+
+                return notesContent
+                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong><br>${notesContent}</p>`
                   : "";
               })()}
             </div>
