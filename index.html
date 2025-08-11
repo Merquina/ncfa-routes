@@ -287,47 +287,16 @@
             document.addEventListener("DOMContentLoaded", function () {
                 const el = ensureDebugOverlay();
 
-                // Create toggle control
-                let toggle = document.getElementById("debugToggle");
-                if (!toggle) {
-                    toggle = document.createElement("div");
-                    toggle.id = "debugToggle";
-                    toggle.textContent = "Debug";
-                    toggle.style.position = "fixed";
-                    toggle.style.right = "10px";
-                    toggle.style.bottom = "80px";
-                    toggle.style.background = "rgba(0,0,0,0.75)";
-                    toggle.style.color = "#0f0";
-                    toggle.style.fontFamily = "monospace";
-                    toggle.style.fontSize = "12px";
-                    toggle.style.padding = "6px 8px";
-                    toggle.style.borderRadius = "6px";
-                    toggle.style.zIndex = "2001";
-                    toggle.style.cursor = "pointer";
-                    toggle.style.userSelect = "none";
-                    toggle.style.boxShadow = "0 2px 6px rgba(0,0,0,0.4)";
-                    toggle.style.display = "none";
-                    document.body.appendChild(toggle);
-                }
-
+                // Debug overlay disabled on mobile for clean UI
                 const isMobile =
                     /(Mobi|Android|iPhone|iPad)/i.test(navigator.userAgent) ||
                     window.innerWidth <= 600;
 
-                // Default visibility on mobile
-                if (isMobile) {
-                    el.style.display = "block";
-                    toggle.style.display = "block";
-                    updateStatus("📱 Mobile detected - debug overlay enabled");
-                } else {
-                    toggle.style.display = "none";
+                if (!isMobile) {
+                    updateStatus(
+                        "📱 Desktop detected - debug overlay available in console",
+                    );
                 }
-
-                // Toggle logic
-                toggle.addEventListener("click", function () {
-                    const shown = el.style.display !== "none";
-                    el.style.display = shown ? "none" : "block";
-                });
             });
 
             updateStatus("Script started");
