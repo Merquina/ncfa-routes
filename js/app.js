@@ -549,35 +549,25 @@ function setupTabHandlers() {
   const workerBtn = document.getElementById("workerTabBtn");
   const chartsBtn = document.getElementById("chartsTabBtn");
 
-  // iPhone/mobile-specific event handling
+  // Tap/click handler with minimal interference
   function addMobileHandler(btn, tabName) {
     if (!btn) return;
 
-    // Multiple event types for better mobile compatibility
-    ["click", "touchend", "touchstart"].forEach((eventType) => {
-      btn.addEventListener(
-        eventType,
-        function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          if (eventType === "touchstart") {
-            console.log(`${tabName} tab touched`);
-          } else if (eventType === "click" || eventType === "touchend") {
-            console.log(`${tabName} tab activated`);
-            switchTab(tabName, true);
-          }
-        },
-        { passive: false },
-      );
+    // Primary click handler (works on desktop and most mobiles)
+    btn.addEventListener("click", function () {
+      console.log(`${tabName} tab activated`);
+      switchTab(tabName, true);
     });
 
-    // Fallback onclick for desktop
-    btn.onclick = function (e) {
-      e.preventDefault();
-      console.log(`${tabName} tab clicked (fallback)`);
-      switchTab(tabName, true);
-    };
+    // Optional touch handler without blocking defaults
+    btn.addEventListener(
+      "touchend",
+      function () {
+        console.log(`${tabName} tab activated (touch)`);
+        switchTab(tabName, true);
+      },
+      { passive: true },
+    );
   }
 
   addMobileHandler(boxBtn, "box");
