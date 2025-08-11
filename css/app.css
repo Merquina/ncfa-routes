@@ -3,7 +3,7 @@
    ======================================== */
 
 /* Font Imports */
-@import url("https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Barrio:wght@400&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=OpenDyslexic:wght@400;700&display=swap");
 
 /* Root Variables */
@@ -21,7 +21,7 @@
     --border-radius: 8px;
     --transition: all 0.3s ease;
     --tab-height: 70px;
-    --header-font: "Black Ops One", cursive;
+    --header-font: "Barrio", cursive;
     --body-font: "OpenDyslexic", sans-serif;
 }
 
