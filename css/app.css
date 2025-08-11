@@ -68,6 +68,7 @@ body {
     padding: 8px;
     text-align: center;
     color: white;
+    font-family: var(--body-font);
 }
 
 .header h1 {
@@ -270,6 +271,7 @@ body {
     transition: var(--transition);
     border: none;
     cursor: pointer;
+    font-family: var(--body-font);
 }
 
 .directions-btn:hover,
@@ -288,6 +290,7 @@ body {
     border-radius: 4px;
     font-size: 0.9em;
     transition: var(--transition);
+    font-family: var(--body-font);
 }
 
 .phone-btn:hover {
@@ -337,6 +340,7 @@ body {
     touch-action: manipulation;
     min-height: 44px;
     position: relative;
+    font-family: var(--body-font);
 }
 
 .tab-btn.active {
@@ -362,6 +366,7 @@ body {
 .tab-label {
     font-size: 0.7rem;
     font-weight: 500;
+    font-family: var(--body-font);
 }
 
 /* Date Grid */
@@ -569,6 +574,19 @@ body {
     #assignmentsContainer {
         padding-bottom: calc(var(--tab-height) + 40px);
     }
+}
+
+/* Global Font Overrides */
+button,
+input,
+select,
+textarea,
+.tab-btn,
+.tab-label,
+.directions-btn,
+.print-btn,
+.phone-btn {
+    font-family: var(--body-font) !important;
 }
 
 /* Utility Classes */
