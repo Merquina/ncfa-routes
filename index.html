@@ -18,8 +18,11 @@
             rel="stylesheet"
         />
 
-        <!-- Main Stylesheet -->
-        <link rel="stylesheet" href="css/app.css" />
+        <!-- Performance: Preconnect for Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!-- Main Stylesheet (cache-busted) -->
+        <link rel="stylesheet" href="css/app.css?v=3" />
 
         <!-- Print Styles -->
         <style>
@@ -195,12 +198,12 @@
         </div>
 
         <!-- Application Modules - Load synchronously to ensure order -->
-        <script src="js/sheets.js" type="text/javascript"></script>
-        <script src="js/assignments.js" type="text/javascript"></script>
-        <script src="js/inventory.js" type="text/javascript"></script>
-        <script src="js/workers.js" type="text/javascript"></script>
-        <script src="js/dates.js" type="text/javascript"></script>
-        <script src="js/app.js" type="text/javascript"></script>
+        <script src="js/sheets.js?v=3" type="text/javascript"></script>
+        <script src="js/assignments.js?v=3" type="text/javascript"></script>
+        <script src="js/inventory.js?v=3" type="text/javascript"></script>
+        <script src="js/workers.js?v=3" type="text/javascript"></script>
+        <script src="js/dates.js?v=3" type="text/javascript"></script>
+        <script src="js/app.js?v=3" type="text/javascript"></script>
 
         <!-- Initialize app directly -->
         <script>
@@ -274,16 +277,51 @@
                 );
             });
 
-            // Enable overlay by default on mobile
+            // Enable overlay by default on mobile and add toggle
             document.addEventListener("DOMContentLoaded", function () {
                 const el = ensureDebugOverlay();
-                if (
-                    /(Mobi|Android|iPhone|iPad)/i.test(navigator.userAgent) ||
-                    window.innerWidth <= 600
-                ) {
-                    el.style.display = "block";
-                    updateStatus("📱 Mobile detected - debug overlay enabled");
+
+                // Create toggle control
+                let toggle = document.getElementById("debugToggle");
+                if (!toggle) {
+                    toggle = document.createElement("div");
+                    toggle.id = "debugToggle";
+                    toggle.textContent = "Debug";
+                    toggle.style.position = "fixed";
+                    toggle.style.right = "10px";
+                    toggle.style.bottom = "80px";
+                    toggle.style.background = "rgba(0,0,0,0.75)";
+                    toggle.style.color = "#0f0";
+                    toggle.style.fontFamily = "monospace";
+                    toggle.style.fontSize = "12px";
+                    toggle.style.padding = "6px 8px";
+                    toggle.style.borderRadius = "6px";
+                    toggle.style.zIndex = "2001";
+                    toggle.style.cursor = "pointer";
+                    toggle.style.userSelect = "none";
+                    toggle.style.boxShadow = "0 2px 6px rgba(0,0,0,0.4)";
+                    toggle.style.display = "none";
+                    document.body.appendChild(toggle);
                 }
+
+                const isMobile =
+                    /(Mobi|Android|iPhone|iPad)/i.test(navigator.userAgent) ||
+                    window.innerWidth <= 600;
+
+                // Default visibility on mobile
+                if (isMobile) {
+                    el.style.display = "block";
+                    toggle.style.display = "block";
+                    updateStatus("📱 Mobile detected - debug overlay enabled");
+                } else {
+                    toggle.style.display = "none";
+                }
+
+                // Toggle logic
+                toggle.addEventListener("click", function () {
+                    const shown = el.style.display !== "none";
+                    el.style.display = shown ? "none" : "block";
+                });
             });
 
             updateStatus("Script started");

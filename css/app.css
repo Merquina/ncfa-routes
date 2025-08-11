@@ -4,7 +4,28 @@
 
 /* Font Imports */
 @import url("https://fonts.googleapis.com/css2?family=Barrio:wght@400&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=OpenDyslexic:wght@400;700&display=swap");
+@font-face {
+    font-family: "OpenDyslexic";
+    src:
+        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Regular.woff2")
+            format("woff2"),
+        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Regular.woff")
+            format("woff");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "OpenDyslexic";
+    src:
+        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Bold.woff2")
+            format("woff2"),
+        url("https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/production/OpenDyslexic-Bold.woff")
+            format("woff");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
 
 /* Root Variables */
 :root {
@@ -53,6 +74,13 @@ body {
     /* iPhone safe area support */
     height: calc(100vh - env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
+}
+
+@supports (height: 100dvh) {
+    .container {
+        height: calc(100dvh - env(safe-area-inset-bottom));
+        min-height: 100dvh;
+    }
 }
 
 /* Header */
