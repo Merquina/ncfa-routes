@@ -149,35 +149,40 @@ class InventoryManager {
     this.isLoadingFromSheets = true;
 
     try {
-      console.log("📦 Attempting to load inventory from Google Sheets...");
+      console.log("📦 Attempting to load inventory from Google Apps Script...");
 
-      const result = await get_sheet_data({
-        spreadsheet_id: "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k",
-        sheet: "Inventory",
-        range: "A2:E2",
+      // Google Apps Script endpoint for secure API calls
+      const APPS_SCRIPT_URL =
+        "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+
+      const response = await fetch(`${APPS_SCRIPT_URL}?action=getInventory`, {
+        method: "GET",
       });
 
-      if (result && result.values && result.values.length > 0) {
-        const row = result.values[0];
-        const sheetsInventory = {
-          smallBoxes: parseInt(row[0]) || 0,
-          largeBoxes: parseInt(row[1]) || 0,
-          lastUpdated: row[2] || "Unknown",
-          updatedBy: row[3] || "Unknown",
-        };
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const sheetsInventory = {
+            smallBoxes: parseInt(result.data.smallBoxes) || 0,
+            largeBoxes: parseInt(result.data.largeBoxes) || 0,
+            lastUpdated: result.data.lastUpdated || "Unknown",
+            updatedBy: result.data.updatedBy || "Unknown",
+          };
 
-        // Update localStorage with sheets data
-        this.saveLocalInventory(sheetsInventory);
-        console.log("✅ Loaded inventory from Google Sheets:", sheetsInventory);
-        return sheetsInventory;
-      } else {
-        console.log(
-          "📱 No inventory data in Google Sheets, using localStorage",
-        );
+          // Update localStorage with sheets data
+          this.saveLocalInventory(sheetsInventory);
+          console.log(
+            "✅ Loaded inventory from Google Apps Script:",
+            sheetsInventory,
+          );
+          return sheetsInventory;
+        }
       }
+
+      console.log("📱 No inventory data from Apps Script, using localStorage");
     } catch (error) {
       console.log(
-        "📱 Failed to load from Google Sheets, using localStorage:",
+        "📱 Failed to load from Google Apps Script, using localStorage:",
         error,
       );
     } finally {
@@ -188,25 +193,40 @@ class InventoryManager {
   }
 
   async saveInventoryToSheets(inventory) {
-    const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
+    // Google Apps Script endpoint for secure API calls
+    const APPS_SCRIPT_URL =
+      "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
     const timestamp = new Date().toISOString();
 
-    const data = [
-      [
-        inventory.smallBoxes,
-        inventory.largeBoxes,
-        inventory.lastUpdated,
-        inventory.updatedBy,
-        timestamp,
-      ],
-    ];
+    const payload = {
+      action: "updateInventory",
+      smallBoxes: inventory.smallBoxes,
+      largeBoxes: inventory.largeBoxes,
+      lastUpdated: inventory.lastUpdated,
+      updatedBy: inventory.updatedBy,
+      timestamp: timestamp,
+    };
 
-    return await update_cells({
-      spreadsheet_id: SPREADSHEET_ID,
-      sheet: "Inventory",
-      range: "A2:E2",
-      data: data,
-    });
+    try {
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Inventory updated via Apps Script:", result);
+      return result;
+    } catch (error) {
+      console.error("❌ Error updating inventory via Apps Script:", error);
+      throw error;
+    }
   }
 
   // ========================================
