@@ -246,24 +246,23 @@
                         .split("T")[1]
                         .split(".")[0];
                     console.log("Status:", msg);
-                    const el = ensureDebugOverlay();
-                    const line = document.createElement("div");
-                    line.textContent = `[${timestamp}] ${msg}`;
-                    el.appendChild(line);
-                    // keep last 200 lines
-                    while (el.childNodes.length > 200) {
-                        el.removeChild(el.firstChild);
-                    }
-                    // auto-show on mobile
-                    if (
+
+                    // Only show debug overlay on desktop
+                    const isMobile =
                         /(Mobi|Android|iPhone|iPad)/i.test(
                             navigator.userAgent,
-                        ) ||
-                        window.innerWidth <= 600
-                    ) {
-                        el.style.display = "block";
+                        ) || window.innerWidth <= 600;
+                    if (!isMobile) {
+                        const el = ensureDebugOverlay();
+                        const line = document.createElement("div");
+                        line.textContent = `[${timestamp}] ${msg}`;
+                        el.appendChild(line);
+                        // keep last 200 lines
+                        while (el.childNodes.length > 200) {
+                            el.removeChild(el.firstChild);
+                        }
+                        el.scrollTop = el.scrollHeight;
                     }
-                    el.scrollTop = el.scrollHeight;
                 } catch (e) {
                     console.log("updateStatus error:", e);
                 }
