@@ -97,9 +97,13 @@ class AssignmentsManager {
   }
 
   renderSPFMCard(route) {
-    const workers = sheetsAPI
-      .getAllWorkersFromRoute(route)
-      .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
+    const workers = sheetsAPI.getAllWorkersFromRoute(route);
+    const volunteers = sheetsAPI.getAllVolunteers(route);
+
+    // Combine workers and volunteers into team members
+    const allTeamMembers = [...workers, ...volunteers]
+      .filter((person) => person && person.trim())
+      .map((person) => `${this.getWorkerEmoji(person)} ${person}`);
 
     const vans = sheetsAPI
       .getAllVans(route)
@@ -118,7 +122,8 @@ class AssignmentsManager {
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
           ${(() => {
-            const teamSlots = [...workers];
+            const teamSlots = [...allTeamMembers];
+            // Fill remaining slots up to 3 with "Need worker"
             while (teamSlots.length < 3) {
               teamSlots.push(
                 '<span style="color: #800020; font-style: italic;">Need worker</span>',
