@@ -872,25 +872,33 @@ class AssignmentsManager {
     const stops = [];
 
     if (route.type === "recovery") {
-      // Recovery routes use Stop 1, Stop 2, etc.
-      for (let i = 1; i <= 7; i++) {
-        const stop = route[`Stop ${i}`];
-        if (stop && stop.trim()) {
-          stops.push({ location: stop.trim(), contact: null });
+      // Recovery routes use stop1, stop2, etc. - infinite stops
+      let i = 1;
+      while (true) {
+        const stop = route[`stop${i}`] || route[`Stop ${i}`];
+        if (!stop || !stop.trim()) {
+          break; // No more stops found
         }
+        stops.push({ location: stop.trim(), contact: null });
+        i++;
       }
     } else if (route.type === "spfm-delivery" || route.type === "spfm") {
-      // First try delivery format (Stop 1, Stop 2, etc.)
-      for (let i = 1; i <= 10; i++) {
+      // First try delivery format (stop1, stop2, etc.) - infinite stops
+      let i = 1;
+      while (true) {
         const stop =
-          route[`Stop ${i}`] || route[`stop${i}`] || route[`stop ${i}`];
+          route[`stop${i}`] || route[`Stop ${i}`] || route[`stop ${i}`];
         const contact =
-          route[`Contact ${i}`] ||
           route[`contact${i}`] ||
+          route[`Contact ${i}`] ||
           route[`contact ${i}`];
-        if (stop && stop.trim()) {
-          stops.push({ location: stop.trim(), contact: contact?.trim() });
+
+        if (!stop || !stop.trim()) {
+          break; // No more stops found
         }
+
+        stops.push({ location: stop.trim(), contact: contact?.trim() });
+        i++;
       }
 
       // If no delivery stops, use traditional SPFM structure
