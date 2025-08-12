@@ -688,7 +688,8 @@ class SheetsAPI {
 
       const token = window.gapi.client.getToken();
       if (!token) {
-        throw new Error("No auth token available");
+        console.log("❌ No auth token - user may not be signed in");
+        return false;
       }
 
       const response = await fetch(url, {
@@ -701,6 +702,12 @@ class SheetsAPI {
       });
 
       if (!response.ok) {
+        if (response.status === 400) {
+          console.log(
+            "📊 Charts sheet may not exist yet - please create it manually",
+          );
+          return false;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -708,6 +715,11 @@ class SheetsAPI {
       return true;
     } catch (error) {
       console.error("❌ Error appending to Charts sheet:", error);
+      if (error.message.includes("Charts")) {
+        console.log(
+          "💡 Tip: Create a 'Charts' sheet in your Google Spreadsheet with headers: Date, Route ID, Location, Boxes, Lbs, Timestamp, Submitted By",
+        );
+      }
       return false;
     }
   }

@@ -1579,9 +1579,6 @@ class AssignmentsManager {
 
   async submitToChartsSheet(data) {
     try {
-      // First, ensure Charts sheet exists
-      await this.ensureChartsSheet();
-
       // Prepare row data
       const rowData = [
         data.date,
@@ -1593,42 +1590,24 @@ class AssignmentsManager {
         data.submittedBy,
       ];
 
-      // Append to Charts sheet
+      // Try to append directly - if Charts sheet doesn't exist, it will fail gracefully
       const success = await sheetsAPI.appendToChartsSheet(rowData);
+      if (!success) {
+        console.log(
+          "📊 Charts sheet may not exist - data logged to console instead",
+        );
+        console.log("📊 Pickup data:", data);
+        return false;
+      }
       return success;
     } catch (error) {
       console.error("❌ Error in submitToChartsSheet:", error);
+      console.log("📊 Pickup data logged to console:", data);
       return false;
     }
   }
 
-  async ensureChartsSheet() {
-    try {
-      // Check if Charts sheet exists, if not create it with headers
-      const sheets = await sheetsAPI.listSheetsInSpreadsheet();
-      const chartsExists = sheets.some((sheet) => sheet.title === "Charts");
-
-      if (!chartsExists) {
-        console.log("📊 Creating Charts sheet...");
-        await sheetsAPI.createChartsSheet();
-
-        // Add headers
-        const headers = [
-          "Date",
-          "Route ID",
-          "Location",
-          "Boxes",
-          "Lbs",
-          "Timestamp",
-          "Submitted By",
-        ];
-        await sheetsAPI.appendToChartsSheet(headers);
-      }
-    } catch (error) {
-      console.error("❌ Error ensuring Charts sheet exists:", error);
-      throw error;
-    }
-  }
+  // Removed - now using direct append approach
 
   // Handle mutual exclusivity between boxes and lbs inputs
   handlePickupInputChange(inputType, routeId, location) {
