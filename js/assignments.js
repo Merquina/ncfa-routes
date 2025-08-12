@@ -614,13 +614,8 @@ class AssignmentsManager {
     const route = this.currentRoutes.find((r) => r._routeId === routeId);
     if (!route) return;
 
-    if (route.type === "recovery") {
-      this.renderRecoveryDetailedView(route);
-    } else if (route.type === "spfm-delivery" || route.type === "spfm") {
-      this.renderSPFMDeliveryDetailedView(route);
-    } else {
-      this.renderSPFMDetailedView(route);
-    }
+    // Use unified renderer for all route types
+    this.renderUnifiedDetailedView(route);
   }
 
   renderSPFMDetailedView(route) {
@@ -811,198 +806,50 @@ class AssignmentsManager {
     }, 100);
   }
 
-  renderRecoveryDetailedView(route) {
+  renderUnifiedDetailedView(route) {
     const assignmentsContainer = document.getElementById(
       "assignmentsContainer",
     );
 
-    const stops = [];
-    console.log("🔍 Debug: Processing recovery route:", route);
-    console.log("🔍 Debug: Available route keys:", Object.keys(route));
-    console.log(
-      "🔍 DEBUG Recovery workers:",
-      sheetsAPI.getAllWorkersFromRoute(route),
-    );
-    console.log(
-      "🔍 DEBUG Recovery contacts:",
-      sheetsAPI.getAllRouteContacts(route),
-    );
-    console.log(
-      "🔍 DEBUG Recovery phones:",
-      sheetsAPI.getAllRoutePhones(route),
-    );
-
-    for (let i = 1; i <= 7; i++) {
-      // Use exact column names from Recovery sheet
-      const stop = route[`Stop ${i}`];
-
-      console.log(`🔍 Debug: Stop ${i} - Found: "${stop}"`);
-
-      if (stop && stop.trim()) {
-        // No contact columns in Recovery sheet, so contact will be null
-        stops.push({ location: stop.trim(), contact: null });
-      }
-    }
-
-    console.log("🔍 Debug: Final stops array:", stops);
-
-    const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
-
+    // Extract stops based on route type
+    const stops = this.extractStopsFromRoute(route);
     const workers = sheetsAPI.getAllWorkersFromRoute(route);
-    const contacts = sheetsAPI.getAllRouteContacts(route);
-    const phones = sheetsAPI.getAllRoutePhones(route);
+    const googleMapsUrl = this.buildGoogleMapsUrl(route, stops);
 
-    console.log("🔍 DEBUG Final workers for display:", workers);
-    console.log("🔍 DEBUG Final contacts for display:", contacts);
-    console.log("🔍 DEBUG Final phones for display:", phones);
+    // Route type-specific display info
+    const routeInfo = this.getRouteDisplayInfo(route);
 
     assignmentsContainer.innerHTML = `
-      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
+      <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #333;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #007bff; margin: 0 0 10px 0;">🛒 ${route.dayName || route["recovery route"] || "Recovery"} Route</h2>
-          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate} at ${route.startTime || route.Time || "TBD"}</p>
+          <h2 style="color: #333; margin: 0 0 10px 0;">${routeInfo.emoji} ${routeInfo.title}</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || route.Time || "TBD"}</p>
           <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            <button data-maps-url="${googleMapsUrl.replace(/"/g, "&quot;")}" onclick="window.open(this.getAttribute('data-maps-url'), '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            <button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🗺️ Full route on Google Maps
             </button>
           </div>
         </div>
 
+        ${this.renderRouteSpecificContent(route)}
+
         <div style="display: grid; gap: 15px;">
           ${stops
             .map(
               (stop, index) => `
-            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
-              <h3 style="color: #333; margin: 0 0 15px 0;">${index + 1} - ${(() => {
-                const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                console.log(
-                  `🔍 DEBUG Contact data for "${stop.location}":`,
-                  contact,
-                );
-                console.log(
-                  `🔍 DEBUG Contact object keys:`,
-                  contact ? Object.keys(contact) : "null",
-                );
-                console.log(
-                  `🔍 DEBUG Contact.Type value:`,
-                  contact ? contact.Type : "no contact",
-                );
-                console.log(
-                  `🔍 DEBUG Contact.type value:`,
-                  contact ? contact.type : "no contact",
-                );
-                const type =
-                  contact && (contact.Type || contact.type || contact.TYPE)
-                    ? (contact.Type || contact.type || contact.TYPE).trim()
-                    : "";
-                console.log(`🔍 DEBUG Final type used: "${type}"`);
-                console.log(
-                  `🔍 DEBUG Will show: "${stop.location}${type ? ` - ${type}` : ""}"`,
-                );
-                return type ? `${stop.location} - ${type}` : stop.location;
-              })()}</h3>
+            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #333;">
+              <h3 style="color: #333; margin: 0 0 15px 0;">${index + 1} - ${this.getStopDisplayName(stop.location)}</h3>
               <div style="margin-bottom: 10px;">
-                ${(() => {
-                  const contact = sheetsAPI.getAddressFromContacts(
-                    stop.location,
-                  );
-                  return contact && contact.address
-                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${contact.address}</button>`
-                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${stop.location}</button>`;
-                })()}
-                ${(() => {
-                  const contact = sheetsAPI.getAddressFromContacts(
-                    stop.location,
-                  );
-                  if (!contact) return "";
-
-                  // Show all phone numbers with contact names
-                  if (contact.phones && contact.phones.length > 0) {
-                    return contact.phones
-                      .map((phone, index) => {
-                        const contactName =
-                          contact.contacts && contact.contacts[index]
-                            ? contact.contacts[index]
-                            : contact.contactName || `Contact ${index + 1}`;
-                        return `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">📞 ${contactName} - ${phone}</button>`;
-                      })
-                      .join("");
-                  } else if (contact.phone) {
-                    const contactName = contact.contactName || "Contact";
-                    return `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contactName} - ${contact.phone}</button>`;
-                  }
-                  return "";
-                })()}
+                ${this.renderAddressButton(stop.location)}
+                ${this.renderPhoneButtons(stop.location)}
               </div>
-              ${(() => {
-                // Add pickup tracking form for Market locations
-                const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const type =
-                  contact && (contact.Type || contact.type || contact.TYPE)
-                    ? (contact.Type || contact.type || contact.TYPE).trim()
-                    : "";
-
-                if (type.toLowerCase() === "market") {
-                  const routeId = route._routeId || route.routeId || "unknown";
-                  return `
-                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #28a745;">
-                      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.9em; color: #495057; font-weight: 500;">📦 Pickup:</span>
-                        <input type="number" id="boxes_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
-                               placeholder="Boxes" min="0" step="1"
-                               onchange="assignmentsManager.handlePickupInputChange('boxes', '${routeId}', '${stop.location}')"
-                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
-                        <span style="color: #6c757d; font-size: 0.85em;">or</span>
-                        <input type="number" id="lbs_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
-                               placeholder="Lbs" min="0" step="0.1"
-                               onchange="assignmentsManager.handlePickupInputChange('lbs', '${routeId}', '${stop.location}')"
-                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
-                        <button onclick="assignmentsManager.submitPickupData('${routeId}', '${stop.location}', '${route.date || ""}')"
-                                style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; height: 32px;">
-                          💾 Log
-                        </button>
-                      </div>
-                    </div>
-                  `;
-                }
-                return "";
-              })()}
-              ${(() => {
-                const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const routeContacts = sheetsAPI.getAllRouteContacts(route);
-                const routePhones = sheetsAPI.getAllRoutePhones(route);
-                const notes = contact && contact.notes ? contact.notes : "";
-
-                let notesContent = "";
-                // Add contact persons from route data (contact1, contact2, etc.) only if corresponding phone is available
-                if (routeContacts.length > 0) {
-                  routeContacts.forEach((contactPerson, index) => {
-                    if (
-                      contactPerson &&
-                      contactPerson.trim() &&
-                      routePhones[index] &&
-                      routePhones[index].trim()
-                    ) {
-                      if (notesContent) notesContent += "<br>";
-                      notesContent += `• Contact person: ${contactPerson.trim()}`;
-                    }
-                  });
-                }
-                // Add notes from contacts sheet
-                if (notes.trim()) {
-                  if (notesContent) notesContent += "<br>";
-                  notesContent += `• ${notes}`;
-                }
-
-                return notesContent
-                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong><br>${notesContent}</p>`
-                  : "";
-              })()}
+              ${this.renderPickupForm(route, stop.location)}
+              ${this.renderStopNotes(route, stop.location)}
             </div>
           `,
             )
@@ -1018,6 +865,277 @@ class AssignmentsManager {
         </div>
       </div>
     `;
+  }
+
+  extractStopsFromRoute(route) {
+    const stops = [];
+
+    if (route.type === "recovery") {
+      // Recovery routes use Stop 1, Stop 2, etc.
+      for (let i = 1; i <= 7; i++) {
+        const stop = route[`Stop ${i}`];
+        if (stop && stop.trim()) {
+          stops.push({ location: stop.trim(), contact: null });
+        }
+      }
+    } else if (route.type === "spfm-delivery" || route.type === "spfm") {
+      // First try delivery format (Stop 1, Stop 2, etc.)
+      for (let i = 1; i <= 10; i++) {
+        const stop =
+          route[`Stop ${i}`] || route[`stop${i}`] || route[`stop ${i}`];
+        const contact =
+          route[`Contact ${i}`] ||
+          route[`contact${i}`] ||
+          route[`contact ${i}`];
+        if (stop && stop.trim()) {
+          stops.push({ location: stop.trim(), contact: contact?.trim() });
+        }
+      }
+
+      // If no delivery stops, use traditional SPFM structure
+      if (stops.length === 0) {
+        if (route.market && route.market.trim()) {
+          stops.push({ location: route.market.trim(), contact: null });
+        }
+        if (route.dropOff && route.dropOff.trim()) {
+          stops.push({ location: route.dropOff.trim(), contact: null });
+        }
+      }
+    } else {
+      // Traditional SPFM routes
+      if (route.market && route.market.trim()) {
+        stops.push({ location: route.market.trim(), contact: null });
+      }
+      if (route.dropOff && route.dropOff.trim()) {
+        stops.push({ location: route.dropOff.trim(), contact: null });
+      }
+    }
+
+    return stops;
+  }
+
+  getRouteDisplayInfo(route) {
+    if (route.type === "recovery") {
+      return {
+        emoji: "🛒",
+        title: `${route.dayName || route["recovery route"] || "Recovery"} Route`,
+      };
+    } else if (route.type === "spfm-delivery" || route.type === "spfm") {
+      return {
+        emoji: "👨‍🌾",
+        title: `${route.market || "SPFM"} Route`,
+      };
+    } else {
+      return {
+        emoji: "👨‍🌾",
+        title: `${route.market || "Market"} - SPFM Route`,
+      };
+    }
+  }
+
+  buildGoogleMapsUrl(route, stops) {
+    if (route.type === "recovery") {
+      return this.buildRecoveryGoogleMapsUrl(stops);
+    } else {
+      return this.buildSPFMGoogleMapsUrl(route);
+    }
+  }
+
+  renderRouteSpecificContent(route) {
+    if (route.type === "recovery") {
+      return ""; // Recovery routes don't have material sections
+    }
+
+    // SPFM routes have material sections
+    const materialsOffice = (route.materials_office || "")
+      .split(",")
+      .filter((item) => item.trim());
+    const materialsStorage = (route.materials_storage || "")
+      .split(",")
+      .filter((item) => item.trim());
+    const atMarket = (route.atMarket || "")
+      .split(",")
+      .filter((item) => item.trim());
+    const backAtOffice = (route.backAtOffice || "")
+      .split(",")
+      .filter((item) => item.trim());
+
+    return `
+      <div style="display: grid; gap: 20px; margin-bottom: 20px;">
+        <!-- At the Office Section -->
+        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+          <h3 style="color: #17a2b8; margin: 0 0 15px 0;">🏢 At the Office</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <h4 style="margin: 0 0 10px 0; color: #666;">📁 Materials</h4>
+              ${materialsOffice
+                .map(
+                  (item) => `
+                <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+                  <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+                </label>
+              `,
+                )
+                .join("")}
+              ${materialsOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+            </div>
+            <div>
+              <h4 style="margin: 0 0 10px 0; color: #666;">🏪 Storage</h4>
+              ${materialsStorage
+                .map(
+                  (item) => `
+                <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+                  <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+                </label>
+              `,
+                )
+                .join("")}
+              ${materialsStorage.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+            </div>
+          </div>
+        </div>
+
+        <!-- At Market Section -->
+        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+          <h3 style="color: #28a745; margin: 0 0 15px 0;">🛒 At Market</h3>
+          ${atMarket
+            .map(
+              (item) => `
+            <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+              <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+            </label>
+          `,
+            )
+            .join("")}
+          ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+        </div>
+
+        <!-- Back at Office Section -->
+        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545;">
+          <h3 style="color: #dc3545; margin: 0 0 15px 0;">🏢 Back at Office</h3>
+          ${backAtOffice
+            .map(
+              (item) => `
+            <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+              <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
+            </label>
+          `,
+            )
+            .join("")}
+          ${backAtOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  getStopDisplayName(location) {
+    const contact = sheetsAPI.getAddressFromContacts(location);
+    const type =
+      contact && (contact.Type || contact.type || contact.TYPE)
+        ? (contact.Type || contact.type || contact.TYPE).trim()
+        : "";
+    return type ? `${location} - ${type}` : location;
+  }
+
+  renderAddressButton(location) {
+    const contact = sheetsAPI.getAddressFromContacts(location);
+    return contact && contact.address
+      ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${contact.address}</button>`
+      : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${location}</button>`;
+  }
+
+  renderPhoneButtons(location) {
+    const contact = sheetsAPI.getAddressFromContacts(location);
+    if (!contact) return "";
+
+    if (contact.phones && contact.phones.length > 0) {
+      return contact.phones
+        .map((phone, index) => {
+          const contactName =
+            contact.contacts && contact.contacts[index]
+              ? contact.contacts[index]
+              : contact.contactName || `Contact ${index + 1}`;
+          return `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">📞 ${contactName} - ${phone}</button>`;
+        })
+        .join("");
+    } else if (contact.phone) {
+      const contactName = contact.contactName || "Contact";
+      return `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contactName} - ${contact.phone}</button>`;
+    }
+    return "";
+  }
+
+  renderPickupForm(route, location) {
+    const contact = sheetsAPI.getAddressFromContacts(location);
+    const type =
+      contact && (contact.Type || contact.type || contact.TYPE)
+        ? (contact.Type || contact.type || contact.TYPE).trim().toLowerCase()
+        : "";
+
+    // Show pickup form for both "market" and "pick up" types
+    if (type === "market" || type === "pick up") {
+      const routeId = route._routeId || route.routeId || "unknown";
+      return `
+        <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #28a745;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span style="font-size: 0.9em; color: #495057; font-weight: 500;">📦 Pickup:</span>
+            <input type="number" id="boxes_${routeId}_${location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                   placeholder="Boxes" min="0" step="1"
+                   onchange="assignmentsManager.handlePickupInputChange('boxes', '${routeId}', '${location}')"
+                   style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+            <span style="color: #6c757d; font-size: 0.85em;">or</span>
+            <input type="number" id="lbs_${routeId}_${location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                   placeholder="Lbs" min="0" step="0.1"
+                   onchange="assignmentsManager.handlePickupInputChange('lbs', '${routeId}', '${location}')"
+                   style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+            <button onclick="assignmentsManager.submitPickupData('${routeId}', '${location}', '${route.date || ""}')"
+                    style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; height: 32px;">
+              💾 Log
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    return "";
+  }
+
+  renderStopNotes(route, location) {
+    const contact = sheetsAPI.getAddressFromContacts(location);
+    const routeContacts = sheetsAPI.getAllRouteContacts(route);
+    const routePhones = sheetsAPI.getAllRoutePhones(route);
+    const notes = contact && contact.notes ? contact.notes : "";
+
+    let notesContent = "";
+
+    // Add contact persons from route data only if corresponding phone is available
+    if (routeContacts.length > 0) {
+      routeContacts.forEach((contactPerson, index) => {
+        if (
+          contactPerson &&
+          contactPerson.trim() &&
+          routePhones[index] &&
+          routePhones[index].trim()
+        ) {
+          if (notesContent) notesContent += "<br>";
+          notesContent += `• Contact person: ${contactPerson.trim()}`;
+        }
+      });
+    }
+
+    // Add notes from contacts sheet
+    if (notes.trim()) {
+      if (notesContent) notesContent += "<br>";
+      notesContent += `• ${notes}`;
+    }
+
+    return notesContent
+      ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong><br>${notesContent}</p>`
+      : "";
+  }
+
+  // Legacy method - now uses unified renderer
+  renderRecoveryDetailedView(route) {
+    this.renderUnifiedDetailedView(route);
   }
 
   buildSPFMGoogleMapsUrl(route) {
