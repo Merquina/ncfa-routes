@@ -281,10 +281,10 @@ class AssignmentsManager {
       });
     }
 
-    // Sort all routes by date and take only next 4
+    // Sort all routes by date and take only next 3
     const upcomingRoutes = allRoutes
       .sort((a, b) => a.sortDate - b.sortDate)
-      .slice(0, 4);
+      .slice(0, 3);
 
     console.log("🔍 Debug worker assignments for", workerName);
     console.log("🔍 Original SPFM assignments:", assignments.spfm.length);
@@ -302,12 +302,12 @@ class AssignmentsManager {
     );
     console.log("🔍 Generated recovery dates:", allRecoveryDates.length);
     console.log("🔍 Total routes found:", allRoutes.length);
-    console.log("🔍 Upcoming routes (limited to 4):", upcomingRoutes.length);
+    console.log("🔍 Upcoming routes (limited to 3):", upcomingRoutes.length);
 
     // Use unified renderer
     this.renderUnifiedAssignments({
       routes: upcomingRoutes,
-      title: `${workerName}'s Upcoming Assignments`,
+      title: `${workerName}'s Next 3 Upcoming Assignments`,
       emoji: this.getWorkerEmoji(workerName),
       color: "#007bff",
       groupByMarket: false,

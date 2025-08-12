@@ -35,13 +35,13 @@ class DatesManager {
       return;
     }
 
-    // Get all upcoming routes in chronological order
-    const upcomingRoutes = assignmentsManager.getUpcomingRoutes(8);
+    // Get next 7 upcoming routes in chronological order
+    const upcomingRoutes = assignmentsManager.getUpcomingRoutes(7);
 
     // Render using unified renderer without market grouping
     assignmentsManager.renderUnifiedAssignments({
       routes: upcomingRoutes,
-      title: "Upcoming Routes",
+      title: "Next 7 Upcoming Routes",
       emoji: "📅",
       color: "#007bff",
       groupByMarket: false,
