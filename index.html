@@ -31,19 +31,86 @@
         <!-- Print Styles -->
         <style>
             @media print {
+                /* Hide everything except assignments */
                 .header,
                 .bottom-tabs,
                 .main-content > :not(#assignmentsContainer) {
                     display: none !important;
                 }
+
+                /* Force single page fit */
+                @page {
+                    margin: 0.5in;
+                    size: letter;
+                }
+
+                html,
+                body {
+                    margin: 0;
+                    padding: 0;
+                    font-size: 10px !important;
+                    line-height: 1.2 !important;
+                    height: auto !important;
+                }
+
                 #assignmentsContainer {
                     margin: 0 !important;
                     padding: 0 !important;
+                    font-size: 10px !important;
+                    transform: scale(0.85);
+                    transform-origin: top left;
+                    width: 117.6%; /* Compensate for scale */
                 }
-                body {
-                    margin: 0;
-                    padding: 10px;
-                    font-size: 11px;
+
+                /* Compact headers and text */
+                h1,
+                h2,
+                h3,
+                h4,
+                h5,
+                h6 {
+                    font-size: 12px !important;
+                    margin: 5px 0 3px 0 !important;
+                    line-height: 1.1 !important;
+                }
+
+                p {
+                    margin: 2px 0 !important;
+                    font-size: 9px !important;
+                    line-height: 1.1 !important;
+                }
+
+                /* Compact buttons and inputs */
+                button,
+                input {
+                    font-size: 8px !important;
+                    padding: 2px 4px !important;
+                    margin: 1px !important;
+                }
+
+                /* Compact sections */
+                div[style*="padding"] {
+                    padding: 3px !important;
+                }
+
+                div[style*="margin"] {
+                    margin: 2px 0 !important;
+                }
+
+                /* Hide pickup forms and extra buttons in print */
+                div[style*="border-left: 3px solid #28a745"] {
+                    display: none !important;
+                }
+
+                /* Force single page */
+                * {
+                    page-break-inside: avoid !important;
+                }
+
+                /* Allow breaks only between major sections */
+                div[style*="border-left: 4px solid"] {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
                 }
             }
         </style>
