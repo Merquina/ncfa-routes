@@ -736,10 +736,19 @@ class AssignmentsManager {
                 `🔍 DEBUG Dropoff contact data for "${locationName}":`,
                 contact,
               );
+              console.log(
+                `🔍 DEBUG Dropoff keys:`,
+                contact ? Object.keys(contact) : "null",
+              );
+              console.log(
+                `🔍 DEBUG Dropoff Type:`,
+                contact ? contact.Type : "no contact",
+              );
               const type =
                 contact && (contact.Type || contact.type || contact.TYPE)
                   ? (contact.Type || contact.type || contact.TYPE).trim()
                   : "";
+              console.log(`🔍 DEBUG Dropoff final type: "${type}"`);
               return type ? `${locationName} - ${type}` : locationName;
             })()}</h3>
             <div style="margin-bottom: 10px;">
@@ -874,14 +883,25 @@ class AssignmentsManager {
                   contact,
                 );
                 console.log(
-                  `🔍 DEBUG Available contact keys:`,
+                  `🔍 DEBUG Contact object keys:`,
                   contact ? Object.keys(contact) : "null",
+                );
+                console.log(
+                  `🔍 DEBUG Contact.Type value:`,
+                  contact ? contact.Type : "no contact",
+                );
+                console.log(
+                  `🔍 DEBUG Contact.type value:`,
+                  contact ? contact.type : "no contact",
                 );
                 const type =
                   contact && (contact.Type || contact.type || contact.TYPE)
                     ? (contact.Type || contact.type || contact.TYPE).trim()
                     : "";
-                console.log(`🔍 DEBUG Type found: "${type}"`);
+                console.log(`🔍 DEBUG Final type used: "${type}"`);
+                console.log(
+                  `🔍 DEBUG Will show: "${stop.location}${type ? ` - ${type}` : ""}"`,
+                );
                 return type ? `${stop.location} - ${type}` : stop.location;
               })()}</h3>
               <div style="margin-bottom: 10px;">
@@ -1091,10 +1111,19 @@ class AssignmentsManager {
                   `🔍 DEBUG Delivery contact data for "${stop.location}":`,
                   contact,
                 );
+                console.log(
+                  `🔍 DEBUG Delivery object keys:`,
+                  contact ? Object.keys(contact) : "null",
+                );
+                console.log(
+                  `🔍 DEBUG Delivery Type value:`,
+                  contact ? contact.Type : "no contact",
+                );
                 const type =
                   contact && (contact.Type || contact.type || contact.TYPE)
                     ? (contact.Type || contact.type || contact.TYPE).trim()
                     : "";
+                console.log(`🔍 DEBUG Delivery final type: "${type}"`);
                 return type ? `${stop.location} - ${type}` : stop.location;
               })()}</h3>
               <div style="margin-bottom: 10px;">
