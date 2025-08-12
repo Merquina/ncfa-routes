@@ -871,9 +871,15 @@ class AssignmentsManager {
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 const routeContacts = sheetsAPI.getAllRouteContacts(route);
+                const contactName =
+                  contact && contact.contactName ? contact.contactName : "";
                 const notes = contact && contact.notes ? contact.notes : "";
 
                 let notesContent = "";
+                // Add contact name from Contacts sheet first
+                if (contactName && contactName.trim()) {
+                  notesContent += `• Contact: ${contactName.trim()}`;
+                }
                 // Add contact persons from route data (contact1, contact2, etc.) only if they have values
                 if (routeContacts.length > 0) {
                   routeContacts.forEach((contactPerson, index) => {
@@ -1066,11 +1072,18 @@ class AssignmentsManager {
               </div>
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
+                const contactName =
+                  contact && contact.contactName ? contact.contactName : "";
                 const notes = contact && contact.notes ? contact.notes : "";
 
                 let notesContent = "";
-                // Add contact person from stop-specific contact first
+                // Add contact name from Contacts sheet first
+                if (contactName && contactName.trim()) {
+                  notesContent += `• Contact: ${contactName.trim()}`;
+                }
+                // Add contact person from stop-specific contact
                 if (stop.contact && stop.contact.trim()) {
+                  if (notesContent) notesContent += "<br>";
                   notesContent += `• Contact person: ${stop.contact.trim()}`;
                 }
                 // Add notes from contacts sheet
