@@ -686,11 +686,17 @@ class SheetsAPI {
         values: [rowData],
       };
 
+      console.log("📊 Attempting to append to Charts sheet");
+      console.log("📊 URL:", url);
+      console.log("📊 Row data:", rowData);
+
       const token = window.gapi.client.getToken();
       if (!token) {
         console.log("❌ No auth token - user may not be signed in");
         return false;
       }
+
+      console.log("📊 Token exists, making request...");
 
       const response = await fetch(url, {
         method: "POST",
@@ -701,20 +707,35 @@ class SheetsAPI {
         body: JSON.stringify(requestBody),
       });
 
+      console.log("📊 Response status:", response.status);
+      console.log("📊 Response ok:", response.ok);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.log("📊 Error response text:", errorText);
+
         if (response.status === 400) {
           console.log(
             "📊 Charts sheet may not exist yet - please create it manually",
           );
           return false;
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(
+          `HTTP error! status: ${response.status}, body: ${errorText}`,
+        );
       }
 
+      const responseData = await response.json();
+      console.log("📊 Response data:", responseData);
       console.log("✅ Data appended to Charts sheet successfully");
       return true;
     } catch (error) {
       console.error("❌ Error appending to Charts sheet:", error);
+      console.error("❌ Full error details:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
       if (error.message.includes("Charts")) {
         console.log(
           "💡 Tip: Create a 'Charts' sheet in your Google Spreadsheet with headers: Date, Route ID, Location, Boxes, Lbs, Timestamp, Submitted By",

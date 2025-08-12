@@ -1573,7 +1573,14 @@ class AssignmentsManager {
       }
     } catch (error) {
       console.error("❌ Error submitting pickup data:", error);
-      alert("Error logging pickup data. Please try again.");
+      console.error("❌ Full error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+      alert(
+        `Error logging pickup data: ${error.message}. Check console for details.`,
+      );
     }
   }
 
@@ -1591,7 +1598,9 @@ class AssignmentsManager {
       ];
 
       // Try to append directly - if Charts sheet doesn't exist, it will fail gracefully
+      console.log("📊 Attempting to append data:", rowData);
       const success = await sheetsAPI.appendToChartsSheet(rowData);
+      console.log("📊 Append result:", success);
       if (!success) {
         console.log(
           "📊 Charts sheet may not exist - data logged to console instead",
@@ -1602,6 +1611,11 @@ class AssignmentsManager {
       return success;
     } catch (error) {
       console.error("❌ Error in submitToChartsSheet:", error);
+      console.error("❌ Full error in submitToChartsSheet:", {
+        message: error.message,
+        stack: error.stack,
+        data: data,
+      });
       console.log("📊 Pickup data logged to console:", data);
       return false;
     }
