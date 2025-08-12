@@ -288,19 +288,26 @@ class SheetsAPI {
     console.log(`🔍 DEBUG getAllWorkers - Looking for worker columns...`);
 
     while (route[`worker${i}`]) {
-      const worker = route[`worker${i}`].trim();
-      console.log(`🔍 DEBUG getAllWorkers - worker${i}: "${worker}"`);
+      const workerCell = route[`worker${i}`].trim();
+      console.log(`🔍 DEBUG getAllWorkers - worker${i}: "${workerCell}"`);
       // Skip header rows that have literal column names as values
       if (
-        worker &&
-        !flexibleTextMatch(worker, "cancelled") &&
-        worker !== `worker${i}`
+        workerCell &&
+        !flexibleTextMatch(workerCell, "cancelled") &&
+        workerCell !== `worker${i}`
       ) {
-        workers.push(worker);
-        console.log(`🔍 DEBUG getAllWorkers - Added worker: "${worker}"`);
-      } else if (worker === `worker${i}`) {
+        // Split comma-separated names into individual workers
+        const individualWorkers = workerCell
+          .split(",")
+          .map((name) => name.trim())
+          .filter((name) => name);
+        individualWorkers.forEach((worker) => {
+          workers.push(worker);
+          console.log(`🔍 DEBUG getAllWorkers - Added worker: "${worker}"`);
+        });
+      } else if (workerCell === `worker${i}`) {
         console.log(
-          `🔍 DEBUG getAllWorkers - Skipping header row with literal column name: "${worker}"`,
+          `🔍 DEBUG getAllWorkers - Skipping header row with literal column name: "${workerCell}"`,
         );
       }
       i++;
@@ -343,10 +350,17 @@ class SheetsAPI {
     const volunteers = [];
     let i = 1;
     while (route[`volunteer${i}`]) {
-      const volunteer = route[`volunteer${i}`].trim();
+      const volunteerCell = route[`volunteer${i}`].trim();
       // Skip header rows that have literal column names as values
-      if (volunteer && volunteer !== `volunteer${i}`) {
-        volunteers.push(volunteer);
+      if (volunteerCell && volunteerCell !== `volunteer${i}`) {
+        // Split comma-separated names into individual volunteers
+        const individualVolunteers = volunteerCell
+          .split(",")
+          .map((name) => name.trim())
+          .filter((name) => name);
+        individualVolunteers.forEach((volunteer) => {
+          volunteers.push(volunteer);
+        });
       }
       i++;
     }
