@@ -641,6 +641,7 @@ class AssignmentsManager {
       .split(",")
       .filter((item) => item.trim());
 
+    const workers = sheetsAPI.getAllWorkersFromRoute(route);
     const googleMapsUrl = this.buildSPFMGoogleMapsUrl(route);
 
     assignmentsContainer.innerHTML = `
@@ -648,6 +649,7 @@ class AssignmentsManager {
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "Market"} - SPFM Route</h2>
           <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || "TBD"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
@@ -1129,6 +1131,7 @@ class AssignmentsManager {
       }
     }
 
+    const workers = sheetsAPI.getAllWorkersFromRoute(route);
     const googleMapsUrl = this.buildRecoveryGoogleMapsUrl(stops);
 
     assignmentsContainer.innerHTML = `
@@ -1136,6 +1139,7 @@ class AssignmentsManager {
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "SPFM"} Route</h2>
           <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || route.Time || "TBD"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
