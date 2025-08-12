@@ -563,35 +563,35 @@
 
             // Header button functions
             // OAuth Configuration
-            const DISCOVERY_DOC =
+            const DISCOVERY_DOC_AUTH =
                 "https://sheets.googleapis.com/$discovery/rest?version=v4";
-            const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+            const SCOPES_AUTH = "https://www.googleapis.com/auth/spreadsheets";
 
-            let gapi;
-            let google;
+            let gapiAuth;
+            let googleAuth;
             let tokenClient;
             let gapiInited = false;
             let gisInited = false;
 
             // Initialize Google APIs
             function gapiLoaded() {
-                gapi.load("client", initializeGapiClient);
+                window.gapi.load("client", initializeGapiClient);
             }
 
             async function initializeGapiClient() {
-                await gapi.client.init({
+                await window.gapi.client.init({
                     apiKey: "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s",
-                    discoveryDocs: [DISCOVERY_DOC],
+                    discoveryDocs: [DISCOVERY_DOC_AUTH],
                 });
                 gapiInited = true;
                 maybeEnableButtons();
             }
 
             function gisLoaded() {
-                tokenClient = google.accounts.oauth2.initTokenClient({
+                tokenClient = window.google.accounts.oauth2.initTokenClient({
                     client_id:
                         "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com",
-                    scope: SCOPES,
+                    scope: SCOPES_AUTH,
                     callback: "", // defined later
                 });
                 gisInited = true;
@@ -605,7 +605,11 @@
             }
 
             function updateSignInStatus() {
-                if (gapi.client.getToken() !== null) {
+                if (
+                    window.gapi &&
+                    window.gapi.client &&
+                    window.gapi.client.getToken() !== null
+                ) {
                     // User is signed in, show main app
                     showMainApp();
                 }
@@ -626,7 +630,7 @@
                     showMainApp();
                 };
 
-                if (gapi.client.getToken() === null) {
+                if (window.gapi.client.getToken() === null) {
                     // Prompt the user to select a Google Account and ask for consent to share their data
                     tokenClient.requestAccessToken({ prompt: "consent" });
                 } else {
@@ -636,10 +640,10 @@
             }
 
             function handleSignOutClick() {
-                const token = gapi.client.getToken();
+                const token = window.gapi.client.getToken();
                 if (token !== null) {
-                    google.accounts.oauth2.revoke(token.access_token);
-                    gapi.client.setToken("");
+                    window.google.accounts.oauth2.revoke(token.access_token);
+                    window.gapi.client.setToken("");
                 }
                 showSignInPage();
                 updateStatus("Signed out successfully");
@@ -669,9 +673,9 @@
                 // Check if user is already signed in
                 setTimeout(() => {
                     if (
-                        gapi &&
-                        gapi.client &&
-                        gapi.client.getToken() !== null
+                        window.gapi &&
+                        window.gapi.client &&
+                        window.gapi.client.getToken() !== null
                     ) {
                         showMainApp();
                     }
