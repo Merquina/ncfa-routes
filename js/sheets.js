@@ -679,7 +679,7 @@ class SheetsAPI {
 
   async appendToChartsSheet(rowData) {
     try {
-      const range = "Charts!A:G";
+      const range = "Charts!A:D";
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
 
       const requestBody = {

@@ -1586,15 +1586,12 @@ class AssignmentsManager {
 
   async submitToChartsSheet(data) {
     try {
-      // Prepare row data
+      // Prepare row data - simplified for Charts sheet
       const rowData = [
         data.date,
-        data.routeId,
         data.location,
-        data.boxes,
-        data.lbs,
-        data.timestamp,
-        data.submittedBy,
+        data.boxes || "",
+        data.lbs || "",
       ];
 
       // Try to append directly - if Charts sheet doesn't exist, it will fail gracefully
