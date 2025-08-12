@@ -732,7 +732,14 @@ class AssignmentsManager {
               const locationName = route.dropOff || "Location TBD";
               if (locationName === "Location TBD") return locationName;
               const contact = sheetsAPI.getAddressFromContacts(locationName);
-              const type = contact && contact.Type ? contact.Type.trim() : "";
+              console.log(
+                `🔍 DEBUG Dropoff contact data for "${locationName}":`,
+                contact,
+              );
+              const type =
+                contact && (contact.Type || contact.type || contact.TYPE)
+                  ? (contact.Type || contact.type || contact.TYPE).trim()
+                  : "";
               return type ? `${locationName} - ${type}` : locationName;
             })()}</h3>
             <div style="margin-bottom: 10px;">
@@ -862,7 +869,19 @@ class AssignmentsManager {
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
               <h3 style="color: #333; margin: 0 0 15px 0;">${index + 1} - ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const type = contact && contact.Type ? contact.Type.trim() : "";
+                console.log(
+                  `🔍 DEBUG Contact data for "${stop.location}":`,
+                  contact,
+                );
+                console.log(
+                  `🔍 DEBUG Available contact keys:`,
+                  contact ? Object.keys(contact) : "null",
+                );
+                const type =
+                  contact && (contact.Type || contact.type || contact.TYPE)
+                    ? (contact.Type || contact.type || contact.TYPE).trim()
+                    : "";
+                console.log(`🔍 DEBUG Type found: "${type}"`);
                 return type ? `${stop.location} - ${type}` : stop.location;
               })()}</h3>
               <div style="margin-bottom: 10px;">
@@ -1068,7 +1087,14 @@ class AssignmentsManager {
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
               <h3 style="color: #333; margin: 0 0 15px 0;">${stops.length > 1 ? `${index + 1} - ` : ""}${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const type = contact && contact.Type ? contact.Type.trim() : "";
+                console.log(
+                  `🔍 DEBUG Delivery contact data for "${stop.location}":`,
+                  contact,
+                );
+                const type =
+                  contact && (contact.Type || contact.type || contact.TYPE)
+                    ? (contact.Type || contact.type || contact.TYPE).trim()
+                    : "";
                 return type ? `${stop.location} - ${type}` : stop.location;
               })()}</h3>
               <div style="margin-bottom: 10px;">
