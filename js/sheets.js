@@ -651,10 +651,15 @@ class SheetsAPI {
         ],
       };
 
+      const token = window.gapi.client.getToken();
+      if (!token) {
+        throw new Error("No auth token available");
+      }
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`,
+          Authorization: `Bearer ${token.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
@@ -681,10 +686,15 @@ class SheetsAPI {
         values: [rowData],
       };
 
+      const token = window.gapi.client.getToken();
+      if (!token) {
+        throw new Error("No auth token available");
+      }
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`,
+          Authorization: `Bearer ${token.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
