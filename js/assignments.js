@@ -121,16 +121,7 @@ class AssignmentsManager {
           👨‍🌾 SPFM Route
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
-          ${(() => {
-            const teamSlots = [...allTeamMembers];
-            // Fill remaining slots up to 3 with "Need worker"
-            while (teamSlots.length < 3) {
-              teamSlots.push(
-                '<span style="color: #800020; font-style: italic;">Need worker</span>',
-              );
-            }
-            return teamSlots.slice(0, 3).join(", ");
-          })()}
+          ${this.formatWorkerList(workers, volunteers, 3)}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
           ${vans.join(", ") || '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
@@ -154,9 +145,8 @@ class AssignmentsManager {
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
           ${(() => {
             const workers = sheetsAPI.getAllWorkersFromRoute(route);
-            return workers.length > 0
-              ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ")
-              : '<span style="color: #800020; font-style: italic;">Need worker</span>';
+            const volunteers = sheetsAPI.getAllVolunteers(route);
+            return this.formatWorkerList(workers, volunteers, 1);
           })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
@@ -824,7 +814,7 @@ class AssignmentsManager {
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #333; margin: 0 0 10px 0;">${routeInfo.emoji} ${routeInfo.title}</h2>
           <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || route.Time || "TBD"}</p>
-          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${this.formatWorkerListDetailed(route, workers)}</p>
           ${this.renderStaffingRequirements(route, workers)}
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -1184,12 +1174,9 @@ class AssignmentsManager {
         </div>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">
           ${(() => {
-            const workers = sheetsAPI
-              .getAllWorkersFromRoute(route)
-              .map((w) => `${this.getWorkerEmoji(w)} ${w}`);
-            return workers.length > 0
-              ? workers.join(", ")
-              : '<span style="color: #800020; font-style: italic;">Need worker</span>';
+            const workers = sheetsAPI.getAllWorkersFromRoute(route);
+            const volunteers = sheetsAPI.getAllVolunteers(route);
+            return this.formatWorkerList(workers, volunteers, 3);
           })()}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
@@ -1689,6 +1676,61 @@ class AssignmentsManager {
     return requirements.length > 0
       ? `<p style="margin: 0 0 15px 0;"><strong>Staffing:</strong> ${requirements.join(" • ")}</p>`
       : "";
+  }
+
+  formatWorkerList(workers, volunteers, required) {
+    const allTeam = [...workers, ...volunteers]
+      .filter((person) => person && person.trim())
+      .map((person) => `${this.getWorkerEmoji(person)} ${person}`);
+
+    // Add "Need worker" for missing positions
+    const teamSlots = [...allTeam];
+    while (teamSlots.length < required) {
+      teamSlots.push(
+        '<span style="color: #dc3545; font-weight: 500;">Need worker</span>',
+      );
+    }
+
+    return teamSlots.slice(0, required).join(", ");
+  }
+
+  formatWorkerListDetailed(route, workers) {
+    const volunteers = sheetsAPI.getAllVolunteers(route);
+    const allTeam = [...workers, ...volunteers].filter(
+      (person) => person && person.trim(),
+    );
+
+    if (
+      route.type === "spfm" ||
+      route.type === "spfm-delivery" ||
+      (!route.type && route.market)
+    ) {
+      // SPFM routes need 3 workers
+      const teamSlots = allTeam.map(
+        (person) => `${this.getWorkerEmoji(person)} ${person}`,
+      );
+      while (teamSlots.length < 3) {
+        teamSlots.push(
+          '<span style="color: #dc3545; font-weight: 500;">Need worker</span>',
+        );
+      }
+      return teamSlots.slice(0, 3).join(", ");
+    } else if (route.type === "recovery") {
+      // Recovery routes need 1 worker minimum
+      if (allTeam.length > 0) {
+        return allTeam
+          .map((person) => `${this.getWorkerEmoji(person)} ${person}`)
+          .join(", ");
+      } else {
+        return '<span style="color: #dc3545; font-weight: 500;">Need worker</span>';
+      }
+    }
+
+    return allTeam.length > 0
+      ? allTeam
+          .map((person) => `${this.getWorkerEmoji(person)} ${person}`)
+          .join(", ")
+      : "No workers assigned";
   }
 }
 
