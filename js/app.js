@@ -96,12 +96,7 @@ async function initializeApp() {
     });
 
     // Check if DOM elements exist
-    const elements = [
-      "boxTabBtn",
-      "dateTabBtn",
-      "workerTabBtn",
-      "chartsTabBtn",
-    ];
+    const elements = ["boxTabBtn", "dateTabBtn", "workerTabBtn"];
     elements.forEach((id) => {
       const exists = document.getElementById(id) ? "✅" : "❌";
       console.log(
@@ -586,16 +581,14 @@ function setupTabHandlers() {
   const boxBtn = document.getElementById("boxTabBtn");
   const dateBtn = document.getElementById("dateTabBtn");
   const workerBtn = document.getElementById("workerTabBtn");
-  const chartsBtn = document.getElementById("chartsTabBtn");
 
   console.log("Tab buttons found:", {
     boxBtn: !!boxBtn,
     dateBtn: !!dateBtn,
     workerBtn: !!workerBtn,
-    chartsBtn: !!chartsBtn,
   });
   updateStatus(
-    `Tab buttons: box=${!!boxBtn} date=${!!dateBtn} worker=${!!workerBtn} charts=${!!chartsBtn}`,
+    `Tab buttons: box=${!!boxBtn} date=${!!dateBtn} worker=${!!workerBtn}`,
   );
 
   // Tap/click handler with minimal interference
@@ -636,10 +629,6 @@ function setupTabHandlers() {
   addMobileHandler(boxBtn, "box");
   addMobileHandler(dateBtn, "date");
   addMobileHandler(workerBtn, "worker");
-
-  // Debug Charts button
-  console.log("🔍 Charts button element:", chartsBtn);
-  addMobileHandler(chartsBtn, "charts");
 
   console.log("✅ Tab handlers set up with mobile support");
   updateStatus("✅ Tab handlers set up");

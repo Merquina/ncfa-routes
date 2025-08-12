@@ -49,60 +49,113 @@
         <div class="container">
             <!-- Header -->
             <div class="header" style="background: #28a745; color: white">
-                <div style="text-align: center; margin-bottom: 10px">
+                <div
+                    style="
+                        position: relative;
+                        text-align: center;
+                        margin-bottom: 10px;
+                    "
+                >
+                    <!-- Hamburger Menu Button -->
+                    <button
+                        id="hamburgerMenu"
+                        onclick="toggleMenu()"
+                        style="
+                            position: absolute;
+                            top: 0;
+                            right: 10px;
+                            background: none;
+                            border: none;
+                            color: white;
+                            font-size: 1.5rem;
+                            cursor: pointer;
+                            padding: 5px;
+                            z-index: 1001;
+                        "
+                        title="Menu"
+                    >
+                        ☰
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div
+                        id="dropdownMenu"
+                        style="
+                            position: absolute;
+                            top: 35px;
+                            right: 10px;
+                            background: white;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            z-index: 1002;
+                            display: none;
+                            min-width: 200px;
+                        "
+                    >
+                        <div style="padding: 10px 0">
+                            <button
+                                onclick="signInToGoogle(); toggleMenu();"
+                                style="
+                                    width: 100%;
+                                    background: none;
+                                    border: none;
+                                    padding: 12px 20px;
+                                    text-align: left;
+                                    cursor: pointer;
+                                    font-size: 0.9rem;
+                                    color: #333;
+                                    font-family: var(--body-font);
+                                "
+                                onmouseover="this.style.backgroundColor='#f8f9fa'"
+                                onmouseout="this.style.backgroundColor='transparent'"
+                            >
+                                🔐 Sign in to Google
+                            </button>
+                            <button
+                                onclick="openBackendData(); toggleMenu();"
+                                style="
+                                    width: 100%;
+                                    background: none;
+                                    border: none;
+                                    padding: 12px 20px;
+                                    text-align: left;
+                                    cursor: pointer;
+                                    font-size: 0.9rem;
+                                    color: #333;
+                                    font-family: var(--body-font);
+                                "
+                                onmouseover="this.style.backgroundColor='#f8f9fa'"
+                                onmouseout="this.style.backgroundColor='transparent'"
+                            >
+                                📊 Backend Data
+                            </button>
+                            <button
+                                onclick="switchTab('charts', true); toggleMenu();"
+                                style="
+                                    width: 100%;
+                                    background: none;
+                                    border: none;
+                                    padding: 12px 20px;
+                                    text-align: left;
+                                    cursor: pointer;
+                                    font-size: 0.9rem;
+                                    color: #333;
+                                    font-family: var(--body-font);
+                                "
+                                onmouseover="this.style.backgroundColor='#f8f9fa'"
+                                onmouseout="this.style.backgroundColor='transparent'"
+                            >
+                                📊 Charts
+                            </button>
+                        </div>
+                    </div>
+
                     <h1 style="margin: 0 0 5px 0">
                         North Country Food Alliance
                     </h1>
                     <div style="font-size: 1.2rem; margin: 5px 0">🥕 🥒 🥬</div>
                     <p style="margin: 5px 0 10px 0">SPFM and Recovery Routes</p>
-                    <div
-                        style="
-                            display: flex;
-                            justify-content: center;
-                            gap: 10px;
-                        "
-                    >
-                        <button
-                            onclick="signInToGoogle()"
-                            style="
-                                background: rgba(255, 255, 255, 0.2);
-                                color: white;
-                                border: 1px solid rgba(255, 255, 255, 0.3);
-                                padding: 8px 12px;
-                                border-radius: 4px;
-                                cursor: pointer;
-                                font-size: 0.85rem;
-                                font-family:
-                                    &quot;Atkinson Hyperlegible&quot;,
-                                    sans-serif;
-                                transition: background-color 0.2s;
-                            "
-                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'"
-                            onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'"
-                        >
-                            🔐 Sign in to Google
-                        </button>
-                        <button
-                            onclick="openBackendData()"
-                            style="
-                                background: rgba(255, 255, 255, 0.2);
-                                color: white;
-                                border: 1px solid rgba(255, 255, 255, 0.3);
-                                padding: 8px 12px;
-                                border-radius: 4px;
-                                cursor: pointer;
-                                font-size: 0.85rem;
-                                font-family:
-                                    &quot;Atkinson Hyperlegible&quot;,
-                                    sans-serif;
-                                transition: background-color 0.2s;
-                            "
-                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'"
-                            onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'"
-                        >
-                            📊 Backend Data
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -191,14 +244,6 @@
                 <button id="workerTabBtn" class="tab-btn">
                     <div class="tab-icon">👥</div>
                     <div class="tab-label">By Worker</div>
-                </button>
-                <button
-                    id="chartsTabBtn"
-                    class="tab-btn"
-                    onclick="console.log('Charts clicked directly'); switchTab('charts', true);"
-                >
-                    <div class="tab-icon">📊</div>
-                    <div class="tab-label">Charts</div>
                 </button>
             </div>
         </div>
@@ -458,6 +503,32 @@
                 const sheetsUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
                 window.open(sheetsUrl, "_blank");
             }
+
+            function toggleMenu() {
+                const menu = document.getElementById("dropdownMenu");
+                if (
+                    menu.style.display === "none" ||
+                    menu.style.display === ""
+                ) {
+                    menu.style.display = "block";
+                } else {
+                    menu.style.display = "none";
+                }
+            }
+
+            // Close menu when clicking outside
+            document.addEventListener("click", function (event) {
+                const menu = document.getElementById("dropdownMenu");
+                const hamburger = document.getElementById("hamburgerMenu");
+                if (
+                    menu &&
+                    hamburger &&
+                    !menu.contains(event.target) &&
+                    !hamburger.contains(event.target)
+                ) {
+                    menu.style.display = "none";
+                }
+            });
         </script>
     </body>
 </html>

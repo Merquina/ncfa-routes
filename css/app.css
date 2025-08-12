@@ -576,17 +576,35 @@ body {
     }
 }
 
-/* Global Font Overrides */
-button,
-input,
-select,
-textarea,
-.tab-btn,
-.tab-label,
-.directions-btn,
-.print-btn,
-.phone-btn {
+/* Hamburger Menu */
+#hamburgerMenu {
     font-family: var(--body-font) !important;
+    transition: color 0.2s ease;
+}
+
+#hamburgerMenu:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+#dropdownMenu {
+    animation: slideDown 0.2s ease-out;
+    transform-origin: top right;
+}
+
+#dropdownMenu button {
+    transition: background-color 0.2s ease;
+    font-family: var(--body-font) !important;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* Utility Classes */
