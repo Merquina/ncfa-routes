@@ -18,6 +18,10 @@
             rel="stylesheet"
         />
 
+        <!-- Google APIs -->
+        <script src="https://apis.google.com/js/api.js"></script>
+        <script src="https://accounts.google.com/gsi/client"></script>
+
         <!-- Performance: Preconnect for Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -95,7 +99,8 @@
                     >
                         <div style="padding: 10px 0">
                             <button
-                                onclick="signInToGoogle(); toggleMenu();"
+                                id="signInButton"
+                                onclick="handleSignInClick(); toggleMenu();"
                                 style="
                                     width: 100%;
                                     background: none;
@@ -491,10 +496,85 @@
             }, 3000);
 
             // Header button functions
-            function signInToGoogle() {
-                // TODO: Implement OAuth Google Sign-In
-                alert("Google Sign-In will be implemented here");
+            // OAuth Configuration
+            const DISCOVERY_DOC =
+                "https://sheets.googleapis.com/$discovery/rest?version=v4";
+            const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+
+            let gapi;
+            let google;
+            let tokenClient;
+            let gapiInited = false;
+            let gisInited = false;
+
+            // Initialize Google APIs
+            function gapiLoaded() {
+                gapi.load("client", initializeGapiClient);
             }
+
+            async function initializeGapiClient() {
+                await gapi.client.init({
+                    apiKey: "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s",
+                    discoveryDocs: [DISCOVERY_DOC],
+                });
+                gapiInited = true;
+                maybeEnableButtons();
+            }
+
+            function gisLoaded() {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id:
+                        "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com",
+                    scope: SCOPES,
+                    callback: "", // defined later
+                });
+                gisInited = true;
+                maybeEnableButtons();
+            }
+
+            function maybeEnableButtons() {
+                if (gapiInited && gisInited) {
+                    updateSignInStatus();
+                }
+            }
+
+            function updateSignInStatus() {
+                const signInButton = document.getElementById("signInButton");
+                if (gapi.client.getToken() === null) {
+                    signInButton.innerHTML = "🔐 Sign in to Google";
+                } else {
+                    signInButton.innerHTML = "✅ Signed in";
+                }
+            }
+
+            function handleSignInClick() {
+                tokenClient.callback = async (resp) => {
+                    if (resp.error !== undefined) {
+                        throw resp;
+                    }
+                    updateSignInStatus();
+                    updateStatus("✅ Signed in to Google successfully");
+                };
+
+                if (gapi.client.getToken() === null) {
+                    // Prompt the user to select a Google Account and ask for consent to share their data
+                    tokenClient.requestAccessToken({ prompt: "consent" });
+                } else {
+                    // Skip display of account chooser and consent dialog for an existing session.
+                    tokenClient.requestAccessToken({ prompt: "" });
+                }
+            }
+
+            // Legacy function for compatibility
+            function signInToGoogle() {
+                handleSignInClick();
+            }
+
+            // Initialize APIs when page loads
+            window.onload = function () {
+                gapiLoaded();
+                gisLoaded();
+            };
 
             function openBackendData() {
                 // Open the Google Sheets document in a new tab
