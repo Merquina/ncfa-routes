@@ -290,9 +290,18 @@ class SheetsAPI {
     while (route[`worker${i}`]) {
       const worker = route[`worker${i}`].trim();
       console.log(`🔍 DEBUG getAllWorkers - worker${i}: "${worker}"`);
-      if (worker && !flexibleTextMatch(worker, "cancelled")) {
+      // Skip header rows that have literal column names as values
+      if (
+        worker &&
+        !flexibleTextMatch(worker, "cancelled") &&
+        worker !== `worker${i}`
+      ) {
         workers.push(worker);
         console.log(`🔍 DEBUG getAllWorkers - Added worker: "${worker}"`);
+      } else if (worker === `worker${i}`) {
+        console.log(
+          `🔍 DEBUG getAllWorkers - Skipping header row with literal column name: "${worker}"`,
+        );
       }
       i++;
     }
@@ -335,7 +344,8 @@ class SheetsAPI {
     let i = 1;
     while (route[`volunteer${i}`]) {
       const volunteer = route[`volunteer${i}`].trim();
-      if (volunteer) {
+      // Skip header rows that have literal column names as values
+      if (volunteer && volunteer !== `volunteer${i}`) {
         volunteers.push(volunteer);
       }
       i++;
@@ -544,16 +554,45 @@ class SheetsAPI {
     // Get workers from SPFM data
     this.data.forEach((route) => {
       const routeWorkers = this.getAllWorkersFromRoute(route);
+      const routeVolunteers = this.getAllVolunteers(route);
+
       routeWorkers.forEach((worker) => {
         workers.add(worker);
+      });
+
+      // Add volunteers as they are also workers
+      routeVolunteers.forEach((volunteer) => {
+        workers.add(volunteer);
       });
     });
 
     // Get workers from Recovery data
     this.recoveryData.forEach((route) => {
       const routeWorkers = this.getAllWorkersFromRoute(route);
+      const routeVolunteers = this.getAllVolunteers(route);
+
       routeWorkers.forEach((worker) => {
         workers.add(worker);
+      });
+
+      // Add volunteers as they are also workers
+      routeVolunteers.forEach((volunteer) => {
+        workers.add(volunteer);
+      });
+    });
+
+    // Get workers from Delivery data
+    this.deliveryData.forEach((route) => {
+      const routeWorkers = this.getAllWorkersFromRoute(route);
+      const routeVolunteers = this.getAllVolunteers(route);
+
+      routeWorkers.forEach((worker) => {
+        workers.add(worker);
+      });
+
+      // Add volunteers as they are also workers
+      routeVolunteers.forEach((volunteer) => {
+        workers.add(volunteer);
       });
     });
 
