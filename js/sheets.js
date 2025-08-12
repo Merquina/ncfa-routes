@@ -294,7 +294,8 @@ class SheetsAPI {
       if (
         workerCell &&
         !flexibleTextMatch(workerCell, "cancelled") &&
-        workerCell !== `worker${i}`
+        workerCell !== `worker${i}` &&
+        !this.isColumnHeaderName(workerCell)
       ) {
         // Split comma-separated names into individual workers
         const individualWorkers = workerCell
@@ -319,7 +320,11 @@ class SheetsAPI {
       console.log(
         `🔍 DEBUG getAllWorkers - Found single worker column: "${singleWorker}"`,
       );
-      if (singleWorker && !flexibleTextMatch(singleWorker, "cancelled")) {
+      if (
+        singleWorker &&
+        !flexibleTextMatch(singleWorker, "cancelled") &&
+        !this.isColumnHeaderName(singleWorker)
+      ) {
         workers.push(singleWorker);
         console.log(
           `🔍 DEBUG getAllWorkers - Added single worker: "${singleWorker}"`,
@@ -619,6 +624,82 @@ class SheetsAPI {
     });
 
     return Array.from(workers).sort();
+  }
+
+  // Helper method to identify common column header names that should not be treated as workers
+  isColumnHeaderName(text) {
+    if (!text || typeof text !== "string") return false;
+
+    const headerPatterns = [
+      "food from",
+      "foodfrom",
+      "food_from",
+      "food source",
+      "source",
+      "from",
+      "worker1",
+      "worker2",
+      "worker3",
+      "worker4",
+      "worker5",
+      "worker",
+      "volunteer",
+      "volunteers",
+      "volunteer1",
+      "volunteer2",
+      "date",
+      "time",
+      "location",
+      "address",
+      "route",
+      "delivery",
+      "pickup",
+      "dropoff",
+      "drop off",
+      "drop-off",
+      "market",
+      "vendor",
+      "client",
+      "organization",
+      "notes",
+      "comments",
+      "status",
+      "cancelled",
+      "canceled",
+      "phone",
+      "email",
+      "contact",
+      "quantity",
+      "amount",
+      "pounds",
+      "lbs",
+      "weight",
+      "items",
+      "food type",
+      "type",
+      "description",
+      "details",
+      "instructions",
+      "van",
+      "vehicle",
+      "driver",
+      "team",
+      "assignment",
+      "task",
+    ];
+
+    const normalizedText = text.toLowerCase().trim();
+
+    // Check exact matches and contains matches
+    return headerPatterns.some(
+      (pattern) =>
+        normalizedText === pattern ||
+        normalizedText.includes(pattern) ||
+        // Also check if the text looks like a column header pattern (starts with common prefixes)
+        normalizedText.startsWith("worker") ||
+        normalizedText.startsWith("volunteer") ||
+        normalizedText.startsWith("food"),
+    );
   }
 
   getWorkerAssignments(workerName) {

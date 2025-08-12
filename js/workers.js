@@ -56,6 +56,12 @@ class WorkersManager {
   selectWorker(worker) {
     this.currentWorker = worker;
 
+    // Scroll to top first when worker is selected
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
     // Update UI
     document.querySelectorAll(".worker-card").forEach((card) => {
       card.classList.remove("selected");
@@ -83,19 +89,6 @@ class WorkersManager {
     // Small delay for loading effect
     setTimeout(() => {
       assignmentsManager.renderWorkerAssignments(worker, assignments);
-
-      // Scroll to assignments after rendering (like Screen 2)
-      setTimeout(() => {
-        const assignmentsContainer = document.getElementById(
-          "assignmentsContainer",
-        );
-        if (assignmentsContainer) {
-          assignmentsContainer.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }
-      }, 500);
     }, 100);
   }
 
