@@ -50,7 +50,74 @@
     </head>
 
     <body>
-        <div class="container">
+        <!-- Sign-in Landing Page -->
+        <div id="signInPage" class="container" style="display: block">
+            <div class="header" style="background: #28a745; color: white">
+                <div style="text-align: center; padding: 20px">
+                    <h1 style="margin: 0 0 10px 0">
+                        North Country Food Alliance
+                    </h1>
+                    <div style="font-size: 1.2rem; margin: 10px 0">
+                        🥕 🥒 🥬
+                    </div>
+                    <p style="margin: 10px 0 20px 0; font-size: 1.1rem">
+                        SPFM and Recovery Routes
+                    </p>
+                </div>
+            </div>
+
+            <div
+                style="
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px;
+                "
+            >
+                <div style="text-align: center; max-width: 400px">
+                    <div style="font-size: 4rem; margin-bottom: 20px">🔐</div>
+                    <h2 style="margin: 0 0 15px 0; color: #333">Welcome!</h2>
+                    <p
+                        style="
+                            margin: 0 0 30px 0;
+                            color: #666;
+                            line-height: 1.5;
+                        "
+                    >
+                        Please sign in with your Google account to access the
+                        SPFM Routes application.
+                    </p>
+                    <button
+                        id="signInButton"
+                        onclick="handleSignInClick()"
+                        style="
+                            background: #4285f4;
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 6px;
+                            font-size: 1rem;
+                            cursor: pointer;
+                            font-family: var(--body-font);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                            transition: background-color 0.2s;
+                        "
+                        onmouseover="this.style.backgroundColor='#3367d6'"
+                        onmouseout="this.style.backgroundColor='#4285f4'"
+                    >
+                        🔐 Sign in with Google
+                    </button>
+                    <div
+                        id="signInStatus"
+                        style="margin-top: 20px; color: #666; font-size: 0.9rem"
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App (hidden until signed in) -->
+        <div id="mainApp" class="container" style="display: none">
             <!-- Header -->
             <div class="header" style="background: #28a745; color: white">
                 <div
@@ -99,8 +166,7 @@
                     >
                         <div style="padding: 10px 0">
                             <button
-                                id="signInButton"
-                                onclick="handleSignInClick(); toggleMenu();"
+                                onclick="handleSignOutClick(); toggleMenu();"
                                 style="
                                     width: 100%;
                                     background: none;
@@ -115,7 +181,7 @@
                                 onmouseover="this.style.backgroundColor='#f8f9fa'"
                                 onmouseout="this.style.backgroundColor='transparent'"
                             >
-                                🔐 Sign in to Google
+                                🚪 Sign Out
                             </button>
                             <button
                                 onclick="openBackendData(); toggleMenu();"
@@ -539,21 +605,25 @@
             }
 
             function updateSignInStatus() {
-                const signInButton = document.getElementById("signInButton");
-                if (gapi.client.getToken() === null) {
-                    signInButton.innerHTML = "🔐 Sign in to Google";
-                } else {
-                    signInButton.innerHTML = "✅ Signed in";
+                if (gapi.client.getToken() !== null) {
+                    // User is signed in, show main app
+                    showMainApp();
                 }
             }
 
             function handleSignInClick() {
+                document.getElementById("signInStatus").textContent =
+                    "Signing in...";
+
                 tokenClient.callback = async (resp) => {
                     if (resp.error !== undefined) {
+                        document.getElementById("signInStatus").textContent =
+                            "Sign in failed. Please try again.";
                         throw resp;
                     }
                     updateSignInStatus();
                     updateStatus("✅ Signed in to Google successfully");
+                    showMainApp();
                 };
 
                 if (gapi.client.getToken() === null) {
@@ -565,6 +635,27 @@
                 }
             }
 
+            function handleSignOutClick() {
+                const token = gapi.client.getToken();
+                if (token !== null) {
+                    google.accounts.oauth2.revoke(token.access_token);
+                    gapi.client.setToken("");
+                }
+                showSignInPage();
+                updateStatus("Signed out successfully");
+            }
+
+            function showMainApp() {
+                document.getElementById("signInPage").style.display = "none";
+                document.getElementById("mainApp").style.display = "flex";
+            }
+
+            function showSignInPage() {
+                document.getElementById("signInPage").style.display = "flex";
+                document.getElementById("mainApp").style.display = "none";
+                document.getElementById("signInStatus").textContent = "";
+            }
+
             // Legacy function for compatibility
             function signInToGoogle() {
                 handleSignInClick();
@@ -574,6 +665,17 @@
             window.onload = function () {
                 gapiLoaded();
                 gisLoaded();
+
+                // Check if user is already signed in
+                setTimeout(() => {
+                    if (
+                        gapi &&
+                        gapi.client &&
+                        gapi.client.getToken() !== null
+                    ) {
+                        showMainApp();
+                    }
+                }, 1000);
             };
 
             function openBackendData() {
