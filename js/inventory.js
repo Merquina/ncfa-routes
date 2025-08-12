@@ -151,21 +151,20 @@ class InventoryManager {
     try {
       console.log("📦 Attempting to load inventory from Google Sheets...");
 
-      // Check if user is signed in (will implement OAuth)
-      if (!window.gapi || !window.gapi.auth2) {
+      // Check if user is signed in (OAuth)
+      if (!window.gapi || !window.gapi.client) {
         console.log(
           "📱 Google API not loaded or user not signed in, using localStorage",
         );
         return this.getLocalInventory();
       }
 
-      const authInstance = window.gapi.auth2.getAuthInstance();
-      if (!authInstance.isSignedIn.get()) {
+      if (!window.gapi.client.getToken()) {
         console.log("📱 User not signed in, using localStorage");
         return this.getLocalInventory();
       }
 
-      // Use Google Sheets API with OAuth (to be implemented)
+      // Use Google Sheets API with OAuth
       const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
       const range = "Inventory!A2:E2";
 
@@ -211,12 +210,11 @@ class InventoryManager {
   async saveInventoryToSheets(inventory) {
     try {
       // Check if user is signed in (OAuth)
-      if (!window.gapi || !window.gapi.auth2) {
+      if (!window.gapi || !window.gapi.client) {
         throw new Error("Google API not loaded. Please sign in first.");
       }
 
-      const authInstance = window.gapi.auth2.getAuthInstance();
-      if (!authInstance.isSignedIn.get()) {
+      if (!window.gapi.client.getToken()) {
         throw new Error("Please sign in to Google first.");
       }
 

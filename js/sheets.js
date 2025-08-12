@@ -491,7 +491,10 @@ class SheetsAPI {
         Location: contact.Location,
         Address: contact.Address,
         Phone: contact.Phone,
+        Type: contact.Type,
+        AllKeys: Object.keys(contact),
       });
+      console.log(`🔍 DEBUG Type value for "${name}": "${contact.Type}"`);
       const finalAddress = contact.Address || contact.Location || "";
 
       // Get all numbered contacts and phones
