@@ -917,11 +917,59 @@ class AssignmentsManager {
                   const contact = sheetsAPI.getAddressFromContacts(
                     stop.location,
                   );
-                  return contact && contact.phone
-                    ? `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contact.phone}</button>`
-                    : "";
+                  if (!contact) return "";
+
+                  // Show all phone numbers with contact names
+                  if (contact.phones && contact.phones.length > 0) {
+                    return contact.phones
+                      .map((phone, index) => {
+                        const contactName =
+                          contact.contacts && contact.contacts[index]
+                            ? contact.contacts[index]
+                            : contact.contactName || `Contact ${index + 1}`;
+                        return `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">📞 ${contactName} - ${phone}</button>`;
+                      })
+                      .join("");
+                  } else if (contact.phone) {
+                    const contactName = contact.contactName || "Contact";
+                    return `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contactName} - ${contact.phone}</button>`;
+                  }
+                  return "";
                 })()}
               </div>
+              ${(() => {
+                // Add pickup tracking form for Market locations
+                const contact = sheetsAPI.getAddressFromContacts(stop.location);
+                const type =
+                  contact && (contact.Type || contact.type || contact.TYPE)
+                    ? (contact.Type || contact.type || contact.TYPE).trim()
+                    : "";
+
+                if (type.toLowerCase() === "market") {
+                  const routeId = route._routeId || route.routeId || "unknown";
+                  return `
+                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #28a745;">
+                      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 0.9em; color: #495057; font-weight: 500;">📦 Pickup:</span>
+                        <input type="number" id="boxes_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                               placeholder="Boxes" min="0" step="1"
+                               onchange="assignmentsManager.handlePickupInputChange('boxes', '${routeId}', '${stop.location}')"
+                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+                        <span style="color: #6c757d; font-size: 0.85em;">or</span>
+                        <input type="number" id="lbs_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                               placeholder="Lbs" min="0" step="0.1"
+                               onchange="assignmentsManager.handlePickupInputChange('lbs', '${routeId}', '${stop.location}')"
+                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+                        <button onclick="assignmentsManager.submitPickupData('${routeId}', '${stop.location}', '${route.date || ""}')"
+                                style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; height: 32px;">
+                          💾 Log
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }
+                return "";
+              })()}
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 const routeContacts = sheetsAPI.getAllRouteContacts(route);
@@ -1139,11 +1187,59 @@ class AssignmentsManager {
                   const contact = sheetsAPI.getAddressFromContacts(
                     stop.location,
                   );
-                  return contact && contact.phone
-                    ? `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contact.phone}</button>`
-                    : "";
+                  if (!contact) return "";
+
+                  // Show all phone numbers with contact names
+                  if (contact.phones && contact.phones.length > 0) {
+                    return contact.phones
+                      .map((phone, index) => {
+                        const contactName =
+                          contact.contacts && contact.contacts[index]
+                            ? contact.contacts[index]
+                            : contact.contactName || `Contact ${index + 1}`;
+                        return `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">📞 ${contactName} - ${phone}</button>`;
+                      })
+                      .join("");
+                  } else if (contact.phone) {
+                    const contactName = contact.contactName || "Contact";
+                    return `<button onclick="window.open('tel:${contact.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contactName} - ${contact.phone}</button>`;
+                  }
+                  return "";
                 })()}
               </div>
+              ${(() => {
+                // Add pickup tracking form for Market locations
+                const contact = sheetsAPI.getAddressFromContacts(stop.location);
+                const type =
+                  contact && (contact.Type || contact.type || contact.TYPE)
+                    ? (contact.Type || contact.type || contact.TYPE).trim()
+                    : "";
+
+                if (type.toLowerCase() === "market") {
+                  const routeId = route._routeId || route.routeId || "unknown";
+                  return `
+                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #28a745;">
+                      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 0.9em; color: #495057; font-weight: 500;">📦 Pickup:</span>
+                        <input type="number" id="boxes_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                               placeholder="Boxes" min="0" step="1"
+                               onchange="assignmentsManager.handlePickupInputChange('boxes', '${routeId}', '${stop.location}')"
+                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+                        <span style="color: #6c757d; font-size: 0.85em;">or</span>
+                        <input type="number" id="lbs_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                               placeholder="Lbs" min="0" step="0.1"
+                               onchange="assignmentsManager.handlePickupInputChange('lbs', '${routeId}', '${stop.location}')"
+                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+                        <button onclick="assignmentsManager.submitPickupData('${routeId}', '${stop.location}', '${route.date || ""}')"
+                                style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; height: 32px;">
+                          💾 Log
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }
+                return "";
+              })()}
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 const notes = contact && contact.notes ? contact.notes : "";
@@ -1246,13 +1342,16 @@ class AssignmentsManager {
         .join("");
     }
 
-    // Show all phone numbers
+    // Show all phone numbers with contact names
     if (phones.length > 0) {
       html += phones
-        .map(
-          (phone, index) =>
-            `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`,
-        )
+        .map((phone, index) => {
+          const contactName =
+            contacts && contacts[index]
+              ? contacts[index]
+              : `Contact ${index + 1}`;
+          return `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${contactName} - ${phone}</button>`;
+        })
         .join("");
     }
 
@@ -1277,19 +1376,151 @@ class AssignmentsManager {
       html += `<p style="margin-bottom: 5px;"><strong>Contact:</strong> ${contactData.contactName}</p>`;
     }
 
-    // Show all phone numbers from contacts sheet
+    // Show all phone numbers from contacts sheet with contact names
     if (contactData.phones && contactData.phones.length > 0) {
       html += contactData.phones
-        .map(
-          (phone, index) =>
-            `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${phone}</button>`,
-        )
+        .map((phone, index) => {
+          const contactName =
+            contactData.contacts && contactData.contacts[index]
+              ? contactData.contacts[index]
+              : contactData.contactName || `Contact ${index + 1}`;
+          return `<button onclick="window.open('tel:${phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${contactName} - ${phone}</button>`;
+        })
         .join("");
     } else if (contactData.phone) {
-      html += `<button onclick="window.open('tel:${contactData.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${contactData.phone}</button>`;
+      const contactName = contactData.contactName || "Contact";
+      html += `<button onclick="window.open('tel:${contactData.phone}', '_blank')" style="background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin: 2px;">📞 ${contactName} - ${contactData.phone}</button>`;
     }
 
     return html;
+  }
+
+  // ========================================
+  // PICKUP TRACKING
+  // ========================================
+
+  async submitPickupData(routeId, location, date) {
+    try {
+      const safeLocation = location.replace(/[^a-zA-Z0-9]/g, "_");
+      const boxesInput = document.getElementById(
+        `boxes_${routeId}_${safeLocation}`,
+      );
+      const lbsInput = document.getElementById(
+        `lbs_${routeId}_${safeLocation}`,
+      );
+
+      const boxes = boxesInput ? parseFloat(boxesInput.value) || 0 : 0;
+      const lbs = lbsInput ? parseFloat(lbsInput.value) || 0 : 0;
+
+      if (boxes === 0 && lbs === 0) {
+        alert("Please enter either boxes or lbs amount");
+        return;
+      }
+
+      // Prepare data for Charts sheet
+      const pickupData = {
+        date: date,
+        routeId: routeId,
+        location: location,
+        boxes: boxes || "",
+        lbs: lbs || "",
+        timestamp: new Date().toLocaleString(),
+        submittedBy: "User", // Could be enhanced to get actual user name
+      };
+
+      console.log("📊 Submitting pickup data:", pickupData);
+
+      // Submit to Charts sheet
+      const success = await this.submitToChartsSheet(pickupData);
+
+      if (success) {
+        // Clear the inputs
+        if (boxesInput) boxesInput.value = "";
+        if (lbsInput) lbsInput.value = "";
+
+        // Show success feedback
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = "✅ Logged!";
+        button.style.background = "#218838";
+
+        setTimeout(() => {
+          button.innerHTML = originalText;
+          button.style.background = "#28a745";
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("❌ Error submitting pickup data:", error);
+      alert("Error logging pickup data. Please try again.");
+    }
+  }
+
+  async submitToChartsSheet(data) {
+    try {
+      // First, ensure Charts sheet exists
+      await this.ensureChartsSheet();
+
+      // Prepare row data
+      const rowData = [
+        data.date,
+        data.routeId,
+        data.location,
+        data.boxes,
+        data.lbs,
+        data.timestamp,
+        data.submittedBy,
+      ];
+
+      // Append to Charts sheet
+      const success = await sheetsAPI.appendToChartsSheet(rowData);
+      return success;
+    } catch (error) {
+      console.error("❌ Error in submitToChartsSheet:", error);
+      return false;
+    }
+  }
+
+  async ensureChartsSheet() {
+    try {
+      // Check if Charts sheet exists, if not create it with headers
+      const sheets = await sheetsAPI.listSheetsInSpreadsheet();
+      const chartsExists = sheets.some((sheet) => sheet.title === "Charts");
+
+      if (!chartsExists) {
+        console.log("📊 Creating Charts sheet...");
+        await sheetsAPI.createChartsSheet();
+
+        // Add headers
+        const headers = [
+          "Date",
+          "Route ID",
+          "Location",
+          "Boxes",
+          "Lbs",
+          "Timestamp",
+          "Submitted By",
+        ];
+        await sheetsAPI.appendToChartsSheet(headers);
+      }
+    } catch (error) {
+      console.error("❌ Error ensuring Charts sheet exists:", error);
+      throw error;
+    }
+  }
+
+  // Handle mutual exclusivity between boxes and lbs inputs
+  handlePickupInputChange(inputType, routeId, location) {
+    const safeLocation = location.replace(/[^a-zA-Z0-9]/g, "_");
+    const boxesInput = document.getElementById(
+      `boxes_${routeId}_${safeLocation}`,
+    );
+    const lbsInput = document.getElementById(`lbs_${routeId}_${safeLocation}`);
+
+    if (inputType === "boxes" && boxesInput && boxesInput.value) {
+      if (lbsInput) lbsInput.value = "";
+    } else if (inputType === "lbs" && lbsInput && lbsInput.value) {
+      if (boxesInput) boxesInput.value = "";
+    }
   }
 }
 

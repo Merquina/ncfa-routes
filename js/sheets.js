@@ -120,13 +120,13 @@ class SheetsAPI {
   async fetchDeliveryData() {
     try {
       // Try to fetch SPFM delivery routes from the "SPFM Delivery" sheet tab
-      const deliveryRange = "SPFM Delivery!A:P";
+      const deliveryRange = "SPFM_Delivery!A:P";
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${deliveryRange}?key=${API_KEY}`;
       console.log("🚚 Attempting to fetch SPFM delivery routes...");
 
       const response = await this.fetchWithRetry(url);
       if (!response.ok) {
-        console.log("SPFM Delivery tab not found - skipping delivery routes");
+        console.log("SPFM_Delivery tab not found - skipping delivery routes");
         return;
       }
 
@@ -523,6 +523,7 @@ class SheetsAPI {
           contact.Notes ||
           contact.notes ||
           "",
+        type: contact.Type || contact.type || contact.TYPE || "",
       };
     } else {
       console.log(`🔍 Debug: No contact found for "${name}"`);
@@ -611,6 +612,94 @@ class SheetsAPI {
       }
     });
     return Array.from(dates).sort();
+  }
+
+  // ========================================
+  // CHARTS SHEET MANAGEMENT
+  // ========================================
+
+  async listSheetsInSpreadsheet() {
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.sheets.map((sheet) => ({ title: sheet.properties.title }));
+    } catch (error) {
+      console.error("❌ Error listing sheets:", error);
+      return [];
+    }
+  }
+
+  async createChartsSheet() {
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}:batchUpdate?key=${API_KEY}`;
+
+      const requestBody = {
+        requests: [
+          {
+            addSheet: {
+              properties: {
+                title: "Charts",
+              },
+            },
+          },
+        ],
+      };
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log("✅ Charts sheet created successfully");
+      return true;
+    } catch (error) {
+      console.error("❌ Error creating Charts sheet:", error);
+      throw error;
+    }
+  }
+
+  async appendToChartsSheet(rowData) {
+    try {
+      const range = "Charts!A:G";
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
+
+      const requestBody = {
+        values: [rowData],
+      };
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log("✅ Data appended to Charts sheet successfully");
+      return true;
+    } catch (error) {
+      console.error("❌ Error appending to Charts sheet:", error);
+      return false;
+    }
   }
 }
 
