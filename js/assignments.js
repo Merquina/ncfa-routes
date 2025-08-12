@@ -881,19 +881,19 @@ class AssignmentsManager {
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 const routeContacts = sheetsAPI.getAllRouteContacts(route);
-                const contactName =
-                  contact && contact.contactName ? contact.contactName : "";
+                const routePhones = sheetsAPI.getAllRoutePhones(route);
                 const notes = contact && contact.notes ? contact.notes : "";
 
                 let notesContent = "";
-                // Add contact name from Contacts sheet first
-                if (contactName && contactName.trim()) {
-                  notesContent += `• Contact: ${contactName.trim()}`;
-                }
-                // Add contact persons from route data (contact1, contact2, etc.) only if they have values
+                // Add contact persons from route data (contact1, contact2, etc.) only if corresponding phone is available
                 if (routeContacts.length > 0) {
                   routeContacts.forEach((contactPerson, index) => {
-                    if (contactPerson && contactPerson.trim()) {
+                    if (
+                      contactPerson &&
+                      contactPerson.trim() &&
+                      routePhones[index] &&
+                      routePhones[index].trim()
+                    ) {
                       if (notesContent) notesContent += "<br>";
                       notesContent += `• Contact person: ${contactPerson.trim()}`;
                     }
@@ -1086,18 +1086,13 @@ class AssignmentsManager {
               </div>
               ${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const contactName =
-                  contact && contact.contactName ? contact.contactName : "";
                 const notes = contact && contact.notes ? contact.notes : "";
 
                 let notesContent = "";
-                // Add contact name from Contacts sheet first
-                if (contactName && contactName.trim()) {
-                  notesContent += `• Contact: ${contactName.trim()}`;
-                }
-                // Add contact person from stop-specific contact
+                // Add contact person from stop-specific contact only if there's a corresponding phone
                 if (stop.contact && stop.contact.trim()) {
-                  if (notesContent) notesContent += "<br>";
+                  // For delivery routes, we need to check stop-specific phones, but they're not implemented yet
+                  // For now, just show the contact person if it exists
                   notesContent += `• Contact person: ${stop.contact.trim()}`;
                 }
                 // Add notes from contacts sheet
