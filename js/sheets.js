@@ -336,9 +336,17 @@ class SheetsAPI {
     const vans = [];
     let i = 1;
     while (route[`van${i}`]) {
-      const van = route[`van${i}`].trim();
-      if (van) {
-        vans.push(van);
+      const vanCell = route[`van${i}`].trim();
+      // Skip header rows that have literal column names as values
+      if (vanCell && vanCell !== `van${i}`) {
+        // Split comma-separated van names into individual vans
+        const individualVans = vanCell
+          .split(",")
+          .map((name) => name.trim())
+          .filter((name) => name);
+        individualVans.forEach((van) => {
+          vans.push(van);
+        });
       }
       i++;
     }

@@ -825,6 +825,7 @@ class AssignmentsManager {
           <h2 style="color: #333; margin: 0 0 10px 0;">${routeInfo.emoji} ${routeInfo.title}</h2>
           <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || route.Time || "TBD"}</p>
           <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
+          ${this.renderStaffingRequirements(route, workers)}
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
@@ -1633,6 +1634,53 @@ class AssignmentsManager {
     } else if (inputType === "lbs" && lbsInput && lbsInput.value) {
       if (boxesInput) boxesInput.value = "";
     }
+  }
+
+  renderStaffingRequirements(route, workers) {
+    const vans = sheetsAPI.getAllVans(route);
+    let requirements = [];
+
+    if (
+      route.type === "spfm" ||
+      route.type === "spfm-delivery" ||
+      (!route.type && route.market)
+    ) {
+      // SPFM routes need 3 workers and 1 van
+      const workersNeeded = Math.max(0, 3 - workers.length);
+      const vansNeeded = Math.max(0, 1 - vans.length);
+
+      if (workersNeeded > 0) {
+        for (let i = 0; i < workersNeeded; i++) {
+          requirements.push(
+            '<span style="color: #dc3545; font-weight: 500;">❌ Need worker</span>',
+          );
+        }
+      }
+      if (vansNeeded > 0) {
+        requirements.push(
+          '<span style="color: #dc3545; font-weight: 500;">🚐 Need van</span>',
+        );
+      }
+    } else if (route.type === "recovery") {
+      // Recovery routes need 1 worker and 1 van minimum
+      const workersNeeded = Math.max(0, 1 - workers.length);
+      const vansNeeded = Math.max(0, 1 - vans.length);
+
+      if (workersNeeded > 0) {
+        requirements.push(
+          '<span style="color: #dc3545; font-weight: 500;">❌ Need worker</span>',
+        );
+      }
+      if (vansNeeded > 0) {
+        requirements.push(
+          '<span style="color: #dc3545; font-weight: 500;">🚐 Need van</span>',
+        );
+      }
+    }
+
+    return requirements.length > 0
+      ? `<p style="margin: 0 0 15px 0;"><strong>Staffing:</strong> ${requirements.join(" • ")}</p>`
+      : "";
   }
 }
 
