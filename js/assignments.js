@@ -862,6 +862,7 @@ class AssignmentsManager {
             route,
             workers
           )}</p>
+          ${this.renderStaffingRequirements(route, workers)}
 
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -1771,8 +1772,52 @@ class AssignmentsManager {
   }
 
   renderStaffingRequirements(route, workers) {
-    // Staffing section removed per user request
-    return "";
+    const vans = sheetsAPI.getAllVans(route);
+    let requirements = [];
+
+    if (
+      route.type === "spfm" ||
+      route.type === "spfm-delivery" ||
+      (!route.type && route.market)
+    ) {
+      // SPFM routes need 3 workers and 1 van
+      const workersNeeded = Math.max(0, 3 - workers.length);
+      const vansNeeded = Math.max(0, 1 - vans.length);
+
+      if (workersNeeded > 0) {
+        for (let i = 0; i < workersNeeded; i++) {
+          requirements.push(
+            '<span style="color: #800020; font-style: italic;">Need worker</span>'
+          );
+        }
+      }
+      if (vansNeeded > 0) {
+        requirements.push(
+          '<span style="color: #800020; font-style: italic;">🚐 Need van</span>'
+        );
+      }
+    } else if (route.type === "recovery") {
+      // Recovery routes need 1 worker and 1 van minimum
+      const workersNeeded = Math.max(0, 1 - workers.length);
+      const vansNeeded = Math.max(0, 1 - vans.length);
+
+      if (workersNeeded > 0) {
+        requirements.push(
+          '<span style="color: #800020; font-style: italic;">Need worker</span>'
+        );
+      }
+      if (vansNeeded > 0) {
+        requirements.push(
+          '<span style="color: #800020; font-style: italic;">🚐 Need van</span>'
+        );
+      }
+    }
+
+    return requirements.length > 0
+      ? `<p style="margin: 0 0 15px 0;"><strong>Staffing:</strong> ${requirements.join(
+          " • "
+        )}</p>`
+      : "";
   }
 
   formatWorkerList(workers, volunteers, required) {
@@ -1780,7 +1825,15 @@ class AssignmentsManager {
       .filter((person) => person && person.trim())
       .map((person) => `${this.getWorkerEmoji(person)} ${person}`);
 
-    return allTeam.join(", ");
+    // Add "Need worker" for missing positions with consistent burgundy italic styling
+    const teamSlots = [...allTeam];
+    while (teamSlots.length < required) {
+      teamSlots.push(
+        '<span style="color: #800020; font-style: italic;">Need worker</span>'
+      );
+    }
+
+    return teamSlots.slice(0, required).join(", ");
   }
 
   formatWorkerListDetailed(route, workers) {
@@ -1789,9 +1842,31 @@ class AssignmentsManager {
       (person) => person && person.trim()
     );
 
-    return allTeam
-      .map((person) => `${this.getWorkerEmoji(person)} ${person}`)
-      .join(", ");
+    if (
+      route.type === "spfm" ||
+      route.type === "spfm-delivery" ||
+      (!route.type && route.market)
+    ) {
+      // SPFM routes need 3 workers
+      const teamSlots = allTeam.map(
+        (person) => `${this.getWorkerEmoji(person)} ${person}`
+      );
+      while (teamSlots.length < 3) {
+        teamSlots.push(
+          '<span style="color: #800020; font-style: italic;">Need worker</span>'
+        );
+      }
+      return teamSlots.slice(0, 3).join(", ");
+    } else if (route.type === "recovery") {
+      // Recovery routes need 1 worker minimum
+      if (allTeam.length > 0) {
+        return allTeam
+          .map((person) => `${this.getWorkerEmoji(person)} ${person}`)
+          .join(", ");
+      } else {
+        return '<span style="color: #800020; font-style: italic;">Need worker</span>';
+      }
+    }
 
     return allTeam.length > 0
       ? allTeam
