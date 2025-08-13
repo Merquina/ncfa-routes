@@ -114,6 +114,9 @@ class InventoryComponent extends HTMLElement {
         const updatedInventory = await window.dataService.updateInventory(smallBoxes, largeBoxes, updatedBy);
         this.setInventoryData(updatedInventory);
         this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...updatedInventory }, bubbles: true }));
+        if (updatedInventory && updatedInventory.synced) {
+          try { alert('✅ Inventory synced to Google Sheets'); } catch {}
+        }
       } else {
         const inv = {
           smallBoxes: parseInt(smallBoxes) || 0,
@@ -123,7 +126,12 @@ class InventoryComponent extends HTMLElement {
         };
         try { localStorage.setItem('spfm_inventory', JSON.stringify(inv)); } catch {}
         if (window.inventoryManager && typeof window.inventoryManager.tryUploadInventoryToSheets === 'function') {
-          try { await window.inventoryManager.tryUploadInventoryToSheets(inv); } catch (e) { console.error('Upload failed:', e); }
+          try {
+            await window.inventoryManager.tryUploadInventoryToSheets(inv);
+            try { alert('✅ Inventory synced to Google Sheets'); } catch {}
+          } catch (e) {
+            console.error('Upload failed:', e);
+          }
         }
         this.setInventoryData(inv);
         this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...inv }, bubbles: true }));

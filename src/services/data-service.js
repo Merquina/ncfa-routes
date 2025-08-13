@@ -66,9 +66,11 @@ class DataService extends EventTarget {
     }
 
     // Sync to Google Sheets
+    let synced = false;
     if (window.inventoryManager && typeof window.inventoryManager.tryUploadInventoryToSheets === 'function') {
       try {
         await window.inventoryManager.tryUploadInventoryToSheets(newInventory);
+        synced = true;
       } catch (error) {
         console.error('Error syncing to sheets:', error);
       }
@@ -76,10 +78,11 @@ class DataService extends EventTarget {
 
     // Emit update event
     this.dispatchEvent(new CustomEvent('inventory-updated', {
-      detail: { ...newInventory }
+      detail: { ...newInventory, synced }
     }));
 
-    return { ...newInventory };
+    // Return sync status to callers so UI can confirm
+    return { ...newInventory, synced };
   }
 
   // ========================================
