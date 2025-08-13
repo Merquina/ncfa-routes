@@ -46,7 +46,7 @@ class InventoryManager {
   // INVENTORY CONTENT RENDERING
   // ========================================
   renderInventoryContent(inventoryContainer) {
-    console.log(
+    console.debug(
       "🔍 Debug: renderInventoryContent called - using local storage only",
     );
 
@@ -131,7 +131,7 @@ class InventoryManager {
       </div>
     `;
 
-    console.log("🔍 Debug: Local inventory rendered, setting up listeners");
+    console.debug("🔍 Debug: Local inventory rendered, setting up listeners");
     this.setupCalculatorListeners();
   }
 
@@ -143,7 +143,7 @@ class InventoryManager {
     if (stored) {
       try {
         const inventory = JSON.parse(stored);
-        console.log("✅ Loaded inventory from localStorage:", inventory);
+        console.info("✅ Loaded inventory from localStorage:", inventory);
         return inventory;
       } catch (error) {
         console.error("Error parsing stored inventory:", error);
@@ -168,7 +168,7 @@ class InventoryManager {
 
   saveLocalInventory(inventory) {
     localStorage.setItem("spfm_inventory", JSON.stringify(inventory));
-    console.log("✅ Saved inventory to localStorage:", inventory);
+    console.info("✅ Saved inventory to localStorage:", inventory);
   }
 
   updateInventory() {
@@ -336,11 +336,11 @@ class InventoryManager {
   // ========================================
   setupCalculatorListeners() {
     setTimeout(() => {
-      console.log("🔍 Debug: Setting up calculator listeners");
+      console.debug("🔍 Debug: Setting up calculator listeners");
       const inputs = ["farmersInput", "smallBoxesInput", "largeBoxesInput"];
       inputs.forEach((id) => {
         const input = document.getElementById(id);
-        console.log(`🔍 Debug: Setting up listener for ${id}:`, input);
+        console.debug(`🔍 Debug: Setting up listener for ${id}:`, input);
         if (input) {
           input.addEventListener("input", () => this.calculateDistribution());
         }
@@ -365,34 +365,34 @@ class InventoryManager {
         minute: "2-digit",
       });
       this.saveLocalInventory(inventory);
-      console.log("✅ Refreshed timestamp format");
+      console.info("✅ Refreshed timestamp format");
     }
   }
 }
 
 // Export instance with error handling
-console.log("🔍 Creating inventoryManager...");
+console.debug("🔍 Creating inventoryManager...");
 let inventoryManager;
 try {
   inventoryManager = new InventoryManager();
-  console.log("✅ inventoryManager created successfully");
+  console.info("✅ inventoryManager created successfully");
 
   // Make it globally available
   window.inventoryManager = inventoryManager;
-  console.log("✅ inventoryManager attached to window");
+  console.debug("✅ inventoryManager attached to window");
 } catch (error) {
   console.error("❌ Error creating inventoryManager:", error);
   console.error("Error stack:", error.stack);
 }
 
 // Confirm this file loaded
-console.log("✅ inventory.js loaded");
+console.debug("✅ inventory.js loaded");
 window.inventoryManagerLoaded = true;
 
 // Verify it's accessible
 setTimeout(() => {
   if (window.inventoryManager) {
-    console.log("✅ inventoryManager confirmed accessible on window");
+    console.debug("✅ inventoryManager confirmed accessible on window");
   } else {
     console.error("❌ inventoryManager NOT accessible on window");
   }

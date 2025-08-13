@@ -5,6 +5,7 @@ class HashRouter extends HTMLElement {
     this.routes = new Map();
     this.currentRoute = null;
     this.defaultRoute = '/';
+    this._didInitialDataLoad = false;
     
     // Bind methods
     this.handleHashChange = this.handleHashChange.bind(this);
@@ -22,7 +23,8 @@ class HashRouter extends HTMLElement {
 
   connectedCallback() {
     this.render();
-    this.setupRouter();
+    // Defer router setup slightly to allow routes to register
+    setTimeout(() => this.setupRouter(), 0);
   }
 
   disconnectedCallback() {
@@ -56,14 +58,31 @@ class HashRouter extends HTMLElement {
     
     // Clean up the hash (remove query params for now)
     const path = hash.split('?')[0] || this.defaultRoute;
-    
+    // If only query params changed, do not remount the route; notify params change instead
+    if (this.currentRoute === path) {
+      const paramsStr = hash.split('?')[1] || '';
+      const params = Object.fromEntries(new URLSearchParams(paramsStr));
+      this.dispatchEvent(new CustomEvent('route-params-changed', {
+        detail: { path, params },
+        bubbles: true
+      }));
+      return;
+    }
     this.loadRoute(path);
   }
 
-  loadRoute(path) {
+  async loadRoute(path) {
     const route = this.routes.get(path);
     
     if (!route) {
+      // Retry briefly for missing route to allow late registration
+      if (!this._retry) this._retry = {};
+      const key = `p:${path}`;
+      const attempts = this._retry[key] || 0;
+      if (attempts < 40) { // ~2s total at 50ms
+        this._retry[key] = attempts + 1;
+        return setTimeout(() => this.loadRoute(path), 50);
+      }
       // Try to find a matching route or fallback to default
       const fallbackRoute = this.routes.get(this.defaultRoute);
       if (fallbackRoute) {
@@ -75,6 +94,13 @@ class HashRouter extends HTMLElement {
     }
 
     this.currentRoute = path;
+    // Ensure data load on every route activation (await to prevent view races)
+    try {
+      if (window.dataService && typeof window.dataService.loadApiData === 'function') {
+        await window.dataService.loadApiData();
+        this._didInitialDataLoad = true;
+      }
+    } catch {}
     
     // Update page title if provided
     if (route.title) {
@@ -89,7 +115,9 @@ class HashRouter extends HTMLElement {
       // Create and append the component
       if (typeof route.component === 'string') {
         // Component tag name
-        const element = document.createElement(route.component);
+        const tag = route.component;
+        try { await customElements.whenDefined(tag); } catch {}
+        const element = document.createElement(tag);
         outlet.appendChild(element);
       } else if (typeof route.component === 'function') {
         // Component constructor
@@ -99,13 +127,24 @@ class HashRouter extends HTMLElement {
         // Already an element
         outlet.appendChild(route.component);
       }
+      // Let pages control scroll based on hash params
     }
 
-    // Emit route change event
-    this.dispatchEvent(new CustomEvent('route-changed', {
-      detail: { path, route },
-      bubbles: true
-    }));
+    // Emit route change event with current query params
+    const paramsStr = (window.location.hash.slice(1).split('?')[1] || '');
+    const params = Object.fromEntries(new URLSearchParams(paramsStr));
+    this.dispatchEvent(new CustomEvent('route-changed', { detail: { path, route, params }, bubbles: true }));
+  }
+
+  async refreshCurrentRoute(preserveScroll = true) {
+    const outlet = this.shadowRoot && this.shadowRoot.querySelector('#router-outlet');
+    const prevScroll = preserveScroll && outlet ? outlet.scrollTop : 0;
+    if (this.currentRoute) {
+      await this.loadRoute(this.currentRoute);
+      if (preserveScroll && outlet) {
+        try { outlet.scrollTop = prevScroll; } catch {}
+      }
+    }
   }
 
   render() {

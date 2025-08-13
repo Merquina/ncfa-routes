@@ -97,7 +97,7 @@ async function initializeApp() {
     const elements = ["boxTabBtn", "dateTabBtn", "workerTabBtn"];
     elements.forEach((id) => {
       const exists = document.getElementById(id) ? "✅" : "❌";
-      console.log(
+      console.debug(
         `${exists} Element ${id}: ${document.getElementById(id) ? "found" : "missing"}`,
       );
       updateStatus(
@@ -107,17 +107,17 @@ async function initializeApp() {
 
     // Initialize UI (no API needed - only inventory uses local storage)
     initializeUI();
-    console.log("✅ UI initialized");
+    console.info("✅ UI initialized");
 
     updateStatus("Setting up views...");
     // Initialize URL routing and set view based on URL
     initializeRouting();
-    console.log("✅ Routing initialized");
+    console.info("✅ Routing initialized");
 
     // Set up tab handlers after initialization
     setupTabHandlers();
 
-    console.log("✅ App initialized successfully");
+    console.info("✅ App initialized successfully");
     updateStatus("✅ Ready - API loads on demand");
   } catch (error) {
     console.error("❌ Application initialization failed:", error);
@@ -204,68 +204,43 @@ function switchTab(tabName, updateUrl = true) {
       }
       break;
     case "date":
-      console.log("🔍 Switching to date tab, updateUrl:", updateUrl);
+      console.debug("🔍 Switching to date tab, updateUrl:", updateUrl);
       if (window.datesManager) {
-        // Only load API data when user actually clicks the tab
-        if (updateUrl) {
-          console.log("📊 Loading API data for date tab...");
-          // Load API data when date tab is clicked
-          loadApiDataIfNeeded()
-            .then(() => {
-              console.log("✅ API data loaded, rendering dates...");
-              console.log("📊 sheetsAPI.data.length:", sheetsAPI.data.length);
-              console.log(
-                "📊 sheetsAPI.recoveryData.length:",
-                sheetsAPI.recoveryData.length,
-              );
-              datesManager.renderDates();
-            })
-            .catch((error) => {
-              console.error("❌ Error loading API data for dates:", error);
-            });
-        } else {
-          // Just show empty state on initial load
-          console.log("📅 Rendering dates without API load (initial)");
-          datesManager.renderDates();
-        }
+        // Render immediately with whatever we have, then refresh in background
+        datesManager.renderDates();
+        loadApiDataIfNeeded()
+          .then(() => {
+            datesManager.renderDates();
+          })
+          .catch((error) => {
+            console.error("❌ Error loading API data for dates:", error);
+          });
       } else {
         console.error("❌ datesManager not available");
       }
       break;
     case "worker":
-      console.log("🔍 Switching to worker tab, updateUrl:", updateUrl);
+      console.debug("🔍 Switching to worker tab, updateUrl:", updateUrl);
 
       // Clear assignments when switching to worker tab
       clearAssignments();
 
       if (window.workersManager) {
-        // Only load API data when user actually clicks the tab
-        if (updateUrl) {
-          console.log("👥 Loading API data for worker tab...");
-          // Load API data when worker tab is clicked
-          loadApiDataIfNeeded()
-            .then(() => {
-              console.log("✅ API data loaded, rendering workers...");
-              console.log("👥 sheetsAPI.data.length:", sheetsAPI.data.length);
-              const workers = sheetsAPI.getAllWorkers();
-              console.log("👥 Found workers:", workers);
-              workersManager.renderWorkers();
-            })
-            .catch((error) => {
-              console.error("❌ Error loading API data for workers:", error);
-            });
-        } else {
-          // Just show empty state on initial load
-          console.log("👥 Rendering workers without API load (initial)");
-          workersManager.renderWorkers();
-        }
+        // Load data first to avoid double render and heavy rescans
+        loadApiDataIfNeeded()
+          .then(() => {
+            workersManager.renderWorkers();
+          })
+          .catch((error) => {
+            console.error("❌ Error loading API data for workers:", error);
+          });
       } else {
         console.error("❌ workersManager not available");
       }
       break;
     case "charts":
-      console.log("🔍 Switching to charts tab");
-      console.log("🔍 Charts tab content should be visible now");
+      console.debug("🔍 Switching to charts tab");
+      console.debug("🔍 Charts tab content should be visible now");
       // Charts functionality is under construction
       // No additional logic needed since HTML already shows placeholder
       break;
@@ -275,29 +250,35 @@ function switchTab(tabName, updateUrl = true) {
 // ========================================
 // API LOADING ON DEMAND
 // ========================================
+const SHEETS_TTL_MS = 120000; // 2 minutes
+window.__lastSheetsFetchTs = window.__lastSheetsFetchTs || 0;
+
 async function loadApiDataIfNeeded() {
-  console.log(
-    "📊 loadApiDataIfNeeded called, current data length:",
-    sheetsAPI.data.length,
+  const now = Date.now();
+  const stale = now - (window.__lastSheetsFetchTs || 0) > SHEETS_TTL_MS;
+  const needInitial = sheetsAPI.data.length === 0;
+  console.debug(
+    "📊 loadApiDataIfNeeded:", { len: sheetsAPI.data.length, stale, needInitial }
   );
-  if (sheetsAPI.data.length === 0) {
-    console.log("📊 Loading API data on demand...");
-    updateVersionStatus("Loading sheet data...");
-    try {
-      await sheetsAPI.fetchSheetData();
-      console.log("✅ API data loaded successfully");
-      console.log("📊 SPFM data count:", sheetsAPI.data.length);
-      console.log("📊 Recovery data count:", sheetsAPI.recoveryData.length);
-      console.log("📊 Sample SPFM data:", sheetsAPI.data[0]);
-      updateVersionStatus("✅ Ready");
-    } catch (error) {
-      console.error("❌ Error loading API data:", error);
-      console.error("❌ Error details:", error.message);
-      updateVersionStatus("❌ API Error");
-      throw error;
-    }
-  } else {
-    console.log("✅ API data already loaded, skipping fetch");
+
+  if (!needInitial && !stale) {
+    console.debug("✅ API data is fresh; skip fetch");
+    return;
+  }
+
+  console.info(needInitial ? "📊 Loading API data..." : "📊 Refreshing stale API data...");
+  updateVersionStatus(needInitial ? "Loading sheet data..." : "Refreshing data...");
+  try {
+    await sheetsAPI.fetchSheetData();
+    window.__lastSheetsFetchTs = Date.now();
+    console.info("✅ API data loaded successfully");
+    console.debug("📊 SPFM data count:", sheetsAPI.data.length);
+    console.debug("📊 Recovery data count:", sheetsAPI.recoveryData.length);
+    updateVersionStatus("✅ Ready");
+  } catch (error) {
+    console.error("❌ Error loading API data:", error);
+    updateVersionStatus("❌ API Error");
+    throw error;
   }
 }
 
@@ -456,7 +437,7 @@ function showError(message) {
 }
 
 function updateVersionStatus(status) {
-  console.log("Status update:", status);
+  console.info("Status update:", status);
   // Status element was removed - just log the status
 }
 
@@ -472,7 +453,7 @@ function updateLastModified() {
       minute: "2-digit",
     });
     lastUpdatedEl.textContent = `Data loaded: ${dateStr}`;
-    console.log("✅ Data loaded timestamp set");
+    console.debug("✅ Data loaded timestamp set");
   }
 }
 
@@ -555,38 +536,57 @@ try { window.workersManager = workersManager; } catch {}
 try { window.datesManager = datesManager; } catch {}
 window.updateLastModified = updateLastModified;
 
-// Wait for all modules to be available
-function waitForModules() {
+// Wait for all modules to be available (throttled, with timeout)
+(function () {
   const requiredModules = [
     "inventoryManager",
     "datesManager",
     "workersManager",
     "assignmentsManager",
   ];
-  const missing = requiredModules.filter((module) => !window[module]);
+  let attempts = 0;
+  const intervalMs = 500; // check twice per second
+  const maxAttempts = 40; // stop after ~20s
+  let lastLoggedMissing = "";
 
-  if (missing.length > 0) {
-    console.log("⏳ Waiting for modules:", missing);
-    setTimeout(waitForModules, 100);
-  } else {
-    console.log("✅ All modules loaded");
+  function waitForModules() {
+    const missing = requiredModules.filter((module) => !window[module]);
+    if (missing.length === 0) {
+      console.info("✅ All modules loaded");
+      return;
+    }
+
+    attempts++;
+    const snapshot = missing.join(",");
+    // Only log when the set of missing modules changes, or every 5s
+    if (snapshot !== lastLoggedMissing || attempts % Math.round(5000 / intervalMs) === 0) {
+      console.debug("⏳ Waiting for modules:", missing);
+      lastLoggedMissing = snapshot;
+    }
+
+    if (attempts >= maxAttempts) {
+      console.warn("⚠️ Some modules did not load in time:", missing, "— proceeding without them.");
+      return; // stop retrying to avoid console spam
+    }
+
+    setTimeout(waitForModules, intervalMs);
   }
-}
 
-setTimeout(waitForModules, 100);
+  setTimeout(waitForModules, intervalMs);
+})();
 
 // ========================================
 // TAB HANDLERS SETUP
 // ========================================
 function setupTabHandlers() {
-  console.log("Setting up tab handlers...");
+  console.debug("Setting up tab handlers...");
   updateStatus("Setting up tab handlers...");
 
   const boxBtn = document.getElementById("boxTabBtn");
   const dateBtn = document.getElementById("dateTabBtn");
   const workerBtn = document.getElementById("workerTabBtn");
 
-  console.log("Tab buttons found:", {
+  console.debug("Tab buttons found:", {
     boxBtn: !!boxBtn,
     dateBtn: !!dateBtn,
     workerBtn: !!workerBtn,
@@ -598,15 +598,15 @@ function setupTabHandlers() {
   // Tap/click handler with minimal interference
   function addMobileHandler(btn, tabName) {
     if (!btn) {
-      console.log(`❌ Button not found for ${tabName}`);
+      console.warn(`❌ Button not found for ${tabName}`);
       return;
     }
 
-    console.log(`✅ Setting up handlers for ${tabName} tab`);
+    console.info(`✅ Setting up handlers for ${tabName} tab`);
 
     // Primary click handler (works on desktop and most mobiles)
     btn.addEventListener("click", function (e) {
-      console.log(`🔥 ${tabName} tab CLICKED!`);
+      console.debug(`🔥 ${tabName} tab CLICKED!`);
       updateStatus(`🔥 ${tabName} tab clicked`);
       switchTab(tabName, true);
     });
@@ -615,7 +615,7 @@ function setupTabHandlers() {
     btn.addEventListener(
       "touchend",
       function (e) {
-        console.log(`👆 ${tabName} tab TOUCHED!`);
+        console.debug(`👆 ${tabName} tab TOUCHED!`);
         updateStatus(`👆 ${tabName} tab touched`);
         switchTab(tabName, true);
       },
@@ -624,7 +624,7 @@ function setupTabHandlers() {
 
     // Fallback onclick
     btn.onclick = function () {
-      console.log(`📱 ${tabName} fallback onclick!`);
+      console.debug(`📱 ${tabName} fallback onclick!`);
       updateStatus(`📱 ${tabName} fallback onclick`);
       switchTab(tabName, true);
     };
@@ -634,7 +634,7 @@ function setupTabHandlers() {
   addMobileHandler(dateBtn, "date");
   addMobileHandler(workerBtn, "worker");
 
-  console.log("✅ Tab handlers set up with mobile support");
+  console.info("✅ Tab handlers set up with mobile support");
   updateStatus("✅ Tab handlers set up");
 }
 
@@ -662,5 +662,5 @@ function initializeRouting() {
 window.setupTabHandlers = setupTabHandlers;
 
 // Confirm this file loaded
-console.log("✅ app.js loaded");
+console.debug("✅ app.js loaded");
 window.appLoaded = true;

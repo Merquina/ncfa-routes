@@ -21,3 +21,14 @@ Tips
 - Page controllers reload as ES modules; state resets on full reload.
 - For route navigation, use the bottom tabs (app) or switch stories (storybook).
 
+Debug with Flatpak Chromium
+---------------------------
+
+To run the dev server and automatically launch the Flatpak-installed Chromium with Chrome DevTools remote debugging:
+
+- Run: `npm run dev:chromium`
+
+Details:
+- The script waits for `http://localhost:5173` (configurable) and starts `org.chromium.Chromium` with `--remote-debugging-port=9222`.
+- Override with env vars: `PORT` (default 5173), `DEV_URL` (full URL), `DEBUG_PORT` (default 9222).
+- It disables Vite's auto-open via `VITE_OPEN=false` to avoid duplicate browser windows.

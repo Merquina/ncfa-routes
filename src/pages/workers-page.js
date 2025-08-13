@@ -10,6 +10,10 @@ class WorkersPage extends HTMLElement {
     this.setupController();
   }
 
+  disconnectedCallback() {
+    try { this.controller?.dispose?.(); } catch {}
+  }
+
   async setupController() {
     // Wait for controller to be available
     if (window.WorkersPageController) {

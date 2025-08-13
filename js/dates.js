@@ -159,17 +159,17 @@ class DatesManager {
 
     container.innerHTML = recoveryRoutes
       .map((route) => {
-        console.log("🔍 DEBUG Recovery Route Card:", route);
-        console.log("🔍 DEBUG Route keys:", Object.keys(route));
-        console.log(
+        console.debug("🔍 DEBUG Recovery Route Card:", route);
+        console.debug("🔍 DEBUG Route keys:", Object.keys(route));
+        console.debug(
           "🔍 DEBUG getAllWorkers result:",
           sheetsAPI.getAllWorkersFromRoute(route)
         );
-        console.log(
+        console.debug(
           "🔍 DEBUG getAllRouteContacts result:",
           sheetsAPI.getAllRouteContacts(route)
         );
-        console.log(
+        console.debug(
           "🔍 DEBUG getAllRoutePhones result:",
           sheetsAPI.getAllRoutePhones(route)
         );
@@ -238,16 +238,16 @@ class DatesManager {
   }
 
   findRecoveryRouteForDate(targetDate) {
-    console.log("🔍 Debug: findRecoveryRouteForDate called with:", targetDate);
+    console.debug("🔍 Debug: findRecoveryRouteForDate called with:", targetDate);
 
     if (!sheetsAPI.recoveryData || sheetsAPI.recoveryData.length === 0) {
-      console.log("🔍 Debug: No recovery data available");
+      console.debug("🔍 Debug: No recovery data available");
       return null;
     }
 
     const targetDateObj = new Date(targetDate);
     const targetDateStr = targetDateObj.toLocaleDateString("en-US");
-    console.log("🔍 Debug: Target date normalized:", targetDateStr);
+    console.debug("🔍 Debug: Target date normalized:", targetDateStr);
 
     for (const route of sheetsAPI.recoveryData) {
       const dayName =
@@ -259,7 +259,7 @@ class DatesManager {
 
       if (!dayName || stop1.trim() === "") continue;
 
-      console.log(
+      console.debug(
         `🔍 Debug: Checking recovery route for ${dayName} with stop: ${stop1}`
       );
 
@@ -271,39 +271,39 @@ class DatesManager {
         );
         if (calculatedDate) {
           const calculatedDateStr = calculatedDate.toLocaleDateString("en-US");
-          console.log(
+          console.debug(
             `🔍 Debug: Comparing ${calculatedDateStr} with ${targetDateStr}`
           );
 
           if (calculatedDateStr === targetDateStr) {
-            console.log("🔍 Debug: Match found! Returning recovery route");
+            console.debug("🔍 Debug: Match found! Returning recovery route");
             return { ...route, calculatedDate: calculatedDate };
           }
         }
       }
     }
 
-    console.log("🔍 Debug: No matching recovery route found");
+    console.debug("🔍 Debug: No matching recovery route found");
     return null;
   }
 
   selectRecoveryRoute(worker, dayName) {
-    console.log("🔍 DEBUG selectRecoveryRoute called with:", {
+    console.debug("🔍 DEBUG selectRecoveryRoute called with:", {
       worker,
       dayName,
     });
-    console.log(
+    console.debug(
       "🔍 DEBUG recoveryData available:",
       sheetsAPI.recoveryData.length
     );
-    console.log(
+    console.debug(
       "🔍 DEBUG First few recovery routes:",
       sheetsAPI.recoveryData.slice(0, 3)
     );
 
     const route = sheetsAPI.recoveryData.find((r) => {
       const workers = sheetsAPI.getAllWorkersFromRoute(r);
-      console.log(
+      console.debug(
         `🔍 DEBUG Checking route: ${
           r["recovery route"]
         }, workers: ${workers}, matches worker: ${workers.includes(
@@ -313,9 +313,9 @@ class DatesManager {
       return workers.includes(worker) && r["recovery route"] === dayName;
     });
 
-    console.log("🔍 DEBUG Found route:", route);
+    console.debug("🔍 DEBUG Found route:", route);
     if (!route) {
-      console.log("🔍 DEBUG No route found for worker/day combination");
+      console.debug("🔍 DEBUG No route found for worker/day combination");
       return;
     }
 
@@ -348,9 +348,9 @@ class DatesManager {
   // OLD DATE BUTTON RENDERING (kept for reference)
   // ========================================
   renderChronologicalDates(container) {
-    console.log("🔍 Debug: renderChronologicalDates called");
-    console.log("🔍 Debug: sheetsAPI.data length:", sheetsAPI.data.length);
-    console.log(
+    console.debug("🔍 Debug: renderChronologicalDates called");
+    console.debug("🔍 Debug: sheetsAPI.data length:", sheetsAPI.data.length);
+    console.debug(
       "🔍 Debug: sheetsAPI.recoveryData length:",
       sheetsAPI.recoveryData.length
     );
@@ -391,11 +391,11 @@ class DatesManager {
     // Generate weekly recovery dates based on day of week
     const recoveryDates = this.generateWeeklyRecoveryDates();
 
-    console.log("🔍 Debug: spfmDates:", spfmDates);
-    console.log("🔍 Debug: recoveryDates:", recoveryDates);
+    console.debug("🔍 Debug: spfmDates:", spfmDates);
+    console.debug("🔍 Debug: recoveryDates:", recoveryDates);
 
     // Combine and sort chronologically
-    console.log(
+    console.debug(
       "🔍 Debug: Before combining - spfmDates:",
       spfmDates.length,
       "recoveryDates:",
@@ -403,7 +403,7 @@ class DatesManager {
     );
 
     const combinedDates = [...spfmDates, ...recoveryDates];
-    console.log("🔍 Debug: Combined dates before dedup:", combinedDates.length);
+    console.debug("🔍 Debug: Combined dates before dedup:", combinedDates.length);
 
     // Debug: Check for Tuesday routes in combined data
     const tuesdayItems = combinedDates.filter((item) => {
@@ -420,7 +420,7 @@ class DatesManager {
       }
       return false;
     });
-    console.log(
+    console.debug(
       `🚨 TUESDAY DEBUG: Found ${tuesdayItems.length} Tuesday items in combined dates:`,
       tuesdayItems
     );
@@ -430,7 +430,7 @@ class DatesManager {
     const deduplicatedDates = combinedDates.filter((item) => {
       const key = `${item.date}-${item.type}`;
       if (seenDates.has(key)) {
-        console.log(
+        console.debug(
           `🔍 Debug: Removing duplicate ${item.type} for ${item.date}`
         );
         return false;
@@ -439,7 +439,7 @@ class DatesManager {
       return true;
     });
 
-    console.log(
+    console.debug(
       "🔍 Debug: Combined dates after dedup:",
       deduplicatedDates.length
     );
@@ -459,14 +459,14 @@ class DatesManager {
       }
       return false;
     });
-    console.log(
+    console.debug(
       `🚨 TUESDAY DEBUG: Found ${tuesdayAfterDedup.length} Tuesday items after dedup:`,
       tuesdayAfterDedup
     );
 
     const parsedDates = deduplicatedDates.map((item) => {
       const parsed = new Date(item.date);
-      console.log(
+      console.debug(
         `🔍 Debug: Parsing date "${item.date}" -> ${parsed}, isValid: ${!isNaN(
           parsed.getTime()
         )}`
@@ -480,17 +480,17 @@ class DatesManager {
     const filteredDates = parsedDates.filter(
       (item) => !isNaN(item.parsed.getTime())
     );
-    console.log(
+    console.debug(
       "🔍 Debug: After filtering invalid dates:",
       filteredDates.length
     );
 
     const sortedDates = filteredDates.sort((a, b) => a.parsed - b.parsed);
-    console.log("🔍 Debug: After sorting:", sortedDates.length);
+    console.debug("🔍 Debug: After sorting:", sortedDates.length);
 
     const allDates = sortedDates.slice(0, 7); // Show next 7 dates
-    console.log("🔍 Debug: Final allDates after slice(0,7):", allDates.length);
-    console.log("🔍 Debug: allDates:", allDates);
+    console.debug("🔍 Debug: Final allDates after slice(0,7):", allDates.length);
+    console.debug("🔍 Debug: allDates:", allDates);
 
     if (allDates.length === 0) {
       // Check if API data hasn't loaded yet
@@ -514,8 +514,8 @@ class DatesManager {
       return;
     }
 
-    console.log("🔍 Debug: About to render", allDates.length, "dates");
-    console.log("🔍 Debug: allDates array:", allDates);
+    console.debug("🔍 Debug: About to render", allDates.length, "dates");
+    console.debug("🔍 Debug: allDates array:", allDates);
 
     // Use single column layout on mobile
     container.innerHTML = `
@@ -537,7 +537,7 @@ class DatesManager {
               dateItem.type === "spfm" ? "#ff8c00" : "#007bff";
             const emoji = dateItem.type === "spfm" ? "👨‍🌾" : "🛒";
 
-            console.log(
+            console.debug(
               `🔍 Debug: Rendering card for ${formattedDate}, type: ${dateItem.type}, bgColor: ${bgColor}`
             );
 
@@ -555,7 +555,7 @@ class DatesManager {
       </div>
     `;
 
-    console.log(
+    console.debug(
       "🔍 Debug: Container innerHTML set, length:",
       container.innerHTML.length
     );
@@ -569,22 +569,22 @@ class DatesManager {
     const today = new Date();
     const seenDates = new Set(); // Track seen dates to prevent duplicates
 
-    console.log("🔍 Debug: generateWeeklyRecoveryDates called");
-    console.log("🔍 Debug: sheetsAPI.recoveryData:", sheetsAPI.recoveryData);
+    console.debug("🔍 Debug: generateWeeklyRecoveryDates called");
+    console.debug("🔍 Debug: sheetsAPI.recoveryData:", sheetsAPI.recoveryData);
 
     // Get recovery route patterns from sheets (day of week info)
     if (sheetsAPI.recoveryData && sheetsAPI.recoveryData.length > 0) {
-      console.log("🔍 Debug: Found recovery data, processing routes...");
+      console.debug("🔍 Debug: Found recovery data, processing routes...");
       sheetsAPI.recoveryData.forEach((route, index) => {
-        console.log(`🔍 Debug: Processing recovery route ${index}:`, route);
+        console.debug(`🔍 Debug: Processing recovery route ${index}:`, route);
         const dayName =
           route["recovery route"] ||
           route["Recovery Routes"] ||
           route.Day ||
           route.day;
         const stop1 = route["Stop 1"] || route["stop1"] || "";
-        console.log(`🔍 Debug: Day name extracted: ${dayName}`);
-        console.log(`🔍 Debug: Stop 1 extracted: ${stop1}`);
+        console.debug(`🔍 Debug: Day name extracted: ${dayName}`);
+        console.debug(`🔍 Debug: Stop 1 extracted: ${stop1}`);
 
         if (dayName && stop1.trim() !== "") {
           // Generate next 12 occurrences of this recovery route
@@ -596,7 +596,7 @@ class DatesManager {
 
               // Check if we've already added this date/day combination
               if (seenDates.has(dateKey)) {
-                console.log(
+                console.debug(
                   `🔍 Debug: Skipping duplicate ${dayName} for ${dateString}`
                 );
                 continue;
@@ -621,11 +621,11 @@ class DatesManager {
                 startTime: route.startTime || route.Time || "TBD",
                 Time: route.Time || route.startTime || "TBD",
               };
-              console.log(
+              console.debug(
                 `🔍 Debug: Adding ${dayName} for ${dateString} (occurrence ${occurrence})`
               );
               if (flexibleTextMatch(dayName, "tuesday")) {
-                console.log(
+                console.debug(
                   `🚨 TUESDAY DEBUG: Adding Tuesday recovery for ${dateString}, total Tuesday routes so far:`,
                   recoveryDates.filter((r) =>
                     flexibleTextMatch(r.dayName, "tuesday")
@@ -636,21 +636,21 @@ class DatesManager {
             }
           }
         } else {
-          console.log(`🔍 Debug: No day name found for route ${index}`);
+          console.debug(`🔍 Debug: No day name found for route ${index}`);
         }
       });
     } else {
-      console.log("🔍 Debug: No recovery data found or empty array");
+      console.debug("🔍 Debug: No recovery data found or empty array");
     }
 
     const tuesdayRoutes = recoveryDates.filter(
       (r) => r.dayName && flexibleTextMatch(r.dayName, "tuesday")
     );
-    console.log("🔍 Debug: Final recovery dates array:", recoveryDates.length);
-    console.log(
+    console.debug("🔍 Debug: Final recovery dates array:", recoveryDates.length);
+    console.debug(
       `🚨 TUESDAY DEBUG: Total Tuesday recovery routes generated: ${tuesdayRoutes.length}`
     );
-    console.log(
+    console.debug(
       `🚨 TUESDAY DEBUG: Tuesday dates:`,
       tuesdayRoutes.map((r) => r.date)
     );
@@ -664,26 +664,26 @@ class DatesManager {
     const deliveryDates = [];
     const today = new Date();
 
-    console.log("🔍 Debug: generateMondayDeliveryDates called");
-    console.log("🔍 Debug: sheetsAPI.deliveryData:", sheetsAPI.deliveryData);
-    console.log("🔍 Debug: sheetsAPI.data (SPFM routes):", sheetsAPI.data);
+    console.debug("🔍 Debug: generateMondayDeliveryDates called");
+    console.debug("🔍 Debug: sheetsAPI.deliveryData:", sheetsAPI.deliveryData);
+    console.debug("🔍 Debug: sheetsAPI.data (SPFM routes):", sheetsAPI.data);
 
     // Debug delivery data "Food from" values
     if (sheetsAPI.deliveryData && sheetsAPI.deliveryData.length > 0) {
       sheetsAPI.deliveryData.forEach((delivery, index) => {
-        console.log(
+        console.debug(
           `🔍 Debug: Delivery ${index} - Food from: "${delivery["Food from"]}"`
         );
-        console.log(`🔍 Debug: All delivery keys:`, Object.keys(delivery));
-        console.log(`🔍 Debug: Full delivery object:`, delivery);
+        console.debug(`🔍 Debug: All delivery keys:`, Object.keys(delivery));
+        console.debug(`🔍 Debug: Full delivery object:`, delivery);
       });
     } else {
-      console.log("🔍 Debug: No delivery data available or empty array");
+      console.debug("🔍 Debug: No delivery data available or empty array");
     }
 
     // Check if delivery data exists
     if (!sheetsAPI.deliveryData || sheetsAPI.deliveryData.length === 0) {
-      console.log(
+      console.debug(
         "🔍 Debug: No delivery data available, returning empty array"
       );
       return deliveryDates;
@@ -693,7 +693,7 @@ class DatesManager {
     const sundayMarkets = sheetsAPI.data.filter((route) => {
       const routeDate = new Date(route.date);
       const isSunday = routeDate.getDay() === 0; // Sunday = 0
-      console.log(
+      console.debug(
         `🔍 Debug: Route date ${
           route.date
         }, day: ${routeDate.getDay()}, isSunday: ${isSunday}`
@@ -701,17 +701,17 @@ class DatesManager {
       return isSunday;
     });
 
-    console.log("🔍 Debug: Found Sunday markets:", sundayMarkets);
+    console.debug("🔍 Debug: Found Sunday markets:", sundayMarkets);
 
     // For each Sunday market, find the corresponding delivery route
     sundayMarkets.forEach((sundayMarket) => {
       const marketLocation = sundayMarket.market;
-      console.log("🔍 Debug: Processing Sunday market:", marketLocation);
+      console.debug("🔍 Debug: Processing Sunday market:", marketLocation);
 
       // Find delivery route for this market location
       const deliveryRoute = sheetsAPI.deliveryData.find((delivery) => {
         const foodFrom = delivery["Food from"] || delivery["food from"] || "";
-        console.log(
+        console.debug(
           `🔍 Debug: Comparing "${foodFrom}" with "${marketLocation}"`
         );
 
@@ -731,7 +731,7 @@ class DatesManager {
       });
 
       if (deliveryRoute) {
-        console.log("🔍 Debug: Found matching delivery route:", deliveryRoute);
+        console.debug("🔍 Debug: Found matching delivery route:", deliveryRoute);
 
         // Calculate next Monday after this Sunday market
         const sundayDate = new Date(sundayMarket.date);
@@ -764,18 +764,18 @@ class DatesManager {
             sortDate: mondayDate,
           };
 
-          console.log("🔍 Debug: Generated Monday delivery:", mondayDelivery);
+          console.debug("🔍 Debug: Generated Monday delivery:", mondayDelivery);
           deliveryDates.push(mondayDelivery);
         }
       } else {
-        console.log(
+        console.debug(
           "🔍 Debug: No delivery route found for market:",
           marketLocation
         );
       }
     });
 
-    console.log("🔍 Debug: Final Monday delivery dates array:", deliveryDates);
+    console.debug("🔍 Debug: Final Monday delivery dates array:", deliveryDates);
     return deliveryDates;
   }
 
@@ -830,5 +830,5 @@ class DatesManager {
 const datesManager = new DatesManager();
 
 // Confirm this file loaded
-console.log("✅ dates.js loaded");
+console.debug("✅ dates.js loaded");
 window.datesManagerLoaded = true;

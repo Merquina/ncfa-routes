@@ -46,3 +46,27 @@ if (import.meta && import.meta.hot) {
     // ignore
   }
 }
+
+// Auto-register common routes when a router is present on the page
+if (typeof window !== 'undefined') {
+  const registerRoutesIfReady = () => {
+    try {
+      const router = document.querySelector('hash-router');
+      if (!router || typeof router.registerRoute !== 'function') {
+        return setTimeout(registerRoutesIfReady, 50);
+      }
+      // Avoid duplicate registration by checking if any route exists
+      const existing = router.getRoutes && router.getRoutes();
+      if (existing && existing.length > 0) return;
+      router.registerRoute('/boxes', 'boxes-page', 'Box Inventory');
+      router.registerRoute('/dates', 'dates-page', 'Next Upcoming');
+      router.registerRoute('/workers', 'workers-page', 'Routes by Worker');
+      router.registerRoute('/route', 'route-details-page', 'Route Details');
+    } catch {}
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', registerRoutesIfReady);
+  } else {
+    registerRoutesIfReady();
+  }
+}

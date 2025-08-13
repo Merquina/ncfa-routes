@@ -12,6 +12,9 @@
         <meta name="format-detection" content="telephone=no" />
         <title>NCFA Routes</title>
 
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#28a745" />
+
         <!-- Font Awesome Icons -->
         <link
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -118,7 +121,7 @@
 
     <body>
         <!-- Sign-in Landing Page -->
-        <div id="signInPage" class="container" style="display: block">
+        <div id="signInPage" class="container" style="display: none">
             <div class="header" style="background: #28a745; color: white">
                 <div style="text-align: center; padding: 20px">
                     <h1 style="margin: 0 0 10px 0; white-space: nowrap;">
@@ -133,15 +136,7 @@
                 </div>
             </div>
 
-            <div
-                style="
-                    flex: 1;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 40px;
-                "
-            >
+            <div class="main-content" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;">
                 <div style="text-align: center; max-width: 400px">
                     <h2 style="margin: 0 0 15px 0; color: #333">Welcome!</h2>
                     <p
@@ -190,16 +185,49 @@
         </div>
 
         <!-- Application Modules - Load synchronously to ensure order -->
-        <script src="js/sheets.js?v=6" type="text/javascript"></script>
-        <script src="js/assignments.js?v=6" type="text/javascript"></script>
-        <script src="js/inventory.js?v=6" type="text/javascript"></script>
-        <script src="js/app.js?v=6" type="text/javascript"></script>
+        <script src="js/util.js?v=7" type="text/javascript"></script>
+        <!-- sheets.js (legacy) removed; ESM service handles Sheets access -->
+        <script src="js/assignments.js?v=7" type="text/javascript"></script>
+        <script src="js/inventory.js?v=7" type="text/javascript"></script>
+        <!-- Removed legacy app.js to avoid duplicate routing and API loads -->
 
         <!-- Web Components (load after legacy so API helpers exist) -->
         <script src="src/components/index.js?v=6" type="module"></script>
+        <script>
+          // Register routes once custom elements are ready and router is present
+          document.addEventListener('DOMContentLoaded', function() {
+            function register() {
+              const router = document.querySelector('hash-router');
+              if (!router || typeof router.registerRoute !== 'function') {
+                return setTimeout(register, 50);
+              }
+              try {
+                router.registerRoute('/boxes', 'boxes-page', 'Box Inventory');
+                router.registerRoute('/dates', 'dates-page', 'Next Upcoming');
+                router.registerRoute('/workers', 'workers-page', 'Routes by Worker');
+                router.registerRoute('/route', 'route-details-page', 'Route Details');
+              } catch (e) {
+                console.warn('Route registration failed:', e);
+              }
+            }
+            register();
+          });
+        </script>
 
         <!-- Initialize app directly -->
         <script>
+            // Register service worker for PWA/app shell caching
+            // Avoid registering Service Worker during local dev to prevent cache/HMR issues
+            if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !['localhost','127.0.0.1'].includes(location.hostname)) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(() => {
+                        console.info('✅ Service worker registered');
+                    }).catch((e) => {
+                        console.warn('SW registration failed:', e);
+                    });
+                });
+            }
+
             // Detailed debugging
             function ensureDebugOverlay() {
                 let el = document.getElementById("debugOverlay");
@@ -301,35 +329,7 @@
                     updateLastModified();
                 }, 3000);
 
-                // Check if modules loaded
-                if (typeof sheetsAPI === "undefined") {
-                    updateStatus("❌ sheetsAPI not loaded");
-                    return;
-                }
-                if (typeof assignmentsManager === "undefined") {
-                    updateStatus("❌ assignmentsManager not loaded");
-                    return;
-                }
-                if (typeof inventoryManager === "undefined") {
-                    updateStatus("❌ inventoryManager not loaded");
-                    return;
-                }
-                if (typeof workersManager === "undefined") {
-                    updateStatus("❌ workersManager not loaded");
-                    return;
-                }
-                if (typeof datesManager === "undefined") {
-                    updateStatus("❌ datesManager not loaded");
-                    return;
-                }
-                if (typeof initializeApp === "undefined") {
-                    updateStatus("❌ initializeApp not loaded");
-                    return;
-                }
-
-                updateStatus("All modules loaded, starting app...");
-
-                // Legacy UI init disabled in componentized app
+                // Legacy UI checks removed; modules initialize via ESM
             });
 
             // Skip legacy UI fallback init
@@ -475,6 +475,18 @@
             function showMainApp() {
                 document.getElementById("signInPage").style.display = "none";
                 document.getElementById("mainApp").style.display = "flex";
+                // Eagerly load data once visible using the modern service; retry until ready
+                (function ensureLoad(attempts = 0) {
+                    try {
+                        if (window.dataService && typeof window.dataService.loadApiData === 'function') {
+                            window.dataService.loadApiData();
+                            return;
+                        }
+                    } catch {}
+                    if (attempts < 60) {
+                        setTimeout(() => ensureLoad(attempts + 1), 50);
+                    }
+                })();
             }
 
             function showSignInPage() {
@@ -506,7 +518,7 @@
                 if (window.gapi && window.gapi.client) {
                     const token = window.gapi.client.getToken();
                     if (token && token.access_token) {
-                        console.log("✅ Found existing OAuth session");
+                        console.info("✅ Found existing OAuth session");
                         showMainApp();
                         scheduleTokenRefresh();
                         return;
@@ -521,7 +533,7 @@
                         if (tokenData.access_token) {
                             if (new Date(tokenData.expires_at) > new Date()) {
                                 window.gapi.client.setToken(tokenData);
-                                console.log("✅ Restored OAuth session from storage");
+                                console.info("✅ Restored OAuth session from storage");
                                 showMainApp();
                                 scheduleTokenRefresh();
                                 fetchUserInfo();
@@ -530,7 +542,7 @@
                                 // Try silent refresh without prompting
                                 refreshTokenSilently().then((ok) => {
                                     if (ok) {
-                                        console.log("✅ Silently refreshed OAuth token");
+                                        console.info("✅ Silently refreshed OAuth token");
                                         showMainApp();
                                         scheduleTokenRefresh();
                                         fetchUserInfo();
@@ -543,8 +555,9 @@
                     }
                 }
 
-                // No valid session found, stay on sign-in page
-                console.log("No valid OAuth session found");
+                // No valid session found; show sign-in page now
+                console.info("No valid OAuth session found");
+                showSignInPage();
             }
 
             // ---- OAuth token helpers ----

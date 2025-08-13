@@ -38,6 +38,15 @@ class RouteDetails extends HTMLElement {
     return icons[name] || '👤';
   }
 
+  getVehicleEmoji(name) {
+    try {
+      const emoji = window.sheetsAPI?.getVehicleEmoji?.(name);
+      return emoji || '🚐';
+    } catch {
+      return '🚐';
+    }
+  }
+
   renderWorkers(workers = [], volunteers = [], required = 0) {
     const list = [...workers, ...volunteers].filter(Boolean).map(w => `${this.getWorkerEmoji(w)} ${w}`);
     const display = [...list];
@@ -95,22 +104,9 @@ class RouteDetails extends HTMLElement {
         ${vans && vans.length ? `
           <div class="section">
             <div class="label">Vans</div>
-            <div class="chips">${vans.map(v => `<span class="chip">🚐 ${v}</span>`).join('')}</div>
+            <div class="chips">${vans.map(v => `<span class="chip">${this.getVehicleEmoji(v)} ${v}</span>`).join('')}</div>
           </div>
         `: ''}
-        <div class="section">
-          <div class="label">At the Office</div>
-          <div class="two-col">
-            <div class="checklist">
-              <div class="label" style="color:#17a2b8;">📁</div>
-              ${materials.office.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('') || `<div class="subtle">No items listed</div>`}
-            </div>
-            <div class="checklist">
-              <div class="label" style="color:#17a2b8;">📦</div>
-              ${materials.storage.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('') || `<div class="subtle">No items listed</div>`}
-            </div>
-          </div>
-        </div>
         <div class="section">
           <div class="label">At Market</div>
           ${route.market ? this.renderAddressButton(route.market) : ''}
@@ -123,6 +119,19 @@ class RouteDetails extends HTMLElement {
           <div class="label">Dropoff</div>
           ${route.dropOff ? this.renderAddressButton(route.dropOff) : `<div class="subtle">No dropoff location specified</div>`}
           ${this.renderPhoneButtons(route.dropOff)}
+        </div>
+        <div class="section">
+          <div class="label">At Office</div>
+          <div class="two-col">
+            <div class="checklist">
+              <div class="label" style="color:#17a2b8;">📁</div>
+              ${materials.office.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('') || `<div class="subtle">No items listed</div>`}
+            </div>
+            <div class="checklist">
+              <div class="label" style="color:#17a2b8;">📦</div>
+              ${materials.storage.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('') || `<div class="subtle">No items listed</div>`}
+            </div>
+          </div>
         </div>
         <div class="section">
           <div class="label">Back at Office</div>

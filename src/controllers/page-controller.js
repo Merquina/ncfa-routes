@@ -91,6 +91,13 @@ class BoxesPageController extends PageController {
         this.handleInventoryChanged(e.detail);
       });
 
+      // Refresh inventory UI when data reloads (e.g., Status sheet changes)
+      if (this.dataService) {
+        this.dataService.addEventListener('data-loaded', () => {
+          this.loadInventoryData().catch(() => {});
+        });
+      }
+
       // Load initial data
       await this.loadInventoryData();
     }
@@ -121,6 +128,14 @@ class WorkersPageController extends PageController {
     super(pageElement);
     this.routesListComponent = null;
     this.selectedWorker = null;
+    this._boundParamsHandler = (e) => {
+      if (!e || !e.detail) return;
+      // Only react if it's our route
+      if (e.detail.path === '/workers') this.applyRouteFilterFromHash();
+    };
+    this._lastScrollAt = 0;
+    this._lastFilterKey = '';
+    this._ac = new AbortController();
   }
 
   async initialize() {
@@ -129,15 +144,34 @@ class WorkersPageController extends PageController {
     this.volunteerPicker = this.pageElement.shadowRoot?.querySelector('#volunteerPicker');
     this.clearFilterBtn = this.pageElement.shadowRoot?.querySelector('#clearFilter');
     if (this.routesListComponent) {
-      // Re-render when data loads
+      // Re-render when data loads and re-apply any route filter (debounced)
       if (this.dataService) {
-        this.dataService.addEventListener('data-loaded', () => this.loadRoutesDataForWorkers());
+        this._workersRefreshPending = false;
+        this.dataService.addEventListener('data-loaded', async () => {
+          if (this._workersRefreshPending) return;
+          this._workersRefreshPending = true;
+          // Batch in next microtask to avoid multiple immediate triggers
+          setTimeout(async () => {
+            try {
+              await this.refreshPickers();
+              await this.loadRoutesDataForWorkers();
+              await this.applyRouteFilterFromHash();
+            } finally {
+              this._workersRefreshPending = false;
+            }
+          }, 0);
+        }, { signal: this._ac.signal });
       }
       // Ensure API is loaded before first render
       if (this.dataService && typeof this.dataService.loadApiData === 'function') {
         await this.dataService.loadApiData();
       }
       await this.loadRoutesDataForWorkers();
+      // Apply any deep-link filter (worker/volunteer)
+      await this.applyRouteFilterFromHash();
+      // Watch for URL param changes from router without remounting
+      const router = document.querySelector('hash-router');
+      if (router) router.addEventListener('route-params-changed', this._boundParamsHandler, { signal: this._ac.signal });
       // Forward route selection from shadow to here (route-card emits composed events)
       this.routesListComponent.addEventListener('route-selected', (e) => {
         this.handleRouteSelected(e.detail);
@@ -158,7 +192,12 @@ class WorkersPageController extends PageController {
             this.routesListComponent.setTitle(`Routes for ${name}`);
             const host = this.pageElement.shadowRoot;
             const listEl = host && host.querySelector('#routesList');
-            if (listEl) listEl.style.display = '';
+            if (listEl) { listEl.style.display = ''; }
+            // Update URL to shareable deep link
+            try {
+              const encoded = encodeURIComponent(name);
+              window.location.hash = `/workers?worker=${encoded}`;
+            } catch {}
           });
         } catch (e) {
           console.warn('Failed to init worker picker', e);
@@ -185,7 +224,12 @@ class WorkersPageController extends PageController {
             this.routesListComponent.setTitle(`Volunteer routes for ${name}`);
             const host = this.pageElement.shadowRoot;
             const listEl = host && host.querySelector('#routesList');
-            if (listEl) listEl.style.display = '';
+            if (listEl) { listEl.style.display = ''; }
+            // Update URL to shareable deep link
+            try {
+              const encoded = encodeURIComponent(name);
+              window.location.hash = `/workers?volunteer=${encoded}`;
+            } catch {}
           });
         } catch (e) {
           console.warn('Failed to init volunteer picker', e);
@@ -193,6 +237,13 @@ class WorkersPageController extends PageController {
       }
       // Clear button removed; routes remain hidden until a selection
     }
+  }
+
+  disconnected() {}
+
+  dispose() {
+    try { this._ac.abort(); } catch {}
+    try { document.querySelector('hash-router')?.removeEventListener('route-params-changed', this._boundParamsHandler); } catch {}
   }
 
   async loadWorkersData() {
@@ -213,8 +264,15 @@ class WorkersPageController extends PageController {
 
     try {
       const routes = await this.dataService.getAllRoutes();
+      // Show only routes from today onward
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const upcoming = routes.filter(r => {
+        const d = (r && r.sortDate instanceof Date) ? r.sortDate : new Date(r?.date || r?.Date || 0);
+        return d instanceof Date && !isNaN(d) && d >= today;
+      });
       // Prepare list but keep hidden until a selection is made
-      this.routesListComponent.setRoutes(routes);
+      this.routesListComponent.setRoutes(upcoming);
       this.routesListComponent.setGroupBy(null);
       this.routesListComponent.setTitle('');
       this.routesListComponent.clickable = true;
@@ -226,6 +284,125 @@ class WorkersPageController extends PageController {
     } catch (error) {
       this.showError("Failed to load routes data");
     }
+  }
+
+  async refreshPickers() {
+    try {
+      if (this.workerPicker) {
+        const workers = await this.dataService.getWorkers();
+        const icons = this.dataService.getWorkerIcons();
+        const prev = this.workerPicker.selectedWorker;
+        this.workerPicker.setWorkersData(workers, icons, '👤');
+        if (prev) { this.workerPicker.selectedWorker = prev; this.workerPicker.render(); }
+      }
+      if (this.volunteerPicker) {
+        const routes = await this.dataService.getAllRoutes();
+        const vSet = new Set();
+        const today = new Date(); today.setHours(0,0,0,0);
+        routes
+          .filter(r => (r.sortDate instanceof Date) && r.sortDate >= today)
+          .forEach(r => (r.volunteers || []).forEach(v => vSet.add(v)));
+        const volunteers = Array.from(vSet).sort();
+        const icons = this.dataService.getWorkerIcons();
+        const prevV = this.volunteerPicker.selectedWorker;
+        this.volunteerPicker.setWorkersData(volunteers, icons, '👤');
+        if (prevV) { this.volunteerPicker.selectedWorker = prevV; this.volunteerPicker.render(); }
+      }
+    } catch (e) {
+      console.warn('refreshPickers failed', e);
+    }
+  }
+
+  async applyRouteFilterFromHash() {
+    try {
+      const q = new URLSearchParams((location.hash.split('?')[1] || ''));
+      const workerParam = q.get('worker');
+      const volunteerParam = q.get('volunteer');
+      const host = this.pageElement.shadowRoot;
+      const listEl = host && host.querySelector('#routesList');
+      if (!this.routesListComponent || !listEl) return;
+
+      if (workerParam) {
+        console.info('[Scroll] Applying worker filter from hash:', workerParam);
+        const workers = await this.dataService.getWorkers();
+        // Find best match (case-insensitive)
+        const target = workers.find(w => (w||'').toLowerCase() === workerParam.toLowerCase()) || workerParam;
+        const key = `w:${String(target).toLowerCase()}`;
+        if (this.workerPicker) {
+          this.workerPicker.selectedWorker = target;
+          this.workerPicker.render();
+        }
+        this.routesListComponent.setFilter('workers', target);
+        this.routesListComponent.setGroupBy(null);
+        this.routesListComponent.setTitle(`Routes for ${target}`);
+        listEl.style.display = '';
+        // Only scroll on first apply or when filter changes
+        if (this._lastFilterKey !== key) {
+          await this._waitForListLayout(listEl);
+          this._logScrollBefore(listEl, 'worker');
+          try { listEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+          this._logScrollAfter(listEl, 'worker');
+          this._lastFilterKey = key;
+        }
+        return;
+      }
+
+      if (volunteerParam) {
+        console.info('[Scroll] Applying volunteer filter from hash:', volunteerParam);
+        // Build volunteers list from upcoming routes
+        const routes = await this.dataService.getAllRoutes();
+        const vSet = new Set();
+        const today = new Date(); today.setHours(0,0,0,0);
+        routes
+          .filter(r => (r.sortDate instanceof Date) && r.sortDate >= today)
+          .forEach(r => (r.volunteers || []).forEach(v => vSet.add(v)));
+        const volunteers = Array.from(vSet);
+        const target = volunteers.find(v => (v||'').toLowerCase() === volunteerParam.toLowerCase()) || volunteerParam;
+        const key = `v:${String(target).toLowerCase()}`;
+        if (this.volunteerPicker) {
+          this.volunteerPicker.selectedWorker = target;
+          this.volunteerPicker.render();
+        }
+        this.routesListComponent.setFilter('volunteers', target);
+        this.routesListComponent.setGroupBy(null);
+        this.routesListComponent.setTitle(`Volunteer routes for ${target}`);
+        listEl.style.display = '';
+        if (this._lastFilterKey !== key) {
+          await this._waitForListLayout(listEl);
+          this._logScrollBefore(listEl, 'volunteer');
+          try { listEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+          this._logScrollAfter(listEl, 'volunteer');
+          this._lastFilterKey = key;
+        }
+        return;
+      }
+    } catch {}
+  }
+
+  _waitForListLayout(listEl) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      const onRendered = () => { listEl.removeEventListener('routes-rendered', onRendered); finish(); };
+      try { listEl.addEventListener('routes-rendered', onRendered, { once: true }); } catch {}
+      requestAnimationFrame(() => requestAnimationFrame(finish));
+    });
+  }
+
+  _logScrollBefore(listEl, tag) {
+    try {
+      const rect = listEl.getBoundingClientRect();
+      console.info(`[Scroll] Before (${tag}) y=${window.scrollY||window.pageYOffset}, list.top=${rect.top}, list.height=${rect.height}`);
+    } catch {}
+  }
+
+  _logScrollAfter(listEl, tag) {
+    setTimeout(() => {
+      try {
+        const rect = listEl.getBoundingClientRect();
+        console.info(`[Scroll] After (${tag}) y=${window.scrollY||window.pageYOffset}, list.top=${rect.top}, list.height=${rect.height}`);
+      } catch {}
+    }, 50);
   }
 
   handleRouteSelected(routeData) {

@@ -38,8 +38,12 @@ class WorkerComponent extends HTMLElement {
 
   connectedCallback() {
     this.render();
-    this.loadWorkersData();
+    // Only auto-load if no workers were provided by a controller
+    if (!Array.isArray(this.workers) || this.workers.length === 0) {
+      this.loadWorkersData();
+    }
   }
+  disconnectedCallback() {}
 
   // ========================================
   // PUBLIC API METHODS

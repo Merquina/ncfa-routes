@@ -2,6 +2,10 @@
    SPFM Routes - Google Sheets Integration
    ======================================== */
 
+// Configuration constants (moved here as app.js is no longer loaded)
+const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
+const API_KEY = ""; // Not required when using OAuth via gapi; left blank to avoid errors
+
 class SheetsAPI {
   constructor() {
     this.data = [];
@@ -15,6 +19,9 @@ class SheetsAPI {
     this.miscVehicles = [];
     this.miscVehicleMap = {};
     this.isLoading = false;
+    // memoization caches
+    this._workersCacheKey = null;
+    this._workersCache = null;
   }
 
   // ========================================
@@ -27,49 +34,40 @@ class SheetsAPI {
     try {
       // Ensure Google API client is ready
       await this.ensureGapiClientReady();
-      console.log("Fetching fresh data from Google Sheets (OAuth)...");
+      console.info("Fetching fresh data from Google Sheets (OAuth, batch)...");
+      await this._batchFetchAll();
+      return this.data;
+    } catch (error) {
+      console.error("❌ Error loading spreadsheet data:", error);
+      throw error;
+    } finally {
+      this.isLoading = false;
+    }
+  }
 
-      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+  async _batchFetchAll() {
+    const ranges = [
+      'SPFM!A:T',
+      'Routes!A:Z',
+      'Recovery!A:P',
+      'SPFM_Delivery!A:P',
+      'Status!A:E',
+      'Contacts!A:Z',
+      'Misc!A:B',
+      'Misc!D:E',
+    ];
+    let result;
+    try {
+      const resp = await window.gapi.client.sheets.spreadsheets.values.batchGet({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'SPFM!A:T',
+        ranges,
       });
-      const result = resp.result;
-      console.log("✅ Raw data received from Google");
-
-      if (!result.values || result.values.length < 2) {
-        throw new Error("No data found in the spreadsheet");
-      }
-
-      // Find the header row dynamically (handles intro rows)
-      const values = result.values;
-      let headerIndex = 0;
-      for (let i = 0; i < Math.min(values.length, 10); i++) {
-        const row = values[i].map((c) => (c || '').toString().toLowerCase());
-        if (row.includes('date') || row.includes('routeid') || row.includes('market')) {
-          headerIndex = i;
-          break;
-        }
-      }
-
-      // Convert spreadsheet rows into JavaScript objects for easier use
-      const headers = values[headerIndex];
-      this.data = values
-        .slice(headerIndex + 1) // Skip to the row after headers
-        .filter((row) => row && row.length > 0 && row[0]) // Remove empty rows
-        .map((row) => {
-          // Create an object for each row using headers as keys
-          const obj = {};
-          headers.forEach((header, index) => {
-            obj[header] = row[index] || ""; // Use empty string if cell is blank
-          });
-          return obj;
-        });
-
-      console.log(`✅ Processed ${this.data.length} routes from spreadsheet`);
-      console.log("Sample route data:", this.data[0]);
-      console.log("Available columns:", headers);
-
-      // Also fetch recovery routes, box inventory, and contacts data
+      result = resp.result;
+    } catch (e) {
+      console.warn('Batch get failed, falling back to individual fetches:', e);
+      // Fallback to individual methods
+      const spfmResp = await window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'SPFM!A:T' });
+      this._parseSPFM(spfmResp.result?.values || []);
       await Promise.all([
         this.fetchRoutesData(),
         this.fetchRecoveryData(),
@@ -78,14 +76,130 @@ class SheetsAPI {
         this.fetchContactsData(),
         this.fetchMiscData(),
       ]);
-
-      return this.data;
-    } catch (error) {
-      console.error("❌ Error loading spreadsheet data:", error);
-      throw error;
-    } finally {
-      this.isLoading = false;
+      return;
     }
+
+    const valueRanges = result.valueRanges || [];
+    const map = new Map(valueRanges.map((vr) => [vr.range.split('!')[0], vr]));
+
+    // SPFM
+    this._parseSPFM(map.get('SPFM')?.values || []);
+
+    // Routes
+    try {
+      const routesValues = map.get('Routes')?.values || [];
+      this.routesData = [];
+      if (routesValues.length > 0) {
+        // Use existing multi-table parser
+        const values = routesValues;
+        let headers = null;
+        const looksLikeHeader = (row) => {
+          const lower = row.map((c) => (c || '').toString().trim().toLowerCase());
+          return (
+            lower.includes('date') ||
+            lower.includes('weekday') ||
+            lower.includes('routeid') ||
+            lower.includes('market') ||
+            lower.includes('route')
+          );
+        };
+        const isEmptyRow = (row) => !row || row.every((c) => !c || String(c).trim() === '');
+        for (let i = 0; i < values.length; i++) {
+          const row = values[i];
+          if (isEmptyRow(row)) continue;
+          if (looksLikeHeader(row)) { headers = row; continue; }
+          if (!headers) continue;
+          const obj = {}; headers.forEach((h, idx) => obj[h] = row[idx] || '');
+          const isHeaderEcho = Object.keys(obj).every((k) => String(obj[k]).trim() === String(k).trim() || obj[k] === '');
+          if (!isHeaderEcho) this.routesData.push(obj);
+        }
+      }
+    } catch (e) { console.warn('Routes parse failed:', e); this.routesData = []; }
+
+    // Recovery
+    try {
+      const values = map.get('Recovery')?.values || [];
+      this.recoveryData = [];
+      if (values.length >= 2) {
+        const headers = values[0];
+        this.recoveryData = values.slice(1).map((row) => { const obj = {}; headers.forEach((h,i)=>obj[h]=row[i]||''); return obj; });
+      } else if (this.routesData.length) {
+        // Derive from Routes
+        const headers = (map.get('Routes')?.values || [])[0] || [];
+        const idxType = headers.indexOf('routeType');
+        if (idxType >= 0) {
+          this.recoveryData = (map.get('Routes')?.values || []).slice(1)
+            .filter(r => /recovery/i.test((r[idxType]||'')))
+            .map((row) => { const obj = {}; headers.forEach((h,i)=>obj[h]=row[i]||''); obj.type='recovery'; return obj; });
+        }
+      }
+    } catch (e) { console.warn('Recovery parse failed:', e); this.recoveryData = []; }
+
+    // Delivery
+    try {
+      const values = map.get('SPFM_Delivery')?.values || [];
+      this.deliveryData = [];
+      if (values.length >= 2) {
+        const headers = values[0];
+        this.deliveryData = values.slice(1).map((row) => { const obj = {}; headers.forEach((h,i)=>obj[h]=row[i]||''); return obj; });
+      } else if (this.routesData.length) {
+        const routesValues = map.get('Routes')?.values || [];
+        const headers = routesValues[0] || [];
+        const idxType = headers.indexOf('routeType');
+        if (idxType >= 0) {
+          this.deliveryData = routesValues.slice(1)
+            .filter(r => /delivery/i.test((r[idxType]||'')))
+            .map((row) => { const obj = {}; headers.forEach((h,i)=>obj[h]=row[i]||''); obj.type='spfm-delivery'; return obj; });
+        }
+      }
+    } catch (e) { console.warn('Delivery parse failed:', e); this.deliveryData = []; }
+
+    // Inventory (Status)
+    try {
+      const values = map.get('Status')?.values || [];
+      this.inventoryData = [];
+      if (values.length >= 2) {
+        const headers = values[0];
+        this.inventoryData = values.slice(1).map((row) => { const obj = {}; headers.forEach((h,i)=>obj[h]=row[i]||''); return obj; });
+      }
+    } catch (e) { console.warn('Status parse failed:', e); this.inventoryData = []; }
+
+    // Contacts (lazy candidates)
+    try {
+      const values = map.get('Contacts')?.values || [];
+      this.contactsData = [];
+      if (values.length >= 2) {
+        const headers = values[0];
+        this.contactsData = values.slice(1).map((row) => { const obj = {}; headers.forEach((h,i)=>obj[h]=row[i]||''); return obj; });
+      }
+    } catch (e) { console.warn('Contacts parse failed:', e); this.contactsData = []; }
+
+    // Misc Workers
+    try {
+      const values = map.get('Misc')?.values || [];
+      // Note: batchGet returns full sheet ranges per range; since we requested both A:B and D:E,
+      // depending on API behavior, we may only get one. If only one, fallback to individual calls.
+    } catch {}
+    // For Misc, re-use existing method to be safe
+    try { await this.fetchMiscData(); } catch {}
+  }
+
+  _parseSPFM(values) {
+    if (!values || values.length < 2) { this.data = []; return; }
+    // Find header row dynamically (handles intro rows)
+    let headerIndex = 0;
+    for (let i = 0; i < Math.min(values.length, 10); i++) {
+      const row = values[i].map((c) => (c || '').toString().toLowerCase());
+      if (row.includes('date') || row.includes('routeid') || row.includes('market')) {
+        headerIndex = i; break;
+      }
+    }
+    const headers = values[headerIndex];
+    this.data = values
+      .slice(headerIndex + 1)
+      .filter((row) => row && row.length > 0 && row[0])
+      .map((row) => { const obj = {}; headers.forEach((h,i)=>obj[h]=row[i]||''); return obj; });
+    console.info(`✅ Processed ${this.data.length} routes from SPFM tab`);
   }
 
   // Wait for gapi client.sheets to be available (on hard refresh timing issues)
@@ -105,7 +219,7 @@ class SheetsAPI {
       await this.ensureGapiClientReady();
       // Prefer dedicated "Recovery" tab if present
       const recoveryRange = 'Recovery!A:P';
-      console.log("🚗 Attempting to fetch recovery routes (OAuth)...");
+      console.info("🚗 Attempting to fetch recovery routes (OAuth)...");
       let result;
       try {
         const resp = await window.gapi.client.sheets.spreadsheets.values.get({
@@ -126,13 +240,13 @@ class SheetsAPI {
           });
           return obj;
         });
-        console.log(`✅ Loaded ${this.recoveryData.length} recovery routes`);
-        console.log("🔍 Debug: Sample recovery route:", this.recoveryData[0]);
+        console.info(`✅ Loaded ${this.recoveryData.length} recovery routes`);
+        console.debug("🔍 Debug: Sample recovery route:", this.recoveryData[0]);
         return;
       }
 
       // Fallback: derive Recovery from consolidated Routes sheet by routeType
-      console.log("🔄 Recovery tab missing; deriving from Routes (routeType=Recovery)");
+      console.info("🔄 Recovery tab missing; deriving from Routes (routeType=Recovery)");
       const routesRange = 'Routes!A:Z';
       const routesResp = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
@@ -140,7 +254,7 @@ class SheetsAPI {
       });
       const rValues = routesResp.result?.values || [];
       if (rValues.length < 2) {
-        console.log("Routes sheet empty; no recovery routes available");
+        console.info("Routes sheet empty; no recovery routes available");
         this.recoveryData = [];
         return;
       }
@@ -155,9 +269,9 @@ class SheetsAPI {
           obj.type = 'recovery';
           return obj;
         });
-      console.log(`✅ Derived ${this.recoveryData.length} recovery routes from Routes`);
+      console.info(`✅ Derived ${this.recoveryData.length} recovery routes from Routes`);
     } catch (error) {
-      console.log("Recovery data not available (this is optional):", error);
+      console.info("Recovery data not available (this is optional):", error);
     }
   }
 
@@ -169,7 +283,7 @@ class SheetsAPI {
       await this.ensureGapiClientReady();
       // Try dedicated tab first
       const deliveryRange = 'SPFM_Delivery!A:P';
-      console.log("🚚 Attempting to fetch SPFM delivery routes (OAuth)...");
+      console.info("🚚 Attempting to fetch SPFM delivery routes (OAuth)...");
       let result;
       try {
         const resp = await window.gapi.client.sheets.spreadsheets.values.get({
@@ -190,12 +304,12 @@ class SheetsAPI {
           });
           return obj;
         });
-        console.log(`✅ Loaded ${this.deliveryData.length} SPFM delivery routes`);
+        console.info(`✅ Loaded ${this.deliveryData.length} SPFM delivery routes`);
         return;
       }
 
       // Fallback: derive delivery from Routes sheet if routeType matches
-      console.log("🔄 Delivery tab missing; deriving from Routes (routeType contains 'delivery')");
+      console.info("🔄 Delivery tab missing; deriving from Routes (routeType contains 'delivery')");
       const routesRange = 'Routes!A:Z';
       const routesResp = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
@@ -216,9 +330,9 @@ class SheetsAPI {
           obj.type = 'spfm-delivery';
           return obj;
         });
-      console.log(`✅ Derived ${this.deliveryData.length} delivery routes from Routes`);
+      console.info(`✅ Derived ${this.deliveryData.length} delivery routes from Routes`);
     } catch (error) {
-      console.log(
+      console.info(
         "SPFM Delivery data not available (this is optional):",
         error,
       );
@@ -234,7 +348,7 @@ class SheetsAPI {
       // Try to fetch box inventory from the "Inventory" sheet tab
       // Inventory table now resides on the 'Status' sheet (columns A:E)
       const inventoryRange = 'Status!A:E';
-      console.log("📦 Attempting to fetch inventory data (OAuth)...");
+      console.info("📦 Attempting to fetch inventory data (OAuth)...");
       const resp = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: inventoryRange,
@@ -242,7 +356,7 @@ class SheetsAPI {
       const result = resp.result;
 
       if (!result.values || result.values.length < 2) {
-        console.log("Inventory tab is empty - skipping inventory display");
+        console.info("Inventory tab is empty - skipping inventory display");
         return;
       }
 
@@ -256,9 +370,9 @@ class SheetsAPI {
         return obj;
       });
 
-      console.log(`✅ Loaded ${this.inventoryData.length} inventory items`);
+      console.info(`✅ Loaded ${this.inventoryData.length} inventory items`);
     } catch (error) {
-      console.log("Inventory data not available (this is optional):", error);
+      console.info("Inventory data not available (this is optional):", error);
     }
   }
 
@@ -269,7 +383,7 @@ class SheetsAPI {
     try {
       await this.ensureGapiClientReady();
       const contactsRange = 'Contacts!A:Z';
-      console.log("📞 Attempting to fetch contacts data (OAuth)...");
+      console.info("📞 Attempting to fetch contacts data (OAuth)...");
       const resp = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: contactsRange,
@@ -278,7 +392,7 @@ class SheetsAPI {
       const values = result.values;
 
       if (!values || values.length === 0) {
-        console.log("No contacts data found.");
+        console.info("No contacts data found.");
         return;
       }
 
@@ -291,7 +405,7 @@ class SheetsAPI {
         return contact;
       });
 
-      console.log(
+      console.info(
         "✅ Contacts data loaded:",
         this.contactsData.length,
         "contacts",
@@ -307,28 +421,50 @@ class SheetsAPI {
   async fetchRoutesData() {
     try {
       const routesRange = 'Routes!A:Z';
-      console.log("🧭 Fetching consolidated Routes sheet (OAuth)...");
+      console.info("🧭 Fetching consolidated Routes sheet (OAuth)...");
       const resp = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: routesRange,
       });
       const result = resp.result;
       this.routesData = [];
-      if (!result.values || result.values.length < 2) {
-        console.log("Routes sheet empty - skipping consolidated routes");
+      if (!result.values || result.values.length === 0) {
+      console.info("Routes sheet empty - skipping consolidated routes");
         return;
       }
-      const headers = result.values[0];
-      this.routesData = result.values.slice(1).map((row) => {
+      // The Routes sheet may contain multiple tables (e.g., dated routes and periodic routes)
+      // Detect header rows dynamically and map following rows accordingly until the next header.
+      const values = result.values;
+      let headers = null;
+      const looksLikeHeader = (row) => {
+        const lower = row.map((c) => (c || '').toString().trim().toLowerCase());
+        return (
+          lower.includes('date') ||
+          lower.includes('weekday') ||
+          lower.includes('routeid') ||
+          lower.includes('market') ||
+          lower.includes('route')
+        );
+      };
+      const isEmptyRow = (row) => !row || row.every((c) => !c || String(c).trim() === '');
+      for (let i = 0; i < values.length; i++) {
+        const row = values[i];
+        if (isEmptyRow(row)) continue;
+        if (looksLikeHeader(row)) {
+          headers = row;
+          continue;
+        }
+        if (!headers) continue; // Skip preface text before first header
         const obj = {};
-        headers.forEach((header, index) => {
-          obj[header] = row[index] || "";
-        });
-        return obj;
-      });
-      console.log(`✅ Loaded ${this.routesData.length} rows from Routes sheet`);
+        headers.forEach((h, idx) => { obj[h] = row[idx] || ''; });
+        // Skip rows that are header echoes (cells equal to header names)
+        const isHeaderEcho = Object.keys(obj).every((k) => String(obj[k]).trim() === String(k).trim() || obj[k] === '');
+        if (isHeaderEcho) continue;
+        this.routesData.push(obj);
+      }
+      console.info(`✅ Loaded ${this.routesData.length} rows from Routes sheet across tables`);
     } catch (error) {
-      console.log("Routes sheet not available (optional):", error);
+      console.info("Routes sheet not available (optional):", error);
       this.routesData = [];
     }
   }
@@ -362,7 +498,7 @@ class SheetsAPI {
           this.miscWorkers.push(rec);
           if (emoji) this.miscWorkerMap[name] = emoji;
         });
-        console.log(`✅ Loaded ${this.miscWorkers.length} workers from Misc`);
+        console.info(`✅ Loaded ${this.miscWorkers.length} workers from Misc`);
       }
 
       // Vehicles
@@ -385,10 +521,10 @@ class SheetsAPI {
           this.miscVehicles.push(rec);
           if (emoji) this.miscVehicleMap[van] = emoji;
         });
-        console.log(`✅ Loaded ${this.miscVehicles.length} vehicles from Misc`);
+        console.info(`✅ Loaded ${this.miscVehicles.length} vehicles from Misc`);
       }
     } catch (error) {
-      console.log('Misc data not available (optional):', error);
+      console.info('Misc data not available (optional):', error);
     }
   }
 
@@ -401,7 +537,7 @@ class SheetsAPI {
         const response = await fetch(url);
 
         if (response.status === 429) {
-          console.log(
+          console.warn(
             `Rate limited (429), waiting ${delay}ms before retry ${i + 1}/${maxRetries}`,
           );
           if (i < maxRetries - 1) {
@@ -414,7 +550,7 @@ class SheetsAPI {
         return response;
       } catch (error) {
         if (i === maxRetries - 1) throw error;
-        console.log(`Request failed, retrying in ${delay}ms...`);
+        console.warn(`Request failed, retrying in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -429,12 +565,12 @@ class SheetsAPI {
     const workers = [];
     let i = 1;
 
-    console.log(`🔍 DEBUG getAllWorkers - Route keys:`, Object.keys(route));
-    console.log(`🔍 DEBUG getAllWorkers - Looking for worker columns...`);
+    console.debug(`🔍 DEBUG getAllWorkers - Route keys:`, Object.keys(route));
+    console.debug(`🔍 DEBUG getAllWorkers - Looking for worker columns...`);
 
     while (route[`worker${i}`]) {
       const workerCell = route[`worker${i}`].trim();
-      console.log(`🔍 DEBUG getAllWorkers - worker${i}: "${workerCell}"`);
+      console.debug(`🔍 DEBUG getAllWorkers - worker${i}: "${workerCell}"`);
       // Skip header rows that have literal column names as values
       if (
         workerCell &&
@@ -449,10 +585,10 @@ class SheetsAPI {
           .filter((name) => name);
         individualWorkers.forEach((worker) => {
           workers.push(worker);
-          console.log(`🔍 DEBUG getAllWorkers - Added worker: "${worker}"`);
+          console.debug(`🔍 DEBUG getAllWorkers - Added worker: "${worker}"`);
         });
       } else if (workerCell === `worker${i}`) {
-        console.log(
+        console.debug(
           `🔍 DEBUG getAllWorkers - Skipping header row with literal column name: "${workerCell}"`,
         );
       }
@@ -462,7 +598,7 @@ class SheetsAPI {
     // Also check old single column names for backward compatibility
     if (workers.length === 0 && (route.Worker || route.worker)) {
       const singleWorker = (route.Worker || route.worker).trim();
-      console.log(
+      console.debug(
         `🔍 DEBUG getAllWorkers - Found single worker column: "${singleWorker}"`,
       );
       if (
@@ -471,13 +607,13 @@ class SheetsAPI {
         !this.isColumnHeaderName(singleWorker)
       ) {
         workers.push(singleWorker);
-        console.log(
+        console.debug(
           `🔍 DEBUG getAllWorkers - Added single worker: "${singleWorker}"`,
         );
       }
     }
 
-    console.log(`🔍 DEBUG getAllWorkers - Final workers:`, workers);
+    console.debug(`🔍 DEBUG getAllWorkers - Final workers:`, workers);
     return workers;
   }
 
@@ -615,14 +751,14 @@ class SheetsAPI {
   }
 
   getAddressFromContacts(name) {
-    console.log(`🔍 Debug: Looking up address for "${name}"`);
-    console.log(
+    console.debug(`🔍 Debug: Looking up address for "${name}"`);
+    console.debug(
       `🔍 Debug: contactsData available:`,
       this.contactsData?.length || 0,
     );
 
     if (!this.contactsData || this.contactsData.length === 0) {
-      console.log(`🔍 Debug: No contacts data available for "${name}"`);
+      console.debug(`🔍 Debug: No contacts data available for "${name}"`);
       return null;
     }
 
@@ -634,8 +770,8 @@ class SheetsAPI {
         .replace(/\s+/g, " "); // Normalize multiple spaces to single space
     };
 
-    console.log(`🔍 Debug: Searching for "${name}" in contacts...`);
-    console.log(
+    console.debug(`🔍 Debug: Searching for "${name}" in contacts...`);
+    console.debug(
       `🔍 Debug: Available contacts:`,
       this.contactsData.map((c) => ({
         Location: c.Location,
@@ -653,7 +789,7 @@ class SheetsAPI {
     });
 
     if (contact) {
-      console.log(`🔍 Debug: Found exact match for "${name}"`);
+      console.debug(`🔍 Debug: Found exact match for "${name}"`);
     } else {
       // Strategy 2: Exact match after normalizing apostrophes and spaces
       const normalizedName = normalize(name);
@@ -664,19 +800,19 @@ class SheetsAPI {
       });
 
       if (contact) {
-        console.log(`🔍 Debug: Found normalized match for "${name}"`);
+        console.debug(`🔍 Debug: Found normalized match for "${name}"`);
       }
     }
 
     if (contact) {
-      console.log(`🔍 Debug: Found contact for "${name}":`, {
+      console.debug(`🔍 Debug: Found contact for "${name}":`, {
         Location: contact.Location,
         Address: contact.Address,
         Phone: contact.Phone,
         Type: contact.Type,
         AllKeys: Object.keys(contact),
       });
-      console.log(`🔍 DEBUG Type value for "${name}": "${contact.Type}"`);
+      console.debug(`🔍 DEBUG Type value for "${name}": "${contact.Type}"`);
       const finalAddress = contact.Address || contact.Location || "";
 
       // Get all numbered contacts and phones
@@ -708,8 +844,8 @@ class SheetsAPI {
         type: contact.Type || contact.type || contact.TYPE || "",
       };
     } else {
-      console.log(`🔍 Debug: No contact found for "${name}"`);
-      console.log(
+      console.debug(`🔍 Debug: No contact found for "${name}"`);
+      console.debug(
         `🔍 Debug: Available locations:`,
         this.contactsData
           .map((c) => c.Location)
@@ -721,6 +857,20 @@ class SheetsAPI {
   }
 
   getAllWorkers() {
+    // Build cache key from current data snapshot
+    const keyParts = [];
+    try {
+      keyParts.push((this.miscWorkers || []).length);
+      keyParts.push((this.data || []).length);
+      keyParts.push((this.recoveryData || []).length);
+      keyParts.push((this.deliveryData || []).length);
+      keyParts.push((this.routesData || []).length);
+    } catch {}
+    const cacheKey = keyParts.join('|');
+    if (this._workersCache && this._workersCacheKey === cacheKey) {
+      return [...this._workersCache];
+    }
+
     const workers = new Set();
 
     // Prefer Misc Workers list if present
@@ -747,7 +897,10 @@ class SheetsAPI {
     addFromRoutes(this.deliveryData);
     addFromRoutes(this.routesData || []);
 
-    return Array.from(workers).sort();
+    const result = Array.from(workers).sort();
+    this._workersCacheKey = cacheKey;
+    this._workersCache = result;
+    return [...result];
   }
 
   getWorkerEmoji(name) {
@@ -861,13 +1014,13 @@ class SheetsAPI {
       );
     });
 
-    console.log(`🔍 Debug getWorkerAssignments for ${workerName}:`);
-    console.log("🔍 Recovery data:", this.recoveryData);
-    console.log("🔍 SPFM assignments found:", spfmAssignments.length);
-    console.log("🔍 Recovery assignments found:", recoveryAssignments.length);
-    console.log("🔍 Recovery assignments:", recoveryAssignments);
-    console.log("🔍 Delivery assignments found:", deliveryAssignments.length);
-    console.log("🔍 Delivery assignments:", deliveryAssignments);
+    console.debug(`🔍 Debug getWorkerAssignments for ${workerName}:`);
+    console.debug("🔍 Recovery data:", this.recoveryData);
+    console.debug("🔍 SPFM assignments found:", spfmAssignments.length);
+    console.debug("🔍 Recovery assignments found:", recoveryAssignments.length);
+    console.debug("🔍 Recovery assignments:", recoveryAssignments);
+    console.debug("🔍 Delivery assignments found:", deliveryAssignments.length);
+    console.debug("🔍 Delivery assignments:", deliveryAssignments);
 
     return {
       spfm: spfmAssignments,
@@ -945,7 +1098,7 @@ class SheetsAPI {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      console.log("✅ Charts sheet created successfully");
+      console.info("✅ Charts sheet created successfully");
       return true;
     } catch (error) {
       console.error("❌ Error creating Charts sheet:", error);
@@ -962,17 +1115,17 @@ class SheetsAPI {
         values: [rowData],
       };
 
-      console.log("📊 Attempting to append to Charts sheet");
-      console.log("📊 URL:", url);
-      console.log("📊 Row data:", rowData);
+      console.info("📊 Attempting to append to Charts sheet");
+      console.debug("📊 URL:", url);
+      console.debug("📊 Row data:", rowData);
 
       const token = window.gapi.client.getToken();
       if (!token) {
-        console.log("❌ No auth token - user may not be signed in");
+        console.warn("❌ No auth token - user may not be signed in");
         return false;
       }
 
-      console.log("📊 Token exists, making request...");
+      console.debug("📊 Token exists, making request...");
 
       const response = await fetch(url, {
         method: "POST",
@@ -983,15 +1136,15 @@ class SheetsAPI {
         body: JSON.stringify(requestBody),
       });
 
-      console.log("📊 Response status:", response.status);
-      console.log("📊 Response ok:", response.ok);
+      console.debug("📊 Response status:", response.status);
+      console.debug("📊 Response ok:", response.ok);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log("📊 Error response text:", errorText);
+        console.warn("📊 Error response text:", errorText);
 
         if (response.status === 400) {
-          console.log(
+          console.info(
             "📊 Charts sheet may not exist yet - please create it manually",
           );
           return false;
@@ -1002,8 +1155,8 @@ class SheetsAPI {
       }
 
       const responseData = await response.json();
-      console.log("📊 Response data:", responseData);
-      console.log("✅ Data appended to Charts sheet successfully");
+      console.debug("📊 Response data:", responseData);
+      console.info("✅ Data appended to Charts sheet successfully");
       return true;
     } catch (error) {
       console.error("❌ Error appending to Charts sheet:", error);
@@ -1013,7 +1166,7 @@ class SheetsAPI {
         stack: error.stack,
       });
       if (error.message.includes("Charts")) {
-        console.log(
+        console.info(
           "💡 Tip: Create a 'Charts' sheet in your Google Spreadsheet with headers: Date, Route ID, Location, Boxes, Lbs, Timestamp, Submitted By",
         );
       }
@@ -1026,5 +1179,31 @@ class SheetsAPI {
 const sheetsAPI = new SheetsAPI();
 
 // Confirm this file loaded
-console.log("✅ sheets.js loaded");
+console.debug("✅ sheets.js loaded");
 window.sheetsAPILoaded = true;
+
+// Modern bootstrap: expose instance and lightweight loader for DataService
+// Legacy app.js previously attached these; in the modernized app we still rely
+// on window-level access for cross-module coordination.
+if (!window.sheetsAPI) {
+  window.sheetsAPI = sheetsAPI;
+}
+
+// Provide a minimal TTL-gated loader so DataService can ensure data presence
+if (typeof window.loadApiDataIfNeeded !== 'function') {
+  const SHEETS_TTL_MS = 120000; // 2 minutes
+  window.__lastSheetsFetchTs = window.__lastSheetsFetchTs || 0;
+  window.loadApiDataIfNeeded = async function loadApiDataIfNeeded() {
+    try {
+      const now = Date.now();
+      const stale = now - (window.__lastSheetsFetchTs || 0) > SHEETS_TTL_MS;
+      const needInitial = !Array.isArray(window.sheetsAPI?.data) || window.sheetsAPI.data.length === 0;
+      if (!needInitial && !stale) return;
+      await window.sheetsAPI.fetchSheetData();
+      window.__lastSheetsFetchTs = Date.now();
+    } catch (e) {
+      console.error('Failed to load API data:', e);
+      throw e;
+    }
+  };
+}

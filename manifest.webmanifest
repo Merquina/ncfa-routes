@@ -1,0 +1,10 @@
+{
+  "name": "NCFA Routes",
+  "short_name": "Routes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#28a745",
+  "description": "SPFM and Recovery Routes for NCFA",
+  "icons": []
+}

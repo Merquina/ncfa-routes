@@ -97,5 +97,5 @@ class WorkersManager {
 const workersManager = new WorkersManager();
 
 // Confirm this file loaded
-console.log("✅ workers.js loaded");
+console.debug("✅ workers.js loaded");
 window.workersManagerLoaded = true;

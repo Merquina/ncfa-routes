@@ -1,3 +1,6 @@
+import sheetsAPI from '../services/sheets-api.js';
+import dataService from '../services/data-service.js';
+
 class AppLayout extends HTMLElement {
   constructor() {
     super();
@@ -6,8 +9,24 @@ class AppLayout extends HTMLElement {
 
   connectedCallback() {
     this.render();
+    this.registerDefaultRoutes();
     this.setupMenuHandlers();
     this.setupRouting();
+    this._wireSyncStatus();
+  }
+  disconnectedCallback() {}
+
+  registerDefaultRoutes() {
+    try {
+      const router = document.querySelector('hash-router');
+      if (!router || typeof router.registerRoute !== 'function') return;
+      const existing = router.getRoutes && router.getRoutes();
+      if (existing && existing.length > 0) return; // already registered
+      router.registerRoute('/boxes', 'boxes-page', 'Box Inventory');
+      router.registerRoute('/dates', 'dates-page', 'Next Upcoming');
+      router.registerRoute('/workers', 'workers-page', 'Routes by Worker');
+      router.registerRoute('/route', 'route-details-page', 'Route Details');
+    } catch {}
   }
 
   setupRouting() {
@@ -219,13 +238,17 @@ class AppLayout extends HTMLElement {
         <button id="hamburgerMenu" class="hamburger-menu" title="Menu">☰</button>
         
         <div id="dropdownMenu" class="dropdown-menu">
-          <button class="menu-item" id="signOutBtn">🚪 Sign Out</button>
+          <button class="menu-item" id="refreshBtn">🔄 Refresh Now</button>
           <button class="menu-item" id="backendDataBtn">📊 Backend Data</button>
+          <button class="menu-item" id="signOutBtn">🚪 Sign Out</button>
         </div>
         
         <h1>North Country Food Alliance</h1>
         <div style="font-size: 1.2rem; margin: 5px 0;">🥕 🥒 🥬</div>
         <p>SPFM and Recovery Routes</p>
+        <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">
+          Last synced: <span id="lastSynced">—</span>
+        </div>
       </div>
       
       <div class="main-content">
@@ -253,6 +276,7 @@ class AppLayout extends HTMLElement {
     // Set up menu event listeners
     const signOutBtn = this.shadowRoot.querySelector('#signOutBtn');
     const backendDataBtn = this.shadowRoot.querySelector('#backendDataBtn');
+    const refreshBtn = this.shadowRoot.querySelector('#refreshBtn');
     
     if (signOutBtn) {
       signOutBtn.addEventListener('click', () => {
@@ -267,6 +291,28 @@ class AppLayout extends HTMLElement {
         this.toggleMenu();
       });
     }
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', async () => {
+        try {
+          await dataService.loadApiData(true);
+        } finally {
+          this.toggleMenu();
+        }
+      });
+    }
+  }
+
+  _wireSyncStatus() {
+    const el = this.shadowRoot.querySelector('#lastSynced');
+    const set = () => {
+      if (!el) return;
+      const ts = sheetsAPI?.lastFetchTs || 0;
+      if (!ts) { el.textContent = '—'; return; }
+      const d = new Date(ts);
+      el.textContent = d.toLocaleString();
+    };
+    try { sheetsAPI.addEventListener('updated', set); } catch {}
+    set();
   }
 
   updateActiveTab(route) {

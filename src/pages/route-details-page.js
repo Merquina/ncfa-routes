@@ -30,7 +30,14 @@ class RouteDetailsPage extends HTMLElement {
         await dataService.loadApiData();
       }
       const routes = await dataService.getAllRoutes();
-      const route = routes.find(r => encodeURIComponent(r.id) === rid);
+      const ridDecoded = (() => { try { return decodeURIComponent(rid); } catch { return rid; } })();
+      const route = routes.find(r => {
+        const id = r.id || r._routeId || '';
+        return (
+          encodeURIComponent(id) === rid ||
+          id === ridDecoded
+        );
+      });
       if (!route) {
         this.shadowRoot.querySelector('#container').innerHTML = '<div style="padding:16px;">Route not found.</div>';
         return;
@@ -62,4 +69,3 @@ class RouteDetailsPage extends HTMLElement {
 }
 
 customElements.define('route-details-page', RouteDetailsPage);
-

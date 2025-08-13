@@ -81,7 +81,7 @@ class InventoryManager {
   // INVENTORY CONTENT RENDERING
   // ========================================
   renderInventoryContent(inventoryContainer) {
-    console.log(
+    console.debug(
       "🔍 Debug: renderInventoryContent called - Google Sheets + localStorage",
     );
 
@@ -180,18 +180,18 @@ class InventoryManager {
     this.isLoadingFromSheets = true;
 
     try {
-      console.log("📦 Attempting to load inventory from Google Sheets...");
+      console.info("📦 Attempting to load inventory from Google Sheets...");
 
       // Check if user is signed in (OAuth)
       if (!window.gapi || !window.gapi.client) {
-        console.log(
+        console.info(
           "📱 Google API not loaded or user not signed in, using localStorage",
         );
         return this.getLocalInventory();
       }
 
       if (!window.gapi.client.getToken()) {
-        console.log("📱 User not signed in, using localStorage");
+        console.info("📱 User not signed in, using localStorage");
         return this.getLocalInventory();
       }
 
@@ -220,15 +220,15 @@ class InventoryManager {
 
         // Update localStorage with sheets data
         this.saveLocalInventory(sheetsInventory);
-        console.log("✅ Loaded inventory from Google Sheets:", sheetsInventory);
+        console.info("✅ Loaded inventory from Google Sheets:", sheetsInventory);
         return sheetsInventory;
       } else {
-        console.log(
+        console.info(
           "📱 No inventory data in Google Sheets, using localStorage",
         );
       }
     } catch (error) {
-      console.log(
+      console.warn(
         "📱 Failed to load from Google Sheets, using localStorage:",
         error,
       );
@@ -308,7 +308,7 @@ class InventoryManager {
     if (stored) {
       try {
         const inventory = JSON.parse(stored);
-        console.log("✅ Loaded inventory from localStorage:", inventory);
+        console.info("✅ Loaded inventory from localStorage:", inventory);
         return inventory;
       } catch (error) {
         console.error("Error parsing stored inventory:", error);
@@ -333,7 +333,7 @@ class InventoryManager {
 
   saveLocalInventory(inventory) {
     localStorage.setItem("spfm_inventory", JSON.stringify(inventory));
-    console.log("✅ Saved inventory to localStorage:", inventory);
+    console.info("✅ Saved inventory to localStorage:", inventory);
   }
 
   async updateInventory() {
@@ -371,10 +371,10 @@ class InventoryManager {
     // Try to save to Google Sheets
     try {
       await this.saveInventoryToSheets(inventory);
-      console.log("✅ Inventory saved to Google Sheets");
+      console.info("✅ Inventory saved to Google Sheets");
       alert("✅ Inventory updated and shared with team!");
     } catch (error) {
-      console.log("📱 Google Sheets save failed, saved locally only:", error);
+      console.warn("📱 Google Sheets save failed, saved locally only:", error);
       alert("✅ Inventory updated locally (Google Sheets sync failed)");
     }
 
@@ -385,7 +385,7 @@ class InventoryManager {
     // Refresh the display
     await this.renderInventory();
 
-    console.log("✅ Inventory updated by", name);
+    console.info("✅ Inventory updated by", name);
   }
 
   // ========================================
@@ -414,7 +414,7 @@ class InventoryManager {
     try {
       await this.saveInventoryToSheets(inventory);
     } catch (error) {
-      console.log("Failed to sync addition to Google Sheets:", error);
+      console.warn("Failed to sync addition to Google Sheets:", error);
     }
 
     await this.renderInventory();
@@ -432,7 +432,7 @@ class InventoryManager {
     try {
       await this.saveInventoryToSheets(inventory);
     } catch (error) {
-      console.log("Failed to sync removal to Google Sheets:", error);
+      console.warn("Failed to sync removal to Google Sheets:", error);
     }
 
     await this.renderInventory();
@@ -526,11 +526,11 @@ class InventoryManager {
   // ========================================
   setupCalculatorListeners() {
     setTimeout(() => {
-      console.log("🔍 Debug: Setting up calculator listeners");
+      console.debug("🔍 Debug: Setting up calculator listeners");
       const inputs = ["farmersInput", "smallBoxesInput", "largeBoxesInput"];
       inputs.forEach((id) => {
         const input = document.getElementById(id);
-        console.log(`🔍 Debug: Setting up listener for ${id}:`, input);
+        console.debug(`🔍 Debug: Setting up listener for ${id}:`, input);
         if (input) {
           input.addEventListener("input", () => this.calculateDistribution());
         }
@@ -555,34 +555,34 @@ class InventoryManager {
         minute: "2-digit",
       });
       this.saveLocalInventory(inventory);
-      console.log("✅ Refreshed timestamp format");
+      console.info("✅ Refreshed timestamp format");
     }
   }
 }
 
 // Export instance with error handling
-console.log("🔍 Creating inventoryManager...");
+console.debug("🔍 Creating inventoryManager...");
 let inventoryManager;
 try {
   inventoryManager = new InventoryManager();
-  console.log("✅ inventoryManager created successfully");
+  console.info("✅ inventoryManager created successfully");
 
   // Make it globally available
   window.inventoryManager = inventoryManager;
-  console.log("✅ inventoryManager attached to window");
+  console.debug("✅ inventoryManager attached to window");
 } catch (error) {
   console.error("❌ Error creating inventoryManager:", error);
   console.error("Error stack:", error.stack);
 }
 
 // Confirm this file loaded
-console.log("✅ inventory.js loaded");
+console.debug("✅ inventory.js loaded");
 window.inventoryManagerLoaded = true;
 
 // Verify it's accessible
 setTimeout(() => {
   if (window.inventoryManager) {
-    console.log("✅ inventoryManager confirmed accessible on window");
+    console.debug("✅ inventoryManager confirmed accessible on window");
   } else {
     console.error("❌ inventoryManager NOT accessible on window");
   }

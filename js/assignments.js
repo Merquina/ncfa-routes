@@ -199,7 +199,7 @@ class AssignmentsManager {
     const workerSPFMRoutes = assignments.spfm.filter((route) => {
       const status = route.status || route.Status || "";
       const routeDate = new Date(route.date);
-      console.log(
+      console.debug(
         `🔍 Route ${route.routeId}: status="${status}", date=${
           route.date
         }, dateObj=${routeDate}, future=${routeDate >= today}`
@@ -285,23 +285,23 @@ class AssignmentsManager {
       .sort((a, b) => a.sortDate - b.sortDate)
       .slice(0, 3);
 
-    console.log("🔍 Debug worker assignments for", workerName);
-    console.log("🔍 Original SPFM assignments:", assignments.spfm.length);
-    console.log(
+    console.debug("🔍 Debug worker assignments for", workerName);
+    console.debug("🔍 Original SPFM assignments:", assignments.spfm.length);
+    console.debug(
       "🔍 Original recovery assignments:",
       assignments.recovery.length
     );
-    console.log(
+    console.debug(
       "🔍 Original delivery assignments:",
       assignments.delivery ? assignments.delivery.length : 0
     );
-    console.log(
+    console.debug(
       "🔍 Filtered SPFM routes (not completed):",
       workerSPFMRoutes.length
     );
-    console.log("🔍 Generated recovery dates:", allRecoveryDates.length);
-    console.log("🔍 Total routes found:", allRoutes.length);
-    console.log("🔍 Upcoming routes (limited to 3):", upcomingRoutes.length);
+    console.debug("🔍 Generated recovery dates:", allRecoveryDates.length);
+    console.debug("🔍 Total routes found:", allRoutes.length);
+    console.debug("🔍 Upcoming routes (limited to 3):", upcomingRoutes.length);
 
     // Use unified renderer
     this.renderUnifiedAssignments({
@@ -730,15 +730,15 @@ class AssignmentsManager {
               const locationName = route.dropOff || "Location TBD";
               if (locationName === "Location TBD") return locationName;
               const contact = sheetsAPI.getAddressFromContacts(locationName);
-              console.log(
+              console.debug(
                 `🔍 DEBUG Dropoff contact data for "${locationName}":`,
                 contact
               );
-              console.log(
+              console.debug(
                 `🔍 DEBUG Dropoff keys:`,
                 contact ? Object.keys(contact) : "null"
               );
-              console.log(
+              console.debug(
                 `🔍 DEBUG Dropoff Type:`,
                 contact ? contact.Type : "no contact"
               );
@@ -746,7 +746,7 @@ class AssignmentsManager {
                 contact && (contact.Type || contact.type || contact.TYPE)
                   ? (contact.Type || contact.type || contact.TYPE).trim()
                   : "";
-              console.log(`🔍 DEBUG Dropoff final type: "${type}"`);
+              console.debug(`🔍 DEBUG Dropoff final type: "${type}"`);
               return type ? `${locationName} - ${type}` : locationName;
             })()}</h3>
             <div style="margin-bottom: 10px;">
@@ -1358,15 +1358,15 @@ class AssignmentsManager {
                 stops.length > 1 ? `${index + 1} - ` : ""
               }${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                console.log(
+                console.debug(
                   `🔍 DEBUG Delivery contact data for "${stop.location}":`,
                   contact
                 );
-                console.log(
+                console.debug(
                   `🔍 DEBUG Delivery object keys:`,
                   contact ? Object.keys(contact) : "null"
                 );
-                console.log(
+                console.debug(
                   `🔍 DEBUG Delivery Type value:`,
                   contact ? contact.Type : "no contact"
                 );
@@ -1374,7 +1374,7 @@ class AssignmentsManager {
                   contact && (contact.Type || contact.type || contact.TYPE)
                     ? (contact.Type || contact.type || contact.TYPE).trim()
                     : "";
-                console.log(`🔍 DEBUG Delivery final type: "${type}"`);
+                console.debug(`🔍 DEBUG Delivery final type: "${type}"`);
                 return type ? `${stop.location} - ${type}` : stop.location;
               })()}</h3>
               <div style="margin-bottom: 10px;">
@@ -1548,7 +1548,7 @@ class AssignmentsManager {
           text.toLowerCase().includes("save"))
       ) {
         element.remove();
-        console.log("🗑️ Removed weight section:", text.substring(0, 50));
+        console.debug("🗑️ Removed weight section:", text.substring(0, 50));
       }
     });
   }
@@ -1663,7 +1663,7 @@ class AssignmentsManager {
         submittedBy: "User", // Could be enhanced to get actual user name
       };
 
-      console.log("📊 Submitting pickup data:", pickupData);
+      console.info("📊 Submitting pickup data:", pickupData);
 
       // Submit to Charts sheet
       const success = await this.submitToChartsSheet(pickupData);
@@ -1708,14 +1708,14 @@ class AssignmentsManager {
       ];
 
       // Try to append directly - if Charts sheet doesn't exist, it will fail gracefully
-      console.log("📊 Attempting to append data:", rowData);
+      console.info("📊 Attempting to append data:", rowData);
       const success = await sheetsAPI.appendToChartsSheet(rowData);
-      console.log("📊 Append result:", success);
+      console.debug("📊 Append result:", success);
       if (!success) {
-        console.log(
+        console.info(
           "📊 Charts sheet may not exist - data logged to console instead"
         );
-        console.log("📊 Pickup data:", data);
+        console.info("📊 Pickup data:", data);
         return false;
       }
       return success;
@@ -1726,7 +1726,7 @@ class AssignmentsManager {
         stack: error.stack,
         data: data,
       });
-      console.log("📊 Pickup data logged to console:", data);
+      console.info("📊 Pickup data logged to console:", data);
       return false;
     }
   }
@@ -1813,5 +1813,5 @@ class AssignmentsManager {
 const assignmentsManager = new AssignmentsManager();
 
 // Confirm this file loaded
-console.log("✅ assignments.js loaded");
+console.debug("✅ assignments.js loaded");
 window.assignmentsManagerLoaded = true;

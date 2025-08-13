@@ -349,6 +349,12 @@ class RouteList extends HTMLElement {
       emptyDiv.innerHTML = '<div class="empty-icon">📅</div><p>' + this.emptyMessage + '</p>';
       listContent.appendChild(emptyDiv);
     }
+    // Notify listeners that the list has finished rendering
+    try {
+      const total = hasRoutes ? Object.values(grouped).reduce((n, arr) => n + (arr?.length||0), 0) : 0;
+      console.info('[RouteList] routes-rendered groups=', hasRoutes ? Object.keys(grouped).length : 0, 'total=', total);
+      this.dispatchEvent(new CustomEvent('routes-rendered', { bubbles: true, composed: true }));
+    } catch {}
     
     } catch (error) {
       console.error('Error in render:', error);
