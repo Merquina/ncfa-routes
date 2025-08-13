@@ -860,12 +860,18 @@ class SheetsAPIService extends EventTarget {
       const idxBackOffice = matchCol([
         /^(back\s?at\s?office|back\s?office|backatoffice)$/i,
       ]);
-      const idxAtMarket = matchCol([/^(at\s?market|market|atmarket)$/i]);
+      const idxAtMarket = matchCol([
+        /^(at\s?market|market|atmarket|atMarket)$/i,
+      ]);
       const idxMaterialsOffice = matchCol([
         /^(materials_office|materialsoffice|materials\s?office)$/i,
       ]);
       const idxMaterialsStorage = matchCol([
         /^(materials_storage|materialsstorage|materials\s?storage)$/i,
+      ]);
+
+      const idxBackAtOffice = matchCol([
+        /^(back\s?at\s?office|back\s?office|backatoffice|backAtOffice)$/i,
       ]);
 
       const idxMarketKey = matchCol([/^(market|location)$/i]);
@@ -883,7 +889,8 @@ class SheetsAPIService extends EventTarget {
         idxBackOffice >= 0 ||
         idxAtMarket >= 0 ||
         idxMaterialsOffice >= 0 ||
-        idxMaterialsStorage >= 0;
+        idxMaterialsStorage >= 0 ||
+        idxBackAtOffice >= 0;
       if (hasAnyReminderCols) {
         for (let i = 1; i < values.length; i++) {
           const row = values[i] || [];
@@ -907,6 +914,8 @@ class SheetsAPIService extends EventTarget {
             idxMaterialsStorage >= 0
               ? splitItems(row[idxMaterialsStorage])
               : [];
+          const bao =
+            idxBackAtOffice >= 0 ? splitItems(row[idxBackAtOffice]) : [];
           const emptyRow =
             keys.length === 0 &&
             d.length === 0 &&
@@ -914,7 +923,8 @@ class SheetsAPIService extends EventTarget {
             b.length === 0 &&
             m.length === 0 &&
             mo.length === 0 &&
-            ms.length === 0;
+            ms.length === 0 &&
+            bao.length === 0;
           if (emptyRow) continue;
           if (
             keys.length > 0 &&
@@ -923,7 +933,8 @@ class SheetsAPIService extends EventTarget {
               b.length ||
               m.length ||
               mo.length ||
-              ms.length)
+              ms.length ||
+              bao.length)
           ) {
             const rec = {
               keys: Array.from(new Set(keys)),
@@ -933,6 +944,7 @@ class SheetsAPIService extends EventTarget {
               atmarket: m,
               materials_office: mo,
               materials_storage: ms,
+              backAtOffice: bao,
             };
             if (rec.keys.length) rec.key = rec.keys[0]; // compat
             out.push(rec);
@@ -1230,6 +1242,7 @@ class SheetsAPIService extends EventTarget {
         atmarket: [],
         materials_office: [],
         materials_storage: [],
+        backAtOffice: [],
       };
       const keys = [];
       const norm = (s) => (s == null ? "" : String(s)).trim().toLowerCase();
@@ -1269,6 +1282,7 @@ class SheetsAPIService extends EventTarget {
           addAll(r.atmarket, out.atmarket);
           addAll(r.materials_office, out.materials_office);
           addAll(r.materials_storage, out.materials_storage);
+          addAll(r.backAtOffice, out.backAtOffice);
         }
       });
       return out;
@@ -1280,6 +1294,7 @@ class SheetsAPIService extends EventTarget {
         atmarket: [],
         materials_office: [],
         materials_storage: [],
+        backAtOffice: [],
       };
     }
   }

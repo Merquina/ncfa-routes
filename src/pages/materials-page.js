@@ -37,8 +37,8 @@ class MaterialsPage extends HTMLElement {
           result &&
           (result.materials_office?.length ||
             result.materials_storage?.length ||
-            result.atmarket?.length ||
-            result.backatoffice?.length)
+            result.atMarket?.length ||
+            result.backAtOffice?.length)
         ) {
           reminders = result;
           console.log(`Found materials with key:`, key, result);
@@ -56,8 +56,8 @@ class MaterialsPage extends HTMLElement {
           if (
             reminder.materials_office?.length ||
             reminder.materials_storage?.length ||
-            reminder.atmarket?.length ||
-            reminder.backatoffice?.length
+            reminder.atMarket?.length ||
+            reminder.backAtOffice?.length
           ) {
             reminders = reminder;
             console.log("Using reminder row:", reminder);
@@ -69,8 +69,8 @@ class MaterialsPage extends HTMLElement {
       this._materialsData = {
         office: reminders?.materials_office || [],
         storage: reminders?.materials_storage || [],
-        atMarket: reminders?.atmarket || [],
-        backAtOffice: reminders?.backatoffice || [],
+        atMarket: reminders?.atMarket || [],
+        backAtOffice: reminders?.backAtOffice || [],
       };
 
       console.log("Final materials data:", this._materialsData);
