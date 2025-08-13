@@ -109,16 +109,24 @@ class InventoryComponent extends HTMLElement {
     this.showLoading();
 
     try {
-      // Use data service to update inventory
-      if (window.dataService) {
+      // Prefer DataService; fallback to direct manager + localStorage
+      if (window.dataService && typeof window.dataService.updateInventory === 'function') {
         const updatedInventory = await window.dataService.updateInventory(smallBoxes, largeBoxes, updatedBy);
         this.setInventoryData(updatedInventory);
-        
-        // Emit component-level event
-        this.dispatchEvent(new CustomEvent('inventory-changed', {
-          detail: { ...updatedInventory },
-          bubbles: true
-        }));
+        this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...updatedInventory }, bubbles: true }));
+      } else {
+        const inv = {
+          smallBoxes: parseInt(smallBoxes) || 0,
+          largeBoxes: parseInt(largeBoxes) || 0,
+          lastUpdated: new Date().toLocaleString(),
+          updatedBy: updatedBy || 'Anonymous'
+        };
+        try { localStorage.setItem('spfm_inventory', JSON.stringify(inv)); } catch {}
+        if (window.inventoryManager && typeof window.inventoryManager.tryUploadInventoryToSheets === 'function') {
+          try { await window.inventoryManager.tryUploadInventoryToSheets(inv); } catch (e) { console.error('Upload failed:', e); }
+        }
+        this.setInventoryData(inv);
+        this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...inv }, bubbles: true }));
       }
     } catch (error) {
       console.error('Error updating inventory:', error);
@@ -453,6 +461,14 @@ class InventoryComponent extends HTMLElement {
 
     // Re-setup event listeners after render
     this.setupEventListeners();
+    // Pre-fill name with Google profile if available
+    try {
+      const nameEl = this.shadowRoot.querySelector('#updateName');
+      if (nameEl && !nameEl.value) {
+        const stored = localStorage.getItem('gapi_user_name');
+        if (stored) nameEl.value = stored;
+      }
+    } catch {}
     // Update calculator display
     this.updateCalculator();
     // Attach scroll helpers for sections
