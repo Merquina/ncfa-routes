@@ -136,16 +136,20 @@ class InventoryComponent extends HTMLElement {
           updatedBy: updatedBy || 'Anonymous'
         };
         try { localStorage.setItem('spfm_inventory', JSON.stringify(inv)); } catch {}
+        let synced = false;
         if (window.inventoryManager && typeof window.inventoryManager.tryUploadInventoryToSheets === 'function') {
           try {
             await window.inventoryManager.tryUploadInventoryToSheets(inv);
-            this.showToast('✅ Inventory synced to Google Sheets');
+            synced = true;
           } catch (e) {
             console.error('Upload failed:', e);
           }
         }
         this.setInventoryData(inv);
         this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...inv }, bubbles: true }));
+        if (synced) {
+          this.showToast('✅ Inventory synced to Google Sheets');
+        }
       }
     } catch (error) {
       console.error('Error updating inventory:', error);
@@ -422,6 +426,7 @@ class InventoryComponent extends HTMLElement {
           box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           opacity: 0;
           pointer-events: none;
+          z-index: 10020;
           transition: opacity 180ms ease, transform 180ms ease;
         }
         #toast.show {
