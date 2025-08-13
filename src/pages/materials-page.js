@@ -1,7 +1,7 @@
 class MaterialsPage extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
     this._materialsData = null;
   }
 
@@ -11,7 +11,7 @@ class MaterialsPage extends HTMLElement {
 
     // Listen for data updates
     if (window.dataService) {
-      window.dataService.addEventListener('data-loaded', () => {
+      window.dataService.addEventListener("data-loaded", () => {
         this.loadMaterials();
       });
     }
@@ -19,23 +19,76 @@ class MaterialsPage extends HTMLElement {
 
   async loadMaterials() {
     try {
-      // Get materials from the Reminders table
-      const reminders = window.sheetsAPI?.getRemindersForRoute({ market: 'all', type: 'spfm' }) || {};
+      // Try multiple keys to find materials in Reminders table
+      let reminders = null;
+
+      // Try different keys that might match your Reminders table
+      const keysToTry = [
+        { market: "all", type: "spfm" },
+        { market: "SPFM", type: "spfm" },
+        { market: "spfm", type: "spfm" },
+        { market: "All", type: "spfm" },
+        { market: "ANY", type: "spfm" },
+      ];
+
+      for (const key of keysToTry) {
+        const result = window.sheetsAPI?.getRemindersForRoute(key);
+        if (
+          result &&
+          (result.materials_office?.length ||
+            result.materials_storage?.length ||
+            result.atmarket?.length ||
+            result.backatoffice?.length)
+        ) {
+          reminders = result;
+          console.log(`Found materials with key:`, key, result);
+          break;
+        }
+      }
+
+      // If no specific match, try getting all reminders and find any with materials
+      if (!reminders && window.sheetsAPI?.miscReminders) {
+        const allReminders = window.sheetsAPI.miscReminders;
+        console.log("All available reminders:", allReminders);
+
+        // Find any reminder row that has materials
+        for (const reminder of allReminders) {
+          if (
+            reminder.materials_office?.length ||
+            reminder.materials_storage?.length ||
+            reminder.atmarket?.length ||
+            reminder.backatoffice?.length
+          ) {
+            reminders = reminder;
+            console.log("Using reminder row:", reminder);
+            break;
+          }
+        }
+      }
+
       this._materialsData = {
-        office: reminders.materials_office || [],
-        storage: reminders.materials_storage || [],
-        atMarket: reminders.atmarket || [],
-        backAtOffice: reminders.backatoffice || []
+        office: reminders?.materials_office || [],
+        storage: reminders?.materials_storage || [],
+        atMarket: reminders?.atmarket || [],
+        backAtOffice: reminders?.backatoffice || [],
       };
 
+      console.log("Final materials data:", this._materialsData);
       this.renderMaterials();
     } catch (error) {
-      console.error('Error loading materials:', error);
+      console.error("Error loading materials:", error);
+
+      // Debug info
+      console.log("Available sheetsAPI:", window.sheetsAPI);
+      if (window.sheetsAPI) {
+        console.log("Debug tables:", window.sheetsAPI.debugTables?.());
+        console.log("Misc reminders:", window.sheetsAPI.miscReminders);
+      }
     }
   }
 
   renderMaterials() {
-    const container = this.shadowRoot.querySelector('.materials-container');
+    const container = this.shadowRoot.querySelector(".materials-container");
     if (!container) return;
 
     container.innerHTML = `
@@ -49,16 +102,25 @@ class MaterialsPage extends HTMLElement {
         <div class="material-card">
           <div class="card-header office">
             <h3>🏢 At Office - Materials</h3>
-            <span class="count">${this._materialsData.office.length} items</span>
+            <span class="count">${
+              this._materialsData.office.length
+            } items</span>
           </div>
           <div class="checklist">
-            ${this._materialsData.office.map(item => `
+            ${
+              this._materialsData.office
+                .map(
+                  (item) => `
               <label class="checkbox-item">
                 <input type="checkbox" />
                 <span class="checkmark"></span>
                 <span class="item-text">${item}</span>
               </label>
-            `).join('') || '<div class="no-items">No office materials listed</div>'}
+            `
+                )
+                .join("") ||
+              '<div class="no-items">No office materials listed</div>'
+            }
           </div>
         </div>
 
@@ -66,16 +128,25 @@ class MaterialsPage extends HTMLElement {
         <div class="material-card">
           <div class="card-header storage">
             <h3>📦 At Office - Storage</h3>
-            <span class="count">${this._materialsData.storage.length} items</span>
+            <span class="count">${
+              this._materialsData.storage.length
+            } items</span>
           </div>
           <div class="checklist">
-            ${this._materialsData.storage.map(item => `
+            ${
+              this._materialsData.storage
+                .map(
+                  (item) => `
               <label class="checkbox-item">
                 <input type="checkbox" />
                 <span class="checkmark"></span>
                 <span class="item-text">${item}</span>
               </label>
-            `).join('') || '<div class="no-items">No storage materials listed</div>'}
+            `
+                )
+                .join("") ||
+              '<div class="no-items">No storage materials listed</div>'
+            }
           </div>
         </div>
 
@@ -83,16 +154,25 @@ class MaterialsPage extends HTMLElement {
         <div class="material-card">
           <div class="card-header market">
             <h3>🌽 At Market - Setup</h3>
-            <span class="count">${this._materialsData.atMarket.length} tasks</span>
+            <span class="count">${
+              this._materialsData.atMarket.length
+            } tasks</span>
           </div>
           <div class="checklist">
-            ${this._materialsData.atMarket.map(item => `
+            ${
+              this._materialsData.atMarket
+                .map(
+                  (item) => `
               <label class="checkbox-item">
                 <input type="checkbox" />
                 <span class="checkmark"></span>
                 <span class="item-text">${item}</span>
               </label>
-            `).join('') || '<div class="no-items">No market tasks listed</div>'}
+            `
+                )
+                .join("") ||
+              '<div class="no-items">No market tasks listed</div>'
+            }
           </div>
         </div>
 
@@ -100,16 +180,25 @@ class MaterialsPage extends HTMLElement {
         <div class="material-card">
           <div class="card-header return">
             <h3>🔄 Back At Office - Return</h3>
-            <span class="count">${this._materialsData.backAtOffice.length} tasks</span>
+            <span class="count">${
+              this._materialsData.backAtOffice.length
+            } tasks</span>
           </div>
           <div class="checklist">
-            ${this._materialsData.backAtOffice.map(item => `
+            ${
+              this._materialsData.backAtOffice
+                .map(
+                  (item) => `
               <label class="checkbox-item">
                 <input type="checkbox" />
                 <span class="checkmark"></span>
                 <span class="item-text">${item}</span>
               </label>
-            `).join('') || '<div class="no-items">No return tasks listed</div>'}
+            `
+                )
+                .join("") ||
+              '<div class="no-items">No return tasks listed</div>'
+            }
           </div>
         </div>
       </div>
@@ -126,8 +215,10 @@ class MaterialsPage extends HTMLElement {
   }
 
   clearAll() {
-    const checkboxes = this.shadowRoot.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(checkbox => checkbox.checked = false);
+    const checkboxes = this.shadowRoot.querySelectorAll(
+      'input[type="checkbox"]'
+    );
+    checkboxes.forEach((checkbox) => (checkbox.checked = false));
   }
 
   render() {
@@ -406,4 +497,4 @@ class MaterialsPage extends HTMLElement {
   }
 }
 
-customElements.define('materials-page', MaterialsPage);
+customElements.define("materials-page", MaterialsPage);
