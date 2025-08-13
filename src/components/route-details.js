@@ -135,15 +135,13 @@ class RouteDetails extends HTMLElement {
       }
     } catch {}
 
-    // Create layout sections as variables to avoid nested template literal issues
-    const spfmLayout =
-      type === "spfm"
-        ? this.renderSPFMLayout(materials, reminderBuckets, route, stops)
-        : "";
-    const standardLayout =
-      type !== "spfm"
-        ? this.renderStandardLayout(materials, reminderBuckets, route, stops)
-        : "";
+    // All routes use standard layout (no special SPFM materials sections)
+    const standardLayout = this.renderStandardLayout(
+      materials,
+      reminderBuckets,
+      route,
+      stops
+    );
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -162,11 +160,6 @@ class RouteDetails extends HTMLElement {
         .two-col { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .checklist label { display:block; margin:6px 0; font-size:0.9rem; color:#333; }
         .subtle { color:#999; font-style: italic; }
-        .three-sections { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-        .task-section { padding:12px; border:1px solid #eee; border-radius:6px; background:#fafafa; }
-        @media (max-width: 768px) {
-          .three-sections { grid-template-columns: 1fr; gap: 12px; }
-        }
       </style>
       <div class="container">
         <div class="header">
@@ -211,7 +204,6 @@ class RouteDetails extends HTMLElement {
             : ""
         }
 
-        ${spfmLayout}
         ${standardLayout}
         ${
           stops && stops.length
@@ -242,132 +234,9 @@ class RouteDetails extends HTMLElement {
     `;
   }
 
-  renderSPFMLayout(materials, reminderBuckets, route, stops) {
-    return `
-      <!-- 3-Section Layout Box for SPFM routes only -->
-      <div class="section">
-        <div class="three-sections">
-          <!-- Section 1: At Office (with materials and reminders) -->
-          <div class="task-section">
-            <div class="label" style="color:#17a2b8; font-weight:600; margin-bottom:8px;">&#128193; At Office</div>
-
-            <!-- Materials from Reminders table (office + storage) -->
-            <div class="two-col">
-              <div class="checklist">
-                <div class="label" style="color:#17a2b8; font-size:0.8rem; margin-bottom:6px;">&#128193; Office Materials</div>
-                ${
-                  reminderBuckets.materials_office.length
-                    ? reminderBuckets.materials_office
-                        .map(
-                          (i) => `<label><input type="checkbox" /> ${i}</label>`
-                        )
-                        .join("")
-                    : `<div class="subtle">No office materials listed (add to Misc sheet 'materials_office' column)</div>`
-                }
-              </div>
-              <div class="checklist">
-                <div class="label" style="color:#17a2b8; font-size:0.8rem; margin-bottom:6px;">&#128230; Storage Materials</div>
-                ${
-                  reminderBuckets.materials_storage.length
-                    ? reminderBuckets.materials_storage
-                        .map(
-                          (i) => `<label><input type="checkbox" /> ${i}</label>`
-                        )
-                        .join("")
-                    : `<div class="subtle">No storage materials listed (add to Misc sheet 'materials_storage' column)</div>`
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 2: At Market -->
-          <div class="task-section">
-            <div class="label" style="color:#28a745; font-weight:600; margin-bottom:8px;">&#127978; At Market</div>
-
-            <!-- Location info -->
-            ${(() => {
-              const name =
-                route.market && route.market.toLowerCase() !== "recovery"
-                  ? route.market
-                  : stops[0]?.location || "";
-              return name
-                ? `
-              <div style="margin-bottom:8px;">
-                ${this.renderAddressButton(name)}
-                ${this.renderPhoneButtons(name)}
-              </div>
-            `
-                : "";
-            })()}
-
-            <!-- Items from Misc sheet atmarket column -->
-            <div class="checklist">
-              ${
-                reminderBuckets.atmarket.length
-                  ? reminderBuckets.atmarket
-                      .map(
-                        (i) => `<label><input type="checkbox" /> ${i}</label>`
-                      )
-                      .join("")
-                  : `<div class="subtle">No items listed (add to Misc sheet 'atmarket' column)</div>`
-              }
-            </div>
-
-            <!-- Dropoff info (included in market section) -->
-            ${(() => {
-              const name =
-                route.dropOff ||
-                (stops.length > 1 ? stops[stops.length - 1]?.location : "");
-              return name && name !== (route.market || stops[0]?.location || "")
-                ? `
-              <div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
-                <div class="label" style="font-size:0.85rem; color:#666; margin-bottom:4px;">Dropoff</div>
-                ${this.renderAddressButton(name)}
-                ${this.renderPhoneButtons(name)}
-                ${
-                  reminderBuckets.dropoff.length
-                    ? `
-                  <div class="checklist" style="margin-top:4px;">
-                    ${reminderBuckets.dropoff
-                      .map(
-                        (i) => `<label><input type="checkbox" /> ${i}</label>`
-                      )
-                      .join("")}
-                  </div>
-                `
-                    : ""
-                }
-              </div>
-            `
-                : "";
-            })()}
-          </div>
-
-          <!-- Section 3: Back At Office -->
-          <div class="task-section">
-            <div class="label" style="color:#dc3545; font-weight:600; margin-bottom:8px;">&#8617; Back At Office</div>
-
-            <!-- Items from Misc sheet backatoffice column -->
-            <div class="checklist">
-              ${
-                reminderBuckets.backatoffice.length
-                  ? reminderBuckets.backatoffice
-                      .map(
-                        (i) => `<label><input type="checkbox" /> ${i}</label>`
-                      )
-                      .join("")
-                  : `<div class="subtle">No items listed (add to Misc sheet 'backatoffice' column)</div>`
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   renderStandardLayout(materials, reminderBuckets, route, stops) {
     return `
-      <!-- Original layout for non-SPFM routes -->
+      <!-- Simplified layout - only Market and Dropoff -->
       <div class="section">
         <div class="label">At Market</div>
         ${(() => {
@@ -384,13 +253,6 @@ class RouteDetails extends HTMLElement {
               : stops[0]?.location || "";
           return this.renderPhoneButtons(name);
         })()}
-        <div class="checklist" style="margin-top:8px;">
-          ${
-            reminderBuckets.atmarket
-              .map((i) => `<label><input type="checkbox" /> ${i}</label>`)
-              .join("") || `<div class="subtle">No items listed</div>`
-          }
-        </div>
       </div>
       <div class="section">
         <div class="label">Dropoff</div>
@@ -408,33 +270,6 @@ class RouteDetails extends HTMLElement {
             (stops.length > 1 ? stops[stops.length - 1]?.location : "");
           return this.renderPhoneButtons(name);
         })()}
-        <div class="checklist" style="margin-top:8px;">
-          ${
-            reminderBuckets.dropoff
-              .map((i) => `<label><input type="checkbox" /> ${i}</label>`)
-              .join("") || `<div class="subtle">No items listed</div>`
-          }
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">At Office</div>
-        <div class="checklist">
-          ${
-            reminderBuckets.atoffice
-              .map((i) => `<label><input type="checkbox" /> ${i}</label>`)
-              .join("") || `<div class="subtle">No items listed</div>`
-          }
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">Back at Office</div>
-        <div class="checklist">
-          ${
-            reminderBuckets.backatoffice
-              .map((i) => `<label><input type="checkbox" /> ${i}</label>`)
-              .join("") || `<div class="subtle">No items listed</div>`
-          }
-        </div>
       </div>
     `;
   }
