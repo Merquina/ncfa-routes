@@ -158,7 +158,8 @@ class SheetsAPI {
   async fetchInventoryData() {
     try {
       // Try to fetch box inventory from the "Inventory" sheet tab
-      const inventoryRange = 'Inventory!A:Z';
+      // Inventory table now resides on the 'Status' sheet (columns A:E)
+      const inventoryRange = 'Status!A:E';
       console.log("📦 Attempting to fetch inventory data (OAuth)...");
       const resp = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
