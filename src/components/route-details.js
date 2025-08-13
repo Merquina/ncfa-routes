@@ -157,8 +157,6 @@ class RouteDetails extends HTMLElement {
         .stop { padding:10px; border:1px solid #eee; border-radius:6px; margin:8px 0; }
         .btn { background:#28a745; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
         .btn:disabled { opacity:0.6; cursor:default; }
-        .two-col { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .checklist label { display:block; margin:6px 0; font-size:0.9rem; color:#333; }
         .subtle { color:#999; font-style: italic; }
       </style>
       <div class="container">
@@ -236,41 +234,7 @@ class RouteDetails extends HTMLElement {
 
   renderStandardLayout(materials, reminderBuckets, route, stops) {
     return `
-      <!-- Simplified layout - only Market and Dropoff -->
-      <div class="section">
-        <div class="label">At Market</div>
-        ${(() => {
-          const name =
-            route.market && route.market.toLowerCase() !== "recovery"
-              ? route.market
-              : stops[0]?.location || "";
-          return name ? this.renderAddressButton(name) : "";
-        })()}
-        ${(() => {
-          const name =
-            route.market && route.market.toLowerCase() !== "recovery"
-              ? route.market
-              : stops[0]?.location || "";
-          return this.renderPhoneButtons(name);
-        })()}
-      </div>
-      <div class="section">
-        <div class="label">Dropoff</div>
-        ${(() => {
-          const name =
-            route.dropOff ||
-            (stops.length > 1 ? stops[stops.length - 1]?.location : "");
-          return name
-            ? this.renderAddressButton(name)
-            : `<div class="subtle">No dropoff location specified</div>`;
-        })()}
-        ${(() => {
-          const name =
-            route.dropOff ||
-            (stops.length > 1 ? stops[stops.length - 1]?.location : "");
-          return this.renderPhoneButtons(name);
-        })()}
-      </div>
+      <!-- Only stops will be shown, no Market/Dropoff sections -->
     `;
   }
 
