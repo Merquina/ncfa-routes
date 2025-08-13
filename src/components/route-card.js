@@ -173,10 +173,7 @@ class RouteCard extends HTMLElement {
           ${route.displayDate || route.date} - ${route.market || "Market"}
         </div>
         <div class="card-time">
-          ${route.startTime || route.Time || "TBD"}
-        </div>
-        <div class="card-type">
-          ${routeIcon} ${routeLabel}
+          ${(route.startTime || route.Time || "TBD")} · ${routeLabel}
         </div>
         <div class="card-workers">
           ${this.formatWorkerList(workers, volunteers, isRecovery ? 1 : 3)}

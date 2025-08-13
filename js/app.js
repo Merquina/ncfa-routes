@@ -1,5 +1,5 @@
 /* ========================================
-   SPFM Routes - Main Application
+   NCFA Routes - Main Application
    ======================================== */
 
 // Configuration
@@ -72,7 +72,7 @@ async function initializeApp() {
   try {
     updateStatus("Showing loading...");
     showLoading();
-    console.log("🚀 Starting SPFM Routes app...");
+    console.log("🚀 Starting NCFA Routes app...");
     updateStatus("Initializing UI...");
 
     // Check if required modules are loaded
@@ -86,10 +86,10 @@ async function initializeApp() {
     modules.forEach((module) => {
       const exists = window[module] ? "✅" : "❌";
       console.log(
-        `${exists} Module ${module}: ${window[module] ? "loaded" : "missing"}`,
+        `${exists} Module ${module}: ${window[module] ? "loaded" : "missing"}`
       );
       updateStatus(
-        `${exists} ${module}: ${window[module] ? "loaded" : "missing"}`,
+        `${exists} ${module}: ${window[module] ? "loaded" : "missing"}`
       );
     });
 
@@ -98,10 +98,14 @@ async function initializeApp() {
     elements.forEach((id) => {
       const exists = document.getElementById(id) ? "✅" : "❌";
       console.debug(
-        `${exists} Element ${id}: ${document.getElementById(id) ? "found" : "missing"}`,
+        `${exists} Element ${id}: ${
+          document.getElementById(id) ? "found" : "missing"
+        }`
       );
       updateStatus(
-        `${exists} Element ${id}: ${document.getElementById(id) ? "found" : "missing"}`,
+        `${exists} Element ${id}: ${
+          document.getElementById(id) ? "found" : "missing"
+        }`
       );
     });
 
@@ -257,22 +261,28 @@ async function loadApiDataIfNeeded() {
   const now = Date.now();
   const stale = now - (window.__lastSheetsFetchTs || 0) > SHEETS_TTL_MS;
   const needInitial = sheetsAPI.data.length === 0;
-  console.debug(
-    "📊 loadApiDataIfNeeded:", { len: sheetsAPI.data.length, stale, needInitial }
-  );
+  console.debug("📊 loadApiDataIfNeeded:", {
+    len: sheetsAPI.data.length,
+    stale,
+    needInitial,
+  });
 
   if (!needInitial && !stale) {
     console.debug("✅ API data is fresh; skip fetch");
     return;
   }
 
-  console.info(needInitial ? "📊 Loading API data..." : "📊 Refreshing stale API data...");
-  updateVersionStatus(needInitial ? "Loading sheet data..." : "Refreshing data...");
+  console.info(
+    needInitial ? "📊 Loading API data..." : "📊 Refreshing stale API data..."
+  );
+  updateVersionStatus(
+    needInitial ? "Loading sheet data..." : "Refreshing data..."
+  );
   try {
     await sheetsAPI.fetchSheetData();
     window.__lastSheetsFetchTs = Date.now();
     console.info("✅ API data loaded successfully");
-    console.debug("📊 SPFM data count:", sheetsAPI.data.length);
+    console.debug("📊 NCFA data count:", sheetsAPI.data.length);
     console.debug("📊 Recovery data count:", sheetsAPI.recoveryData.length);
     updateVersionStatus("✅ Ready");
   } catch (error) {
@@ -305,7 +315,7 @@ function selectDate(date) {
       // Scroll to assignments after a delay
       setTimeout(() => {
         const assignmentsContainer = document.getElementById(
-          "assignmentsContainer",
+          "assignmentsContainer"
         );
         if (assignmentsContainer) {
           assignmentsContainer.scrollIntoView({
@@ -405,7 +415,7 @@ function clearAssignments() {
 function showLoading() {
   const loadingHTML = `
         <div class="loading">
-            <h3>🔄 Loading SPFM Routes...</h3>
+            <h3>🔄 Loading NCFA Routes...</h3>
             <p>Connecting to Google Sheets...</p>
         </div>
     `;
@@ -532,8 +542,12 @@ window.showError = showError;
 // Also attach modules to window for debugging
 window.sheetsAPI = sheetsAPI;
 window.assignmentsManager = assignmentsManager;
-try { window.workersManager = workersManager; } catch {}
-try { window.datesManager = datesManager; } catch {}
+try {
+  window.workersManager = workersManager;
+} catch {}
+try {
+  window.datesManager = datesManager;
+} catch {}
 window.updateLastModified = updateLastModified;
 
 // Wait for all modules to be available (throttled, with timeout)
@@ -559,13 +573,20 @@ window.updateLastModified = updateLastModified;
     attempts++;
     const snapshot = missing.join(",");
     // Only log when the set of missing modules changes, or every 5s
-    if (snapshot !== lastLoggedMissing || attempts % Math.round(5000 / intervalMs) === 0) {
+    if (
+      snapshot !== lastLoggedMissing ||
+      attempts % Math.round(5000 / intervalMs) === 0
+    ) {
       console.debug("⏳ Waiting for modules:", missing);
       lastLoggedMissing = snapshot;
     }
 
     if (attempts >= maxAttempts) {
-      console.warn("⚠️ Some modules did not load in time:", missing, "— proceeding without them.");
+      console.warn(
+        "⚠️ Some modules did not load in time:",
+        missing,
+        "— proceeding without them."
+      );
       return; // stop retrying to avoid console spam
     }
 
@@ -592,7 +613,7 @@ function setupTabHandlers() {
     workerBtn: !!workerBtn,
   });
   updateStatus(
-    `Tab buttons: box=${!!boxBtn} date=${!!dateBtn} worker=${!!workerBtn}`,
+    `Tab buttons: box=${!!boxBtn} date=${!!dateBtn} worker=${!!workerBtn}`
   );
 
   // Tap/click handler with minimal interference
@@ -619,7 +640,7 @@ function setupTabHandlers() {
         updateStatus(`👆 ${tabName} tab touched`);
         switchTab(tabName, true);
       },
-      { passive: true },
+      { passive: true }
     );
 
     // Fallback onclick

@@ -70,6 +70,24 @@ class RouteDetails extends HTMLElement {
     const stops = route.stops || [];
     const materials = route.materials || { office: [], storage: [], atMarket: [], backAtOffice: [] };
 
+    // Pull reminders from Misc sheet (via sheetsAPI), matched by market, dropOff, or type
+    let reminderBuckets = { dropoff: [], atoffice: [], backatoffice: [] };
+    try {
+      const res = (window.sheetsAPI && window.sheetsAPI.getRemindersForRoute)
+        ? window.sheetsAPI.getRemindersForRoute(route)
+        : null;
+      if (Array.isArray(res)) {
+        // Backward-compat: older API returned a flat array; treat as dropoff list
+        reminderBuckets.dropoff = res;
+      } else if (res && typeof res === 'object') {
+        reminderBuckets = {
+          dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
+          atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
+          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : [],
+        };
+      }
+    } catch {}
+
     this.shadowRoot.innerHTML = `
       <style>
         :host { display:block; font-family: var(--body-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif); }
@@ -109,16 +127,16 @@ class RouteDetails extends HTMLElement {
         `: ''}
         <div class="section">
           <div class="label">At Market</div>
-          ${route.market ? this.renderAddressButton(route.market) : ''}
-          ${this.renderPhoneButtons(route.market)}
+          ${(() => { const name = (route.market && route.market.toLowerCase() !== 'recovery') ? route.market : (stops[0]?.location || ''); return name ? this.renderAddressButton(name) : ''; })()}
+          ${(() => { const name = (route.market && route.market.toLowerCase() !== 'recovery') ? route.market : (stops[0]?.location || ''); return this.renderPhoneButtons(name); })()}
           <div class="checklist" style="margin-top:8px;">
             ${materials.atMarket.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('') || `<div class="subtle">No items listed</div>`}
           </div>
         </div>
         <div class="section">
           <div class="label">Dropoff</div>
-          ${route.dropOff ? this.renderAddressButton(route.dropOff) : `<div class="subtle">No dropoff location specified</div>`}
-          ${this.renderPhoneButtons(route.dropOff)}
+          ${(() => { const name = route.dropOff || (stops.length > 1 ? stops[stops.length - 1]?.location : ''); return name ? this.renderAddressButton(name) : `<div class="subtle">No dropoff location specified</div>`; })()}
+          ${(() => { const name = route.dropOff || (stops.length > 1 ? stops[stops.length - 1]?.location : ''); return this.renderPhoneButtons(name); })()}
         </div>
         <div class="section">
           <div class="label">At Office</div>
@@ -152,6 +170,35 @@ class RouteDetails extends HTMLElement {
                 </div>
               </div>
             `).join('')}
+          </div>
+        ` : ''}
+        ${(reminderBuckets.dropoff.length || reminderBuckets.atoffice.length || reminderBuckets.backatoffice.length) ? `
+          <div class="section">
+            <div class="label">Reminders</div>
+            ${reminderBuckets.dropoff.length ? `
+              <div style="margin-top:6px;">
+                <div class="label" style="font-weight:500;color:#444;">Dropoff</div>
+                <div class="checklist" style="margin-top:4px;">
+                  ${reminderBuckets.dropoff.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            ${reminderBuckets.atoffice.length ? `
+              <div style="margin-top:10px;">
+                <div class="label" style="font-weight:500;color:#444;">At Office</div>
+                <div class="checklist" style="margin-top:4px;">
+                  ${reminderBuckets.atoffice.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            ${reminderBuckets.backatoffice.length ? `
+              <div style="margin-top:10px;">
+                <div class="label" style="font-weight:500;color:#444;">Back at Office</div>
+                <div class="checklist" style="margin-top:4px;">
+                  ${reminderBuckets.backatoffice.map(i => `<label><input type="checkbox" /> ${i}</label>`).join('')}
+                </div>
+              </div>
+            ` : ''}
           </div>
         ` : ''}
       </div>

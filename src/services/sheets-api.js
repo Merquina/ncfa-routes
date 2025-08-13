@@ -1,5 +1,5 @@
 // ESM Sheets API service used by DataService. Avoids window globals.
-import { SPREADSHEET_ID, GOOGLE_API_KEY as API_KEY } from './config.js';
+import { SPREADSHEET_ID, GOOGLE_API_KEY as API_KEY, TABLE_RANGES } from './config.js';
 
 // Minimal text helpers (mirrors js/util.js behavior)
 function normalizeText(str) {
@@ -30,12 +30,15 @@ class SheetsAPIService extends EventTarget {
     this.miscWorkerMap = {};
     this.miscVehicles = [];
     this.miscVehicleMap = {};
+    this.miscReminders = [];
     this.isLoading = false;
     this._workersCacheKey = null;
     this._workersCache = null;
     this.lastFetchTs = 0;
     this._etagByRange = new Map();
     this._pollTid = null;
+    this._tableSources = { workers: null, vehicles: null, reminders: null };
+    this._dynamicTableRanges = null; // from optional Tables sheet mapping
   }
 
   async ensureGapiClientReady(maxWaitMs = 5000) {
@@ -285,8 +288,79 @@ class SheetsAPIService extends EventTarget {
       }
     } catch (e) { console.warn('Contacts parse failed:', e); this.contactsData = []; }
 
+    // Reminders tab (if present as a SHEET; named ranges handled in fetchMiscData)
+    try {
+      const values = map.get('Reminders')?.values || [];
+      if (values.length) {
+        this._parseReminders(values);
+      }
+    } catch (e) { /* optional */ }
+
     // Misc
     try { await this.fetchMiscData(); } catch {}
+  }
+
+  // ===== Declarative table helpers (maintainable) =====
+  async _getFirstNonEmptyRange(possibleRanges) {
+    for (const range of possibleRanges) {
+      try {
+        // If the range looks like a header-only named range, expand it downward to include data
+        if (/headers$/i.test(range)) {
+          const expanded = await this._valuesFromHeaderNamedRange(range);
+          if (expanded && expanded.values && expanded.values.length > 0) return expanded;
+        }
+        // Regular named range or A1 notation
+        const resp = await window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range });
+        const values = resp.result?.values || [];
+        if (Array.isArray(values) && values.length > 0) return { range, values };
+      } catch {}
+    }
+    return { range: null, values: [] };
+  }
+
+  async _valuesFromHeaderNamedRange(name) {
+    try {
+      // Fetch metadata to resolve the named range's grid and sheet
+      const meta = await window.gapi.client.sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID, fields: 'sheets(properties(sheetId,title)),namedRanges(name,range)' });
+      const sheetsById = {};
+      (meta.result?.sheets || []).forEach((s) => { sheetsById[s.properties.sheetId] = s.properties.title; });
+      const nr = (meta.result?.namedRanges || []).find((n) => (n.name || '').toLowerCase() === String(name).toLowerCase());
+      if (!nr || !nr.range || nr.range.sheetId == null) return null;
+      const title = sheetsById[nr.range.sheetId];
+      if (!title) return null;
+      const startRow = (nr.range.startRowIndex || 0) + 1; // A1 row
+      const startCol = nr.range.startColumnIndex || 0;
+      const endColExclusive = nr.range.endColumnIndex || (startCol + 1);
+      const colToA1 = (n)=>{let s=''; n++; while(n){let m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26);} return s;};
+      const c1 = colToA1(startCol);
+      const c2 = colToA1(endColExclusive - 1);
+      // Read from header row to bottom of sheet for the header's column span
+      const a1 = `${title}!${c1}${startRow}:${c2}`; // column-range from header row down
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: a1 });
+      let values = resp.result?.values || [];
+      if (!values.length) return null;
+      // Trim trailing empty rows (within the selected columns)
+      const lastNonEmpty = (() => {
+        let last = 0;
+        for (let i = 0; i < values.length; i++) {
+          const row = values[i] || [];
+          const has = row.some((v) => String(v || '').trim() !== '');
+          if (has) last = i;
+        }
+        return last;
+      })();
+      values = values.slice(0, lastNonEmpty + 1);
+      return { range: a1, values };
+    } catch {
+      return null;
+    }
+  }
+  _objectsFromTable(values) {
+    if (!Array.isArray(values) || values.length < 2) return [];
+    const headers = (values[0] || []).map((h) => (h || '').toString().trim());
+    return values.slice(1).map((row) => {
+      const obj = {}; headers.forEach((h,i)=>{ obj[h] = row[i] || ''; }); return obj;
+    });
   }
 
   _parseSPFM(values) {
@@ -429,52 +503,147 @@ class SheetsAPIService extends EventTarget {
   }
 
   async fetchMiscData() {
-    // Workers
+    await this._ensureTableMappings();
+    const pickRanges = (key) => {
+      const dyn = this._dynamicTableRanges && this._dynamicTableRanges[key];
+      if (typeof dyn === 'string' && dyn.trim()) return [dyn.trim()];
+      if (Array.isArray(dyn) && dyn.length) return dyn;
+      return TABLE_RANGES[key] || [];
+    };
+    // Workers via declarative ranges
     try {
-      const respW = await window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Misc!A:B' });
-      const valuesW = respW.result?.values || [];
+      const { range, values } = await this._getFirstNonEmptyRange(pickRanges('workers'));
       this.miscWorkers = [];
       this.miscWorkerMap = {};
-      if (valuesW.length >= 2) {
-        const headers = valuesW[0].map((h) => (h || '').toString().trim());
+      if (values.length >= 2) {
+        const headers = (values[0] || []).map((h) => (h || '').toString().trim());
         const idxName = headers.findIndex((h) => /worker/i.test(h));
         const idxEmoji = headers.findIndex((h) => /emoji/i.test(h));
-        valuesW.slice(1).forEach((row) => {
-          const name = (row[idxName] || '').toString().trim();
-          if (!name) return;
+        values.slice(1).forEach((row) => {
+          const name = (row[idxName] || '').toString().trim(); if (!name) return;
           const emoji = (row[idxEmoji] || '').toString().trim();
           const rec = { worker: name, emoji };
           this.miscWorkers.push(rec);
           if (emoji) this.miscWorkerMap[name] = emoji;
         });
-        console.info(`✅ Loaded ${this.miscWorkers.length} workers from Misc`);
+        this._tableSources.workers = range;
+        console.info(`✅ Loaded ${this.miscWorkers.length} workers from ${range}`);
       }
-    } catch (e) { console.info('Misc workers not available:', e); }
+    } catch (e) { console.info('Workers table not available:', e); }
 
-    // Vehicles
+    // Vehicles via declarative ranges
     try {
-      const respV = await window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Misc!D:E' });
-      const valuesV = respV.result?.values || [];
+      const { range, values } = await this._getFirstNonEmptyRange(pickRanges('vehicles'));
       this.miscVehicles = [];
       this.miscVehicleMap = {};
-      if (valuesV.length >= 2) {
-        const headers = valuesV[0].map((h) => (h || '').toString().trim());
+      if (values.length >= 2) {
+        const headers = (values[0] || []).map((h) => (h || '').toString().trim());
         const idxName = headers.findIndex((h) => /van|vehicle/i.test(h));
         const idxEmoji = headers.findIndex((h) => /emoji/i.test(h));
-        valuesV.slice(1).forEach((row) => {
-          const name = (row[idxName] || '').toString().trim();
-          if (!name) return;
+        values.slice(1).forEach((row) => {
+          const name = (row[idxName] || '').toString().trim(); if (!name) return;
           const emoji = (row[idxEmoji] || '').toString().trim();
           const rec = { van: name, emoji };
           this.miscVehicles.push(rec);
           if (emoji) this.miscVehicleMap[name] = emoji;
         });
-        console.info(`✅ Loaded ${this.miscVehicles.length} vehicles from Misc`);
+        this._tableSources.vehicles = range;
+        console.info(`✅ Loaded ${this.miscVehicles.length} vehicles from ${range}`);
       }
-    } catch (e) { console.info('Misc vehicles not available:', e); }
+    } catch (e) { console.info('Vehicles table not available:', e); }
+
+    // Reminders via declarative ranges (no brittle scanning unless configured)
+    try {
+      const { range, values } = await this._getFirstNonEmptyRange(pickRanges('reminders'));
+      this.miscReminders = [];
+      if (values.length > 0) {
+        this._parseReminders(values);
+        this._tableSources.reminders = range;
+        if (this.miscReminders.length) console.info(`✅ Loaded ${this.miscReminders.length} reminders from ${range}`);
+      }
+    } catch (e) { console.info('Reminders table not available:', e); }
+
+    // Last-resort dynamic detection in Misc when still empty (makes it work without config)
+    try {
+      if (!this.miscReminders || this.miscReminders.length === 0) {
+        const detected = await this._scanMiscForReminders();
+        if (detected && detected.values && detected.values.length) {
+          this._parseReminders(detected.values);
+          this._tableSources.reminders = detected.a1 || 'Misc!A:Z(auto)';
+          if (this.miscReminders.length) console.info(`✅ Loaded ${this.miscReminders.length} reminders from ${this._tableSources.reminders}`);
+        }
+      }
+    } catch (e) { console.info('Reminders auto-detect failed:', e); }
+  }
+
+  _parseReminders(values) {
+    try {
+      if (!values || values.length === 0) { this.miscReminders = []; return; }
+      const rawHeaders = values[0] || [];
+      const headers = rawHeaders.map((h) => (h || '').toString().trim().toLowerCase());
+      const idxKey = headers.findIndex((h) => /^(key|keys|context|contexts|name|names)$/i.test(h));
+      const matchCol = (reArr) => headers.findIndex((h) => reArr.some((re) => re.test(h)));
+      const idxDrop = matchCol([/^(drop\s?off|dropoff|drop-off)$/i]);
+      const idxAtOffice = matchCol([/^(at\s?office|office|atoffice)$/i]);
+      const idxBackOffice = matchCol([/^(back\s?at\s?office|back\s?office|backatoffice)$/i]);
+      const idxMarketKey = matchCol([/^(market|location)$/i]);
+      const idxTypeKey = matchCol([/^(type|route\s?type|routetype)$/i]);
+      const splitItems = (val) => (val || '')
+        .toString()
+        .split(/\n|[;,]/g)
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const out = [];
+      const hasAnyReminderCols = (idxDrop >= 0 || idxAtOffice >= 0 || idxBackOffice >= 0);
+      if (hasAnyReminderCols) {
+        for (let i = 1; i < values.length; i++) {
+          const row = values[i] || [];
+          const keys = [];
+          const pushKey = (v) => { const s = (v == null ? '' : String(v)).trim(); if (s) keys.push(s); };
+          if (idxKey >= 0) pushKey(row[idxKey]);
+          if (idxMarketKey >= 0) pushKey(row[idxMarketKey]);
+          if (idxTypeKey >= 0) pushKey(row[idxTypeKey]);
+          // Fallback: first column if nothing else
+          if (keys.length === 0 && (row[0] != null)) pushKey(row[0]);
+          const d = idxDrop >= 0 ? splitItems(row[idxDrop]) : [];
+          const a = idxAtOffice >= 0 ? splitItems(row[idxAtOffice]) : [];
+          const b = idxBackOffice >= 0 ? splitItems(row[idxBackOffice]) : [];
+          const emptyRow = keys.length === 0 && d.length === 0 && a.length === 0 && b.length === 0;
+          if (emptyRow) continue;
+          if ((keys.length > 0) && (d.length || a.length || b.length)) {
+            const rec = { keys: Array.from(new Set(keys)), dropoff: d, atoffice: a, backatoffice: b };
+            if (rec.keys.length) rec.key = rec.keys[0]; // compat
+            out.push(rec);
+          }
+        }
+      } else if (idxKey >= 0) {
+        const idxVal = headers.findIndex((h) => /^(reminder|note|notes)$/i.test(h));
+        if (idxVal >= 0) {
+          for (let i = 1; i < values.length; i++) {
+            const row = values[i] || [];
+            const k = (row[idxKey] || '').toString().trim();
+            const v = (row[idxVal] || '').toString().trim();
+            if (!k && !v) continue;
+            if (k && v) out.push({ keys: [k], key: k, dropoff: [v], atoffice: [], backatoffice: [] });
+          }
+        }
+      }
+      this.miscReminders = out;
+      if (out.length) console.info(`✅ Loaded ${out.length} reminders from Reminders tab`);
+    } catch (e) { console.warn('Reminders parse failed:', e); this.miscReminders = []; }
   }
 
   // ===== Helpers used by DataService normalization =====
+  // Emoji lookups for workers and vehicles (used by components/legacy)
+  getWorkerEmoji(name) {
+    if (!name) return '';
+    try { return this.miscWorkerMap?.[name] || ''; } catch { return ''; }
+  }
+  getVehicleEmoji(name) {
+    if (!name) return '';
+    try { return this.miscVehicleMap?.[name] || ''; } catch { return ''; }
+  }
+
   getAllWorkersFromRoute(route) {
     const workers = [];
     let i = 1;
@@ -592,6 +761,108 @@ class SheetsAPIService extends EventTarget {
     return { address: contact.Address || contact.Location || '', phone, phones: allPhones, contactName, contacts: allContacts, notes: contact['Notes/ Special Instructions'] || contact.Notes || contact.notes || '', type: contact.Type || contact.type || contact.TYPE || '' };
   }
 
+  // Return reminder buckets for a route context
+  // { dropoff: string[], atoffice: string[], backatoffice: string[] }
+  getRemindersForRoute(route) {
+    try {
+      const out = { dropoff: [], atoffice: [], backatoffice: [] };
+      const keys = [];
+      const norm = (s) => (s == null ? '' : String(s)).trim().toLowerCase();
+      if (route) {
+        if (route.market) keys.push(norm(route.market));
+        if (route.dropOff) keys.push(norm(route.dropOff));
+        if (route.type) keys.push(norm(route.type));
+      }
+      keys.push('all'); keys.push('any');
+      (this.miscReminders || []).forEach((r) => {
+        const recKeys = Array.isArray(r.keys) && r.keys.length ? r.keys.map(norm) : [norm(r.key)];
+        if (!recKeys.some((k) => keys.includes(k))) return;
+        const addAll = (arr, dest) => {
+          (Array.isArray(arr) ? arr : (arr ? [arr] : [])).forEach((v) => {
+            const t = (v || '').toString().trim();
+            if (t && !dest.includes(t)) dest.push(t);
+          });
+        };
+        // Compat: if old shape {key,text}
+        if (r.text && !r.dropoff && !r.atoffice && !r.backatoffice) {
+          addAll([r.text], out.dropoff);
+        } else {
+          addAll(r.dropoff, out.dropoff);
+          addAll(r.atoffice, out.atoffice);
+          addAll(r.backatoffice, out.backatoffice);
+        }
+      });
+      return out;
+    } catch { return { dropoff: [], atoffice: [], backatoffice: [] }; }
+  }
+
+  // Debug helper for maintainability
+  debugTables() {
+    return {
+      sources: { ...this._tableSources },
+      workers: this.miscWorkers?.length || 0,
+      vehicles: this.miscVehicles?.length || 0,
+      reminders: this.miscReminders?.length || 0,
+      reminderSample: (this.miscReminders || []).slice(0,3),
+    };
+  }
+
+  async _ensureTableMappings() {
+    if (this._dynamicTableRanges) return;
+    // Try to read a simple mapping sheet: Tables!A:B with headers Name | Range
+    try {
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Tables!A:B' });
+      const values = resp.result?.values || [];
+      if (!values || values.length < 2) { this._dynamicTableRanges = {}; return; }
+      const headers = (values[0] || []).map((h)=>String(h||'').trim().toLowerCase());
+      const idxName = headers.findIndex((h)=>/^(name|table|key)$/i.test(h));
+      const idxRange = headers.findIndex((h)=>/^(range|a1|ref)$/i.test(h));
+      const map = {};
+      if (idxName >= 0 && idxRange >= 0) {
+        for (let i=1;i<values.length;i++){
+          const row = values[i] || [];
+          const name = String(row[idxName]||'').trim().toLowerCase();
+          const range = String(row[idxRange]||'').trim();
+          if (!name || !range) continue;
+          if (['workers','worker','staff'].includes(name)) map.workers = range;
+          else if (['vehicles','vans','van','vehicle'].includes(name)) map.vehicles = range;
+          else if (['reminders','notes','checklist'].includes(name)) map.reminders = range;
+        }
+      }
+      this._dynamicTableRanges = map;
+      if (Object.keys(map).length) console.info('[Tables] Using dynamic ranges from Tables sheet:', map);
+    } catch (e) {
+      this._dynamicTableRanges = {};
+    }
+  }
+
+  async _scanMiscForReminders() {
+    try {
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Misc!A:Z' });
+      const rows = resp.result?.values || [];
+      if (!rows || rows.length === 0) return null;
+      const isHeader = (arr) => {
+        const lower = (arr||[]).map((h)=>String(h||'').trim().toLowerCase());
+        const hasKey = lower.some((h)=>/^(key|keys|context|contexts|name|names|market|location|type|route)$/.test(h));
+        const hasCols = lower.some((h)=>/(^|\b)(drop\s?off|dropoff|drop-off)(\b|$)/.test(h))
+          || lower.some((h)=>/(^|\b)(at\s?office|atoffice|office)(\b|$)/.test(h))
+          || lower.some((h)=>/(^|\b)(back\s?at\s?office|back\s?office|backatoffice)(\b|$)/.test(h))
+          || lower.some((h)=>/^(reminder|notes?)$/.test(h));
+        return hasKey && hasCols;
+      };
+      let headerIdx = -1;
+      for (let i=0;i<rows.length;i++) { if (isHeader(rows[i])) { headerIdx = i; break; } }
+      if (headerIdx < 0) return null;
+      // Compute right edge and bottom edge
+      const lastColIndex = (hdr)=>{ let idx = hdr.length-1; while (idx>=0 && String(hdr[idx]||'').trim()==='') idx--; return idx; };
+      const c2 = lastColIndex(rows[headerIdx]);
+      const endRow = (()=>{ let last = headerIdx; for (let r=headerIdx+1;r<rows.length;r++){ const row=rows[r]||[]; const empty = row.slice(0,c2+1).every(v=>String(v||'').trim()===''); if (empty) break; last = r; } return last; })();
+      const a1 = `Misc!A${headerIdx+1}:${String.fromCharCode(65+c2)}${endRow+1}`;
+      console.info('[Reminders] Auto-detected table at', a1);
+      return { a1, values: rows.slice(headerIdx, endRow+1) };
+    } catch (e) { return null; }
+  }
+
   getAllContacts(contact) {
     const contacts = [];
     let i = 1;
@@ -627,6 +898,13 @@ class SheetsAPIService extends EventTarget {
 }
 
 export const sheetsAPI = new SheetsAPIService();
+
+// Provide a global alias for components that reference window.sheetsAPI
+try {
+  if (typeof window !== 'undefined') {
+    window.sheetsAPI = window.sheetsAPI || sheetsAPI;
+  }
+} catch {}
 
 export async function loadApiDataIfNeeded(force = false) {
   const SHEETS_TTL_MS = 120000;

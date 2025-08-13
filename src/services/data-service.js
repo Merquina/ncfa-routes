@@ -365,7 +365,8 @@ class DataService extends EventTarget {
     const dateObj = (dateVal instanceof Date) ? dateVal : new Date(dateVal);
     const dateStr = (dateObj && !isNaN(dateObj)) ? dateObj.toISOString().slice(0,10) : (typeof dateVal === 'string' ? dateVal : '');
     const startTime = this._getField(raw, ['startTime','Time','time']) || '';
-    const market = this._getField(raw, ['market','Market','location','Location']) || (type === 'recovery' ? 'Recovery' : '');
+    // Do not default market to 'Recovery'—keep empty if absent to avoid UI confusion
+    const market = this._getField(raw, ['market','Market','location','Location']) || '';
     const dropOff = this._getField(raw, ['dropOff','dropoff','drop off','Drop Off','Drop off']) || '';
     const workers = this.getWorkersFromRoute(raw) || [];
     const volunteers = this.getVolunteersFromRoute(raw) || [];

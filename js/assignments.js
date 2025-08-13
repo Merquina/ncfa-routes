@@ -1,5 +1,5 @@
 /* ========================================
-   SPFM Routes - Assignments Management
+   NCFA Routes - Assignments Management
    ======================================== */
 
 class AssignmentsManager {
@@ -103,7 +103,10 @@ class AssignmentsManager {
     // Combine workers and volunteers into team members
     const allTeamMembers = [...workers, ...volunteers]
       .filter((person) => person && person.trim())
-      .map((person) => `${(window.sheetsAPI?.getWorkerEmoji?.(person) || '👤')} ${person}`);
+      .map(
+        (person) =>
+          `${window.sheetsAPI?.getWorkerEmoji?.(person) || "👤"} ${person}`
+      );
 
     const vans = sheetsAPI
       .getAllVans(route)
@@ -182,7 +185,7 @@ class AssignmentsManager {
       this.renderUnifiedAssignments({
         routes: [],
         title: `${workerName}'s Upcoming Assignments`,
-        emoji: (window.sheetsAPI?.getWorkerEmoji?.(workerName) || '👤'),
+        emoji: window.sheetsAPI?.getWorkerEmoji?.(workerName) || "👤",
         color: "#007bff",
         groupByMarket: false,
         printButtonText: "Print Assignment",
@@ -307,7 +310,7 @@ class AssignmentsManager {
     this.renderUnifiedAssignments({
       routes: upcomingRoutes,
       title: `${workerName}'s Next 3 Upcoming Assignments`,
-      emoji: (window.sheetsAPI?.getWorkerEmoji?.(workerName) || '👤'),
+      emoji: window.sheetsAPI?.getWorkerEmoji?.(workerName) || "👤",
       color: "#007bff",
       groupByMarket: false,
       printButtonText: "Print Assignment",
@@ -379,7 +382,7 @@ class AssignmentsManager {
     );
     if (!assignmentsContainer) return;
 
-    const workerEmoji = (window.sheetsAPI?.getWorkerEmoji?.(worker) || '👤');
+    const workerEmoji = window.sheetsAPI?.getWorkerEmoji?.(worker) || "👤";
 
     // Find recovery routes for this worker and day
     const recoveryRoutes = sheetsAPI.recoveryData.filter((route) => {

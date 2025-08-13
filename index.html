@@ -1,649 +1,662 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-        />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="format-detection" content="telephone=no" />
-        <title>NCFA Routes</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>NCFA Routes</title>
 
-        <link rel="manifest" href="./manifest.webmanifest" />
-        <meta name="theme-color" content="#28a745" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#28a745" />
 
-        <!-- Font Awesome Icons -->
-        <link
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-            rel="stylesheet"
-        />
+    <!-- Font Awesome Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
 
-        <!-- Google APIs -->
-        <script src="https://apis.google.com/js/api.js"></script>
-        <script src="https://accounts.google.com/gsi/client"></script>
+    <!-- Google APIs -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
 
-        <!-- Performance: Preconnect for Google Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <!-- Main Stylesheet (cache-busted) -->
-        <link rel="stylesheet" href="css/app.css?v=4" />
+    <!-- Performance: Preconnect for Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Main Stylesheet (cache-busted) -->
+    <link rel="stylesheet" href="css/app.css?v=4" />
 
-        <!-- Print Styles -->
-        <style>
-            @media print {
-                /* Hide everything except assignments */
-                .header,
-                .bottom-tabs,
-                .main-content > :not(#assignmentsContainer) {
-                    display: none !important;
-                }
+    <!-- Print Styles -->
+    <style>
+      @media print {
+        /* Hide everything except assignments */
+        .header,
+        .bottom-tabs,
+        .main-content > :not(#assignmentsContainer) {
+          display: none !important;
+        }
 
-                /* Force single page fit */
-                @page {
-                    margin: 0.5in;
-                    size: letter;
-                }
+        /* Force single page fit */
+        @page {
+          margin: 0.5in;
+          size: letter;
+        }
 
-                html,
-                body {
-                    margin: 0;
-                    padding: 0;
-                    font-size: 10px !important;
-                    line-height: 1.2 !important;
-                    height: auto !important;
-                }
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          font-size: 10px !important;
+          line-height: 1.2 !important;
+          height: auto !important;
+        }
 
-                #assignmentsContainer {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    font-size: 10px !important;
-                    transform: scale(0.85);
-                    transform-origin: top left;
-                    width: 117.6%; /* Compensate for scale */
-                }
+        #assignmentsContainer {
+          margin: 0 !important;
+          padding: 0 !important;
+          font-size: 10px !important;
+          transform: scale(0.85);
+          transform-origin: top left;
+          width: 117.6%; /* Compensate for scale */
+        }
 
-                /* Compact headers and text */
-                h1,
-                h2,
-                h3,
-                h4,
-                h5,
-                h6 {
-                    font-size: 12px !important;
-                    margin: 5px 0 3px 0 !important;
-                    line-height: 1.1 !important;
-                }
+        /* Compact headers and text */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          font-size: 12px !important;
+          margin: 5px 0 3px 0 !important;
+          line-height: 1.1 !important;
+        }
 
-                p {
-                    margin: 2px 0 !important;
-                    font-size: 9px !important;
-                    line-height: 1.1 !important;
-                }
+        p {
+          margin: 2px 0 !important;
+          font-size: 9px !important;
+          line-height: 1.1 !important;
+        }
 
-                /* Compact buttons and inputs */
-                button,
-                input {
-                    font-size: 8px !important;
-                    padding: 2px 4px !important;
-                    margin: 1px !important;
-                }
+        /* Compact buttons and inputs */
+        button,
+        input {
+          font-size: 8px !important;
+          padding: 2px 4px !important;
+          margin: 1px !important;
+        }
 
-                /* Compact sections */
-                div[style*="padding"] {
-                    padding: 3px !important;
-                }
+        /* Compact sections */
+        div[style*="padding"] {
+          padding: 3px !important;
+        }
 
-                div[style*="margin"] {
-                    margin: 2px 0 !important;
-                }
+        div[style*="margin"] {
+          margin: 2px 0 !important;
+        }
 
-                /* Hide pickup forms and extra buttons in print */
-                div[style*="border-left: 3px solid #28a745"] {
-                    display: none !important;
-                }
+        /* Hide pickup forms and extra buttons in print */
+        div[style*="border-left: 3px solid #28a745"] {
+          display: none !important;
+        }
 
-                /* Force single page */
-                * {
-                    page-break-inside: avoid !important;
-                }
+        /* Force single page */
+        * {
+          page-break-inside: avoid !important;
+        }
 
-                /* Allow breaks only between major sections */
-                div[style*="border-left: 4px solid"] {
-                    page-break-inside: avoid !important;
-                    break-inside: avoid !important;
-                }
-            }
-        </style>
-    </head>
+        /* Allow breaks only between major sections */
+        div[style*="border-left: 4px solid"] {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+      }
+    </style>
+  </head>
 
-    <body>
-        <!-- Sign-in Landing Page -->
-        <div id="signInPage" class="container" style="display: none">
-            <div class="header" style="background: #28a745; color: white">
-                <div style="text-align: center; padding: 20px">
-                    <h1 style="margin: 0 0 10px 0; white-space: nowrap;">
-                        North Country Food Alliance
-                    </h1>
-                    <div style="font-size: 1.2rem; margin: 10px 0">
-                        🥕 🥒 🥬
-                    </div>
-                    <p style="margin: 10px 0 20px 0; font-size: 1.1rem">
-                        SPFM and Recovery Routes
-                    </p>
-                </div>
-            </div>
-
-            <div class="main-content" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;">
-                <div style="text-align: center; max-width: 400px">
-                    <h2 style="margin: 0 0 15px 0; color: #333">Welcome!</h2>
-                    <p
-                        style="
-                            margin: 0 0 30px 0;
-                            color: #666;
-                            line-height: 1.5;
-                        "
-                    >
-                        Please sign in with your Google account to access the
-                        SPFM Routes application.
-                    </p>
-                    <button
-                        id="signInButton"
-                        onclick="handleSignInClick()"
-                        style="
-                            background: #4285f4;
-                            color: white;
-                            border: none;
-                            padding: 12px 24px;
-                            border-radius: 6px;
-                            font-size: 1rem;
-                            cursor: pointer;
-                            font-family: var(--body-font);
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                            transition: background-color 0.2s;
-                        "
-                        onmouseover="this.style.backgroundColor='#3367d6'"
-                        onmouseout="this.style.backgroundColor='#4285f4'"
-                    >
-                        Sign in with Google
-                    </button>
-                    <div
-                        id="signInStatus"
-                        style="margin-top: 20px; color: #666; font-size: 0.9rem"
-                    ></div>
-                </div>
-            </div>
+  <body>
+    <!-- Sign-in Landing Page -->
+    <div id="signInPage" class="container" style="display: none">
+      <div class="header" style="background: #28a745; color: white">
+        <div style="text-align: center; padding: 20px">
+          <h1 style="margin: 0 0 10px 0; white-space: nowrap">
+            North Country Food Alliance
+          </h1>
+          <div style="font-size: 1.2rem; margin: 10px 0">🥕 🥒 🥬</div>
+          <p style="margin: 10px 0 20px 0; font-size: 1.1rem">
+            NCFA and Recovery Routes
+          </p>
         </div>
+      </div>
 
-        <!-- Main App (hidden until signed in) -->
-        <div id="mainApp" class="container" style="display: none">
-            <app-layout>
-                <hash-router default-route="/boxes"></hash-router>
-            </app-layout>
+      <div
+        class="main-content"
+        style="
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px;
+        "
+      >
+        <div style="text-align: center; max-width: 400px">
+          <h2 style="margin: 0 0 15px 0; color: #333">Welcome!</h2>
+          <p style="margin: 0 0 30px 0; color: #666; line-height: 1.5">
+            Please sign in with your Google account to access the NCFA Routes
+            application.
+          </p>
+          <button
+            id="signInButton"
+            onclick="handleSignInClick()"
+            style="
+              background: #4285f4;
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 6px;
+              font-size: 1rem;
+              cursor: pointer;
+              font-family: var(--body-font);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              transition: background-color 0.2s;
+            "
+            onmouseover="this.style.backgroundColor='#3367d6'"
+            onmouseout="this.style.backgroundColor='#4285f4'"
+          >
+            Sign in with your NCFA account
+          </button>
+          <div
+            id="signInStatus"
+            style="margin-top: 20px; color: #666; font-size: 0.9rem"
+          ></div>
         </div>
+      </div>
+    </div>
 
-        <!-- Application Modules - Load synchronously to ensure order -->
-        <script src="js/util.js?v=7" type="text/javascript"></script>
-        <!-- sheets.js (legacy) removed; ESM service handles Sheets access -->
-        <script src="js/assignments.js?v=7" type="text/javascript"></script>
-        <script src="js/inventory.js?v=7" type="text/javascript"></script>
-        <!-- Removed legacy app.js to avoid duplicate routing and API loads -->
+    <!-- Main App (hidden until signed in) -->
+    <div id="mainApp" class="container" style="display: none">
+      <app-layout>
+        <hash-router default-route="/boxes"></hash-router>
+      </app-layout>
+    </div>
 
-        <!-- Web Components + Bootstrap routes -->
-        <script src="src/bootstrap.js" type="module"></script>
+    <!-- Application Modules - Load synchronously to ensure order -->
+    <script src="js/util.js?v=7" type="text/javascript"></script>
+    <!-- sheets.js (legacy) removed; ESM service handles Sheets access -->
+    <script src="js/assignments.js?v=7" type="text/javascript"></script>
+    <script src="js/inventory.js?v=7" type="text/javascript"></script>
+    <!-- Removed legacy app.js to avoid duplicate routing and API loads -->
 
-        <!-- Initialize app directly -->
-        <script>
-            // Register service worker for PWA/app shell caching
-            // Avoid registering Service Worker during local dev to prevent cache/HMR issues
-            if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !['localhost','127.0.0.1'].includes(location.hostname)) {
-                window.addEventListener('load', () => {
-                    const swUrl = new URL('sw.js', location.href).toString();
-                    navigator.serviceWorker.register(swUrl).then(() => {
-                        console.info('✅ Service worker registered');
-                    }).catch((e) => {
-                        console.warn('SW registration failed:', e);
-                    });
-                });
-            }
+    <!-- Web Components + Bootstrap routes -->
+    <script src="src/bootstrap.js" type="module"></script>
 
-            // Detailed debugging
-            function ensureDebugOverlay() {
-                let el = document.getElementById("debugOverlay");
-                if (!el) {
-                    el = document.createElement("div");
-                    el.id = "debugOverlay";
-                    el.style.position = "fixed";
-                    el.style.left = "0";
-                    el.style.right = "0";
-                    el.style.bottom = "0";
-                    el.style.maxHeight = "40vh";
-                    el.style.overflowY = "auto";
-                    el.style.background = "rgba(0,0,0,0.85)";
-                    el.style.color = "#0f0";
-                    el.style.fontFamily = "monospace";
-                    el.style.fontSize = "12px";
-                    el.style.padding = "8px 10px";
-                    el.style.zIndex = "2000";
-                    el.style.display = "none";
-                    el.style.whiteSpace = "pre-wrap";
-                    el.style.pointerEvents = "none";
-                    document.body.appendChild(el);
-                }
-                return el;
-            }
-
-            function updateStatus(msg) {
-                try {
-                    const timestamp = new Date()
-                        .toISOString()
-                        .split("T")[1]
-                        .split(".")[0];
-                    console.log("Status:", msg);
-
-                    // Only show debug overlay on desktop
-                    const isMobile =
-                        /(Mobi|Android|iPhone|iPad)/i.test(
-                            navigator.userAgent,
-                        ) || window.innerWidth <= 600;
-                    if (!isMobile) {
-                        const el = ensureDebugOverlay();
-                        const line = document.createElement("div");
-                        line.textContent = `[${timestamp}] ${msg}`;
-                        el.appendChild(line);
-                        // keep last 200 lines
-                        while (el.childNodes.length > 200) {
-                            el.removeChild(el.firstChild);
-                        }
-                        el.scrollTop = el.scrollHeight;
-                    }
-                } catch (e) {
-                    console.log("updateStatus error:", e);
-                }
-            }
-
-            // Global error listeners to surface issues on mobile
-            window.addEventListener("error", function (e) {
-                updateStatus(
-                    "❌ JS Error: " +
-                        (e?.error?.message || e.message || "Unknown"),
-                );
+    <!-- Initialize app directly -->
+    <script>
+      // Register service worker for PWA/app shell caching
+      // Avoid registering Service Worker during local dev to prevent cache/HMR issues
+      if (
+        "serviceWorker" in navigator &&
+        location.protocol.startsWith("http") &&
+        !["localhost", "127.0.0.1"].includes(location.hostname)
+      ) {
+        window.addEventListener("load", () => {
+          const swUrl = new URL("sw.js", location.href).toString();
+          navigator.serviceWorker
+            .register(swUrl)
+            .then(() => {
+              console.info("✅ Service worker registered");
+            })
+            .catch((e) => {
+              console.warn("SW registration failed:", e);
             });
-            window.addEventListener("unhandledrejection", function (e) {
-                updateStatus(
-                    "❌ Promise Rejection: " +
-                        (e?.reason?.message || e.reason || "Unknown"),
-                );
-            });
+        });
+      }
 
-            // Enable overlay by default on mobile and add toggle
-            document.addEventListener("DOMContentLoaded", function () {
-                const el = ensureDebugOverlay();
+      // Detailed debugging
+      function ensureDebugOverlay() {
+        let el = document.getElementById("debugOverlay");
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "debugOverlay";
+          el.style.position = "fixed";
+          el.style.left = "0";
+          el.style.right = "0";
+          el.style.bottom = "0";
+          el.style.maxHeight = "40vh";
+          el.style.overflowY = "auto";
+          el.style.background = "rgba(0,0,0,0.85)";
+          el.style.color = "#0f0";
+          el.style.fontFamily = "monospace";
+          el.style.fontSize = "12px";
+          el.style.padding = "8px 10px";
+          el.style.zIndex = "2000";
+          el.style.display = "none";
+          el.style.whiteSpace = "pre-wrap";
+          el.style.pointerEvents = "none";
+          document.body.appendChild(el);
+        }
+        return el;
+      }
 
-                // Debug overlay disabled on mobile for clean UI
-                const isMobile =
-                    /(Mobi|Android|iPhone|iPad)/i.test(navigator.userAgent) ||
-                    window.innerWidth <= 600;
+      function updateStatus(msg) {
+        try {
+          const timestamp = new Date()
+            .toISOString()
+            .split("T")[1]
+            .split(".")[0];
+          console.log("Status:", msg);
 
-                if (!isMobile) {
-                    updateStatus(
-                        "📱 Desktop detected - debug overlay available in console",
-                    );
-                }
-            });
-
-            updateStatus("Script started");
-
-            // Set timestamp
-            document.addEventListener("DOMContentLoaded", function () {
-                updateStatus("DOM loaded");
-
-                const timestampEl = document.getElementById("timestamp");
-                if (timestampEl) {
-                    timestampEl.textContent = new Date().toLocaleString();
-                }
-
-                // Update last modified date when data loads
-                setTimeout(() => {
-                    updateLastModified();
-                }, 3000);
-
-                // Legacy UI checks removed; modules initialize via ESM
-            });
-
-            // Skip legacy UI fallback init
-
-            // Legacy tab handlers removed
-
-            // Function to update last modified date
-            function updateLastModified() {
-                const lastUpdatedEl = document.getElementById("lastUpdated");
-                if (
-                    lastUpdatedEl &&
-                    window.sheetsAPI &&
-                    window.sheetsAPI.data.length > 0
-                ) {
-                    // Use current date as fallback since we can't get sheet modification date via API
-                    const now = new Date();
-                    const dateStr = now.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    });
-                    lastUpdatedEl.textContent = `Last updated: ${dateStr}`;
-                }
+          // Only show debug overlay on desktop
+          const isMobile =
+            /(Mobi|Android|iPhone|iPad)/i.test(navigator.userAgent) ||
+            window.innerWidth <= 600;
+          if (!isMobile) {
+            const el = ensureDebugOverlay();
+            const line = document.createElement("div");
+            line.textContent = `[${timestamp}] ${msg}`;
+            el.appendChild(line);
+            // keep last 200 lines
+            while (el.childNodes.length > 200) {
+              el.removeChild(el.firstChild);
             }
+            el.scrollTop = el.scrollHeight;
+          }
+        } catch (e) {
+          console.log("updateStatus error:", e);
+        }
+      }
 
-            // Additional iPhone-specific setup
-            setTimeout(() => {
-                // Force touch event setup for iPhone
-                document.querySelectorAll(".tab-btn").forEach((btn) => {
-                    btn.style.cursor = "pointer";
-                    btn.addEventListener(
-                        "touchstart",
-                        function (e) {
-                            this.style.opacity = "0.7";
-                        },
-                        { passive: true },
-                    );
-                    btn.addEventListener(
-                        "touchend",
-                        function (e) {
-                            this.style.opacity = "1";
-                        },
-                        { passive: true },
-                    );
-                });
-            }, 3000);
+      // Global error listeners to surface issues on mobile
+      window.addEventListener("error", function (e) {
+        updateStatus(
+          "❌ JS Error: " + (e?.error?.message || e.message || "Unknown")
+        );
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        updateStatus(
+          "❌ Promise Rejection: " +
+            (e?.reason?.message || e.reason || "Unknown")
+        );
+      });
 
-            // Header button functions
-            // OAuth Configuration
-            const DISCOVERY_DOC_AUTH =
-                "https://sheets.googleapis.com/$discovery/rest?version=v4";
-        const SCOPES_AUTH = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.profile";
+      // Enable overlay by default on mobile and add toggle
+      document.addEventListener("DOMContentLoaded", function () {
+        const el = ensureDebugOverlay();
 
-            let gapiAuth;
-            let googleAuth;
-            let tokenClient;
-            let gapiInited = false;
-            let gisInited = false;
+        // Debug overlay disabled on mobile for clean UI
+        const isMobile =
+          /(Mobi|Android|iPhone|iPad)/i.test(navigator.userAgent) ||
+          window.innerWidth <= 600;
 
-            // Initialize Google APIs
-            function gapiLoaded() {
-                window.gapi.load("client", initializeGapiClient);
+        if (!isMobile) {
+          updateStatus(
+            "📱 Desktop detected - debug overlay available in console"
+          );
+        }
+      });
+
+      updateStatus("Script started");
+
+      // Set timestamp
+      document.addEventListener("DOMContentLoaded", function () {
+        updateStatus("DOM loaded");
+
+        const timestampEl = document.getElementById("timestamp");
+        if (timestampEl) {
+          timestampEl.textContent = new Date().toLocaleString();
+        }
+
+        // Update last modified date when data loads
+        setTimeout(() => {
+          updateLastModified();
+        }, 3000);
+
+        // Legacy UI checks removed; modules initialize via ESM
+      });
+
+      // Skip legacy UI fallback init
+
+      // Legacy tab handlers removed
+
+      // Function to update last modified date
+      function updateLastModified() {
+        const lastUpdatedEl = document.getElementById("lastUpdated");
+        if (
+          lastUpdatedEl &&
+          window.sheetsAPI &&
+          window.sheetsAPI.data.length > 0
+        ) {
+          // Use current date as fallback since we can't get sheet modification date via API
+          const now = new Date();
+          const dateStr = now.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          lastUpdatedEl.textContent = `Last updated: ${dateStr}`;
+        }
+      }
+
+      // Additional iPhone-specific setup
+      setTimeout(() => {
+        // Force touch event setup for iPhone
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.style.cursor = "pointer";
+          btn.addEventListener(
+            "touchstart",
+            function (e) {
+              this.style.opacity = "0.7";
+            },
+            { passive: true }
+          );
+          btn.addEventListener(
+            "touchend",
+            function (e) {
+              this.style.opacity = "1";
+            },
+            { passive: true }
+          );
+        });
+      }, 3000);
+
+      // Header button functions
+      // OAuth Configuration
+      const DISCOVERY_DOC_AUTH =
+        "https://sheets.googleapis.com/$discovery/rest?version=v4";
+      const SCOPES_AUTH =
+        "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.profile";
+
+      let gapiAuth;
+      let googleAuth;
+      let tokenClient;
+      let gapiInited = false;
+      let gisInited = false;
+
+      // Initialize Google APIs
+      function gapiLoaded() {
+        window.gapi.load("client", initializeGapiClient);
+      }
+
+      async function initializeGapiClient() {
+        await window.gapi.client.init({
+          discoveryDocs: [DISCOVERY_DOC_AUTH],
+        });
+        gapiInited = true;
+        maybeEnableButtons();
+      }
+
+      function gisLoaded() {
+        tokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id:
+            "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com",
+          scope: SCOPES_AUTH,
+          callback: "", // defined later
+        });
+        gisInited = true;
+        maybeEnableButtons();
+      }
+
+      function maybeEnableButtons() {
+        if (gapiInited && gisInited) {
+          updateSignInStatus();
+        }
+      }
+
+      function updateSignInStatus() {
+        if (
+          window.gapi &&
+          window.gapi.client &&
+          window.gapi.client.getToken() !== null
+        ) {
+          // User is signed in, show main app
+          showMainApp();
+        }
+      }
+
+      function handleSignInClick() {
+        document.getElementById("signInStatus").textContent = "Signing in...";
+
+        tokenClient.callback = async (resp) => {
+          if (resp.error !== undefined) {
+            document.getElementById("signInStatus").textContent =
+              "Sign in failed. Please try again.";
+            throw resp;
+          }
+
+          // Store token for persistence and schedule refresh
+          persistCurrentToken();
+          scheduleTokenRefresh();
+          // Fetch signed-in user's profile info (name)
+          fetchUserInfo();
+
+          updateSignInStatus();
+          updateStatus("✅ Signed in to Google successfully");
+          showMainApp();
+        };
+
+        // Always show account chooser to allow switching between accounts
+        tokenClient.requestAccessToken({ prompt: "select_account" });
+      }
+
+      function handleSignOutClick() {
+        const token = window.gapi.client.getToken();
+        if (token !== null) {
+          window.google.accounts.oauth2.revoke(token.access_token);
+          window.gapi.client.setToken("");
+        }
+
+        // Clear stored token
+        localStorage.removeItem("gapi_token");
+
+        showSignInPage();
+        updateStatus("Signed out successfully");
+      }
+
+      function showMainApp() {
+        document.getElementById("signInPage").style.display = "none";
+        document.getElementById("mainApp").style.display = "flex";
+        // Eagerly load data once visible using the modern service; retry until ready
+        (function ensureLoad(attempts = 0) {
+          try {
+            if (
+              window.dataService &&
+              typeof window.dataService.loadApiData === "function"
+            ) {
+              window.dataService.loadApiData();
+              return;
             }
+          } catch {}
+          if (attempts < 60) {
+            setTimeout(() => ensureLoad(attempts + 1), 50);
+          }
+        })();
+      }
 
-            async function initializeGapiClient() {
-                await window.gapi.client.init({
-                    discoveryDocs: [DISCOVERY_DOC_AUTH],
-                });
-                gapiInited = true;
-                maybeEnableButtons();
-            }
+      function showSignInPage() {
+        document.getElementById("signInPage").style.display = "flex";
+        document.getElementById("mainApp").style.display = "none";
+        document.getElementById("signInStatus").textContent = "";
+      }
 
-            function gisLoaded() {
-                tokenClient = window.google.accounts.oauth2.initTokenClient({
-                    client_id:
-                        "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com",
-                    scope: SCOPES_AUTH,
-                    callback: "", // defined later
-                });
-                gisInited = true;
-                maybeEnableButtons();
-            }
+      // Legacy function for compatibility
+      function signInToGoogle() {
+        handleSignInClick();
+      }
 
-            function maybeEnableButtons() {
-                if (gapiInited && gisInited) {
-                    updateSignInStatus();
-                }
-            }
+      // Initialize APIs when page loads
+      window.onload = function () {
+        gapiLoaded();
+        gisLoaded();
+      };
 
-            function updateSignInStatus() {
-                if (
-                    window.gapi &&
-                    window.gapi.client &&
-                    window.gapi.client.getToken() !== null
-                ) {
-                    // User is signed in, show main app
+      // Check for persistent session after APIs load
+      function maybeEnableButtons() {
+        if (gapiInited && gisInited) {
+          checkPersistedSession();
+        }
+      }
+
+      function checkPersistedSession() {
+        // Check if user has a valid token stored
+        if (window.gapi && window.gapi.client) {
+          const token = window.gapi.client.getToken();
+          if (token && token.access_token) {
+            console.info("✅ Found existing OAuth session");
+            showMainApp();
+            scheduleTokenRefresh();
+            return;
+          }
+        }
+
+        // Check localStorage for token persistence
+        const storedToken = localStorage.getItem("gapi_token");
+        if (storedToken) {
+          try {
+            const tokenData = JSON.parse(storedToken);
+            if (tokenData.access_token) {
+              if (new Date(tokenData.expires_at) > new Date()) {
+                window.gapi.client.setToken(tokenData);
+                console.info("✅ Restored OAuth session from storage");
+                showMainApp();
+                scheduleTokenRefresh();
+                fetchUserInfo();
+                return;
+              } else {
+                // Try silent refresh without prompting
+                refreshTokenSilently().then((ok) => {
+                  if (ok) {
+                    console.info("✅ Silently refreshed OAuth token");
                     showMainApp();
-                }
-            }
-
-            function handleSignInClick() {
-                document.getElementById("signInStatus").textContent =
-                    "Signing in...";
-
-                tokenClient.callback = async (resp) => {
-                    if (resp.error !== undefined) {
-                        document.getElementById("signInStatus").textContent =
-                            "Sign in failed. Please try again.";
-                        throw resp;
-                    }
-
-                    // Store token for persistence and schedule refresh
-                    persistCurrentToken();
                     scheduleTokenRefresh();
-                    // Fetch signed-in user's profile info (name)
                     fetchUserInfo();
-
-                    updateSignInStatus();
-                    updateStatus("✅ Signed in to Google successfully");
-                    showMainApp();
-                };
-
-                // Always show account chooser to allow switching between accounts
-                tokenClient.requestAccessToken({ prompt: "select_account" });
-            }
-
-            function handleSignOutClick() {
-                const token = window.gapi.client.getToken();
-                if (token !== null) {
-                    window.google.accounts.oauth2.revoke(token.access_token);
-                    window.gapi.client.setToken("");
-                }
-
-                // Clear stored token
-                localStorage.removeItem("gapi_token");
-
-                showSignInPage();
-                updateStatus("Signed out successfully");
-            }
-
-            function showMainApp() {
-                document.getElementById("signInPage").style.display = "none";
-                document.getElementById("mainApp").style.display = "flex";
-                // Eagerly load data once visible using the modern service; retry until ready
-                (function ensureLoad(attempts = 0) {
-                    try {
-                        if (window.dataService && typeof window.dataService.loadApiData === 'function') {
-                            window.dataService.loadApiData();
-                            return;
-                        }
-                    } catch {}
-                    if (attempts < 60) {
-                        setTimeout(() => ensureLoad(attempts + 1), 50);
-                    }
-                })();
-            }
-
-            function showSignInPage() {
-                document.getElementById("signInPage").style.display = "flex";
-                document.getElementById("mainApp").style.display = "none";
-                document.getElementById("signInStatus").textContent = "";
-            }
-
-            // Legacy function for compatibility
-            function signInToGoogle() {
-                handleSignInClick();
-            }
-
-            // Initialize APIs when page loads
-            window.onload = function () {
-                gapiLoaded();
-                gisLoaded();
-            };
-
-            // Check for persistent session after APIs load
-            function maybeEnableButtons() {
-                if (gapiInited && gisInited) {
-                    checkPersistedSession();
-                }
-            }
-
-            function checkPersistedSession() {
-                // Check if user has a valid token stored
-                if (window.gapi && window.gapi.client) {
-                    const token = window.gapi.client.getToken();
-                    if (token && token.access_token) {
-                        console.info("✅ Found existing OAuth session");
-                        showMainApp();
-                        scheduleTokenRefresh();
-                        return;
-                    }
-                }
-
-                // Check localStorage for token persistence
-                const storedToken = localStorage.getItem("gapi_token");
-                if (storedToken) {
-                    try {
-                        const tokenData = JSON.parse(storedToken);
-                        if (tokenData.access_token) {
-                            if (new Date(tokenData.expires_at) > new Date()) {
-                                window.gapi.client.setToken(tokenData);
-                                console.info("✅ Restored OAuth session from storage");
-                                showMainApp();
-                                scheduleTokenRefresh();
-                                fetchUserInfo();
-                                return;
-                            } else {
-                                // Try silent refresh without prompting
-                                refreshTokenSilently().then((ok) => {
-                                    if (ok) {
-                                        console.info("✅ Silently refreshed OAuth token");
-                                        showMainApp();
-                                        scheduleTokenRefresh();
-                                        fetchUserInfo();
-                                    }
-                                });
-                            }
-                        }
-                    } catch (e) {
-                        localStorage.removeItem("gapi_token");
-                    }
-                }
-
-                // No valid session found; show sign-in page now
-                console.info("No valid OAuth session found");
-                showSignInPage();
-            }
-
-            // ---- OAuth token helpers ----
-            function persistCurrentToken() {
-                const token = window.gapi?.client?.getToken?.();
-                if (!token) return;
-                const expiresAt = new Date();
-                expiresAt.setSeconds(expiresAt.getSeconds() + parseInt(token.expires_in || 3600));
-                const tokenData = { ...token, expires_at: expiresAt.toISOString() };
-                try {
-                    localStorage.setItem("gapi_token", JSON.stringify(tokenData));
-                } catch {}
-            }
-
-            function scheduleTokenRefresh() {
-                try {
-                    const stored = localStorage.getItem("gapi_token");
-                    if (!stored) return;
-                    const data = JSON.parse(stored);
-                    const expireTime = new Date(data.expires_at).getTime();
-                    const now = Date.now();
-                    // Refresh 2 minutes before expiry
-                    const refreshInMs = Math.max(0, expireTime - now - 120000);
-                    if (scheduleTokenRefresh._tid) clearTimeout(scheduleTokenRefresh._tid);
-                    scheduleTokenRefresh._tid = setTimeout(async () => {
-                        const ok = await refreshTokenSilently();
-                        if (ok) {
-                            persistCurrentToken();
-                            scheduleTokenRefresh();
-                        }
-                    }, refreshInMs);
-                } catch {}
-            }
-
-            async function refreshTokenSilently() {
-                return new Promise((resolve) => {
-                    try {
-                        tokenClient.callback = (resp) => {
-                            if (resp && !resp.error) {
-                                persistCurrentToken();
-                                resolve(true);
-                            } else {
-                                resolve(false);
-                            }
-                        };
-                        // Attempt silent access without prompting user
-                        tokenClient.requestAccessToken({ prompt: "" });
-                    } catch (e) {
-                        resolve(false);
-                    }
+                  }
                 });
+              }
             }
+          } catch (e) {
+            localStorage.removeItem("gapi_token");
+          }
+        }
 
-            async function fetchUserInfo() {
-                try {
-                    const token = window.gapi?.client?.getToken?.();
-                    if (!token || !token.access_token) return;
-                    const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                        headers: { Authorization: `Bearer ${token.access_token}` }
-                    });
-                    if (!resp.ok) return;
-                    const info = await resp.json();
-                    if (info && info.name) {
-                        try { localStorage.setItem('gapi_user_name', info.name); } catch {}
-                    }
-                } catch (e) {
-                    console.warn('Failed to fetch user info:', e);
-                }
+        // No valid session found; show sign-in page now
+        console.info("No valid OAuth session found");
+        showSignInPage();
+      }
+
+      // ---- OAuth token helpers ----
+      function persistCurrentToken() {
+        const token = window.gapi?.client?.getToken?.();
+        if (!token) return;
+        const expiresAt = new Date();
+        expiresAt.setSeconds(
+          expiresAt.getSeconds() + parseInt(token.expires_in || 3600)
+        );
+        const tokenData = { ...token, expires_at: expiresAt.toISOString() };
+        try {
+          localStorage.setItem("gapi_token", JSON.stringify(tokenData));
+        } catch {}
+      }
+
+      function scheduleTokenRefresh() {
+        try {
+          const stored = localStorage.getItem("gapi_token");
+          if (!stored) return;
+          const data = JSON.parse(stored);
+          const expireTime = new Date(data.expires_at).getTime();
+          const now = Date.now();
+          // Refresh 2 minutes before expiry
+          const refreshInMs = Math.max(0, expireTime - now - 120000);
+          if (scheduleTokenRefresh._tid)
+            clearTimeout(scheduleTokenRefresh._tid);
+          scheduleTokenRefresh._tid = setTimeout(async () => {
+            const ok = await refreshTokenSilently();
+            if (ok) {
+              persistCurrentToken();
+              scheduleTokenRefresh();
             }
+          }, refreshInMs);
+        } catch {}
+      }
 
-            function openBackendData() {
-                // Open the Google Sheets document in a new tab
-                const SPREADSHEET_ID =
-                    "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
-                const sheetsUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
-                window.open(sheetsUrl, "_blank");
+      async function refreshTokenSilently() {
+        return new Promise((resolve) => {
+          try {
+            tokenClient.callback = (resp) => {
+              if (resp && !resp.error) {
+                persistCurrentToken();
+                resolve(true);
+              } else {
+                resolve(false);
+              }
+            };
+            // Attempt silent access without prompting user
+            tokenClient.requestAccessToken({ prompt: "" });
+          } catch (e) {
+            resolve(false);
+          }
+        });
+      }
+
+      async function fetchUserInfo() {
+        try {
+          const token = window.gapi?.client?.getToken?.();
+          if (!token || !token.access_token) return;
+          const resp = await fetch(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            {
+              headers: { Authorization: `Bearer ${token.access_token}` },
             }
+          );
+          if (!resp.ok) return;
+          const info = await resp.json();
+          if (info && info.name) {
+            try {
+              localStorage.setItem("gapi_user_name", info.name);
+            } catch {}
+          }
+        } catch (e) {
+          console.warn("Failed to fetch user info:", e);
+        }
+      }
 
-            function toggleMenu() {
-                const menu = document.getElementById("dropdownMenu");
-                if (
-                    menu.style.display === "none" ||
-                    menu.style.display === ""
-                ) {
-                    menu.style.display = "block";
-                } else {
-                    menu.style.display = "none";
-                }
-            }
+      function openBackendData() {
+        // Open the Google Sheets document in a new tab
+        const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
+        const sheetsUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
+        window.open(sheetsUrl, "_blank");
+      }
 
-            // Close menu when clicking outside
-            document.addEventListener("click", function (event) {
-                const menu = document.getElementById("dropdownMenu");
-                const hamburger = document.getElementById("hamburgerMenu");
-                if (
-                    menu &&
-                    hamburger &&
-                    !menu.contains(event.target) &&
-                    !hamburger.contains(event.target)
-                ) {
-                    menu.style.display = "none";
-                }
-            });
-        </script>
+      function toggleMenu() {
+        const menu = document.getElementById("dropdownMenu");
+        if (menu.style.display === "none" || menu.style.display === "") {
+          menu.style.display = "block";
+        } else {
+          menu.style.display = "none";
+        }
+      }
 
-        <!-- SPA Router Setup handled by bootstrap + app-layout -->
-    </body>
+      // Close menu when clicking outside
+      document.addEventListener("click", function (event) {
+        const menu = document.getElementById("dropdownMenu");
+        const hamburger = document.getElementById("hamburgerMenu");
+        if (
+          menu &&
+          hamburger &&
+          !menu.contains(event.target) &&
+          !hamburger.contains(event.target)
+        ) {
+          menu.style.display = "none";
+        }
+      });
+    </script>
+
+    <!-- SPA Router Setup handled by bootstrap + app-layout -->
+  </body>
 </html>
