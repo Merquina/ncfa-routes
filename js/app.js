@@ -4,7 +4,6 @@
 
 // Configuration
 const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
-const API_KEY = "AIzaSyDQhg6nsoV3WE7aqdorOAbb6tobVkw__9s";
 const CLIENT_ID =
   "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com";
 const DISCOVERY_DOCS = [
@@ -430,7 +429,10 @@ function showLoading() {
         </div>
     `;
 
-  document.getElementById("assignmentsContainer").innerHTML = loadingHTML;
+  const el = document.getElementById("assignmentsContainer");
+  if (el) {
+    el.innerHTML = loadingHTML;
+  }
 }
 
 function hideLoading() {
@@ -447,7 +449,10 @@ function showError(message) {
         </div>
     `;
 
-  document.getElementById("assignmentsContainer").innerHTML = errorHTML;
+  const el = document.getElementById("assignmentsContainer");
+  if (el) {
+    el.innerHTML = errorHTML;
+  }
 }
 
 function updateVersionStatus(status) {
@@ -546,8 +551,8 @@ window.showError = showError;
 // Also attach modules to window for debugging
 window.sheetsAPI = sheetsAPI;
 window.assignmentsManager = assignmentsManager;
-window.workersManager = workersManager;
-window.datesManager = datesManager;
+try { window.workersManager = workersManager; } catch {}
+try { window.datesManager = datesManager; } catch {}
 window.updateLastModified = updateLastModified;
 
 // Wait for all modules to be available

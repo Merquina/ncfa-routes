@@ -87,13 +87,16 @@ class AppLayout extends HTMLElement {
           position: relative;
           flex-shrink: 0;
           z-index: 1001;
+          padding-right: 64px; /* keep content clear of the menu */
         }
         
         .header h1 {
           font-family: var(--header-font, "Barrio", cursive);
-          font-size: 2.2rem;
+          font-size: clamp(1rem, 4.8vw, 2.2rem);
+          line-height: 1.1;
           font-weight: 400;
           margin: 0 0 8px 0;
+          white-space: nowrap; /* never break the title */
         }
         
         .header p {
@@ -103,8 +106,8 @@ class AppLayout extends HTMLElement {
         }
         
         .hamburger-menu {
-          position: absolute;
-          top: 10px;
+          position: absolute; /* anchored to header */
+          bottom: 8px;
           right: 10px;
           background: none;
           border: none;
@@ -112,18 +115,18 @@ class AppLayout extends HTMLElement {
           font-size: 1.5rem;
           cursor: pointer;
           padding: 5px;
-          z-index: 1002;
+          z-index: 10010;
         }
         
         .dropdown-menu {
-          position: absolute;
-          top: 45px;
+          position: absolute; /* drop just below header */
+          top: 100%;
           right: 10px;
           background: white;
           border: 1px solid #ddd;
           border-radius: 8px;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          z-index: 1003;
+          z-index: 10011;
           display: none;
           min-width: 200px;
         }
@@ -206,10 +209,6 @@ class AppLayout extends HTMLElement {
         
         /* Mobile optimizations */
         @media (max-width: 600px) {
-          .header h1 {
-            font-size: 1.8rem;
-          }
-          
           .tab-label {
             font-size: 0.7rem;
           }

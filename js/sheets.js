@@ -20,19 +20,13 @@ class SheetsAPI {
     this.isLoading = true;
 
     try {
-      // Add timestamp to prevent browser caching old data
-      const timestamp = new Date().getTime();
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/SPFM!A:T?key=${API_KEY}&_=${timestamp}`;
-      console.log("Fetching fresh data from Google Sheets...");
+      console.log("Fetching fresh data from Google Sheets (OAuth)...");
 
-      // Make the API call with retry for 429 errors
-      const response = await this.fetchWithRetry(url);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'SPFM!A:T',
+      });
+      const result = resp.result;
       console.log("✅ Raw data received from Google");
 
       if (!result.values || result.values.length < 2) {
@@ -80,17 +74,13 @@ class SheetsAPI {
   async fetchRecoveryData() {
     try {
       // Try to fetch recovery routes from the "Recovery" sheet tab
-      const recoveryRange = "Recovery!A:P";
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${recoveryRange}?key=${API_KEY}`;
-      console.log("🚗 Attempting to fetch recovery routes...");
-
-      const response = await this.fetchWithRetry(url);
-      if (!response.ok) {
-        console.log("Recovery tab not found - skipping recovery routes");
-        return;
-      }
-
-      const result = await response.json();
+      const recoveryRange = 'Recovery!A:P';
+      console.log("🚗 Attempting to fetch recovery routes (OAuth)...");
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: recoveryRange,
+      });
+      const result = resp.result;
 
       if (!result.values || result.values.length < 2) {
         console.log("Recovery tab is empty - skipping recovery routes");
@@ -120,17 +110,13 @@ class SheetsAPI {
   async fetchDeliveryData() {
     try {
       // Try to fetch SPFM delivery routes from the "SPFM Delivery" sheet tab
-      const deliveryRange = "SPFM_Delivery!A:P";
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${deliveryRange}?key=${API_KEY}`;
-      console.log("🚚 Attempting to fetch SPFM delivery routes...");
-
-      const response = await this.fetchWithRetry(url);
-      if (!response.ok) {
-        console.log("SPFM_Delivery tab not found - skipping delivery routes");
-        return;
-      }
-
-      const result = await response.json();
+      const deliveryRange = 'SPFM_Delivery!A:P';
+      console.log("🚚 Attempting to fetch SPFM delivery routes (OAuth)...");
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: deliveryRange,
+      });
+      const result = resp.result;
 
       if (!result.values || result.values.length < 2) {
         console.log("SPFM Delivery tab is empty - skipping delivery routes");
@@ -172,17 +158,13 @@ class SheetsAPI {
   async fetchInventoryData() {
     try {
       // Try to fetch box inventory from the "Inventory" sheet tab
-      const inventoryRange = "Inventory!A:Z";
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${inventoryRange}?key=${API_KEY}`;
-      console.log("📦 Attempting to fetch inventory data...");
-
-      const response = await this.fetchWithRetry(url);
-      if (!response.ok) {
-        console.log("Inventory tab not found - skipping inventory display");
-        return;
-      }
-
-      const result = await response.json();
+      const inventoryRange = 'Inventory!A:Z';
+      console.log("📦 Attempting to fetch inventory data (OAuth)...");
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: inventoryRange,
+      });
+      const result = resp.result;
 
       if (!result.values || result.values.length < 2) {
         console.log("Inventory tab is empty - skipping inventory display");
@@ -210,17 +192,13 @@ class SheetsAPI {
   // ========================================
   async fetchContactsData() {
     try {
-      const contactsRange = "Contacts!A:Z";
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${contactsRange}?key=${API_KEY}`;
-      console.log("📞 Attempting to fetch contacts data...");
-
-      const response = await this.fetchWithRetry(url);
-      if (!response.ok) {
-        console.log("Contacts tab not found - using original addresses");
-        return;
-      }
-
-      const result = await response.json();
+      const contactsRange = 'Contacts!A:Z';
+      console.log("📞 Attempting to fetch contacts data (OAuth)...");
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: contactsRange,
+      });
+      const result = resp.result;
       const values = result.values;
 
       if (!values || values.length === 0) {

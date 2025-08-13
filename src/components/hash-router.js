@@ -39,6 +39,11 @@ class HashRouter extends HTMLElement {
 
   registerRoute(path, component, title = '') {
     this.routes.set(path, { component, title });
+    // If the newly registered route matches the current hash, load it now
+    const current = (window.location.hash.slice(1) || this.defaultRoute).split('?')[0] || this.defaultRoute;
+    if (current === path) {
+      this.loadRoute(path);
+    }
   }
 
   navigate(path) {

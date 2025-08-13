@@ -70,6 +70,9 @@ class WorkersPage extends HTMLElement {
           max-width: 800px;
           margin: 0 auto;
         }
+        .filters { display: grid; gap: 14px; margin-bottom: 12px; }
+        .toolbar { display:flex; justify-content: space-between; align-items: center; }
+        .btn-clear { background:#f0f0f0; border:1px solid #ddd; border-radius: 16px; padding: 6px 10px; cursor:pointer; font-size:0.8rem; }
         
         @media (max-width: 600px) {
           :host {
@@ -95,7 +98,20 @@ class WorkersPage extends HTMLElement {
       </div>
       
       <div class="workers-container">
-        <route-tabs id="routeTabs" active-tab="by-workers"></route-tabs>
+        <div class="filters">
+          <div class="toolbar">
+            <div class="label" style="color:#333; font-weight:600;">Select Worker</div>
+            <button id="clearFilter" class="btn-clear" title="Clear filters">Clear</button>
+          </div>
+          <worker-component id="workerPicker"></worker-component>
+
+          <div class="toolbar" style="margin-top:4px;">
+            <div class="label" style="color:#333; font-weight:600;">Select Volunteer</div>
+          </div>
+          <worker-component id="volunteerPicker"></worker-component>
+        </div>
+        <route-list id="routesList" title="Routes by Worker" variant="default"></route-list>
+        <div id="routeDetails" style="margin-top:16px;"></div>
       </div>
     `;
   }

@@ -95,7 +95,8 @@ class DatesPage extends HTMLElement {
       </div>
       
       <div class="dates-container">
-        <route-tabs id="routeTabs" active-tab="next-7"></route-tabs>
+        <route-list id="routesList" title="Next Upcoming Routes" variant="default"></route-list>
+        <div id="routeDetails" style="margin-top:16px;"></div>
       </div>
     `;
   }

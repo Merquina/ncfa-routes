@@ -122,6 +122,185 @@ class DataService extends EventTarget {
   // ROUTES METHODS
   // ========================================
 
+  /**
+   * Return a normalized list of all routes from SPFM, Recovery, and Delivery sources.
+   * Does not touch DOM; pulls from sheetsAPI via the existing loadApiDataIfNeeded gate.
+   */
+  async getRoutes() {
+    // Ensure API data is loaded
+    if (window.loadApiDataIfNeeded) {
+      await window.loadApiDataIfNeeded();
+    }
+
+    const routes = [];
+
+    // SPFM routes
+    if (window.sheetsAPI && Array.isArray(window.sheetsAPI.data)) {
+      console.log('[DataService] SPFM data count:', window.sheetsAPI.data.length);
+      window.sheetsAPI.data.forEach((r) => routes.push(this._normalizeRoute(r, 'spfm')));
+    }
+
+    // Recovery routes
+    if (window.sheetsAPI && Array.isArray(window.sheetsAPI.recoveryData)) {
+      console.log('[DataService] Recovery data count:', window.sheetsAPI.recoveryData.length);
+      window.sheetsAPI.recoveryData.forEach((r) => routes.push(this._normalizeRoute(r, 'recovery')));
+    }
+
+    // SPFM Delivery routes (if present)
+    if (window.sheetsAPI && Array.isArray(window.sheetsAPI.deliveryData)) {
+      console.log('[DataService] Delivery data count:', window.sheetsAPI.deliveryData.length);
+      window.sheetsAPI.deliveryData.forEach((r) => routes.push(this._normalizeRoute(r, 'spfm-delivery')));
+    }
+
+    console.log('[DataService] Normalized routes:', routes.length);
+    this.routes = routes;
+    return [...routes];
+  }
+
+  // Alias used by some controllers
+  async getAllRoutes() {
+    return this.getRoutes();
+  }
+
+  /**
+   * Derive workers assigned to a route using the canonical sheets API helper.
+   */
+  getWorkersFromRoute(route) {
+    if (!route || !window.sheetsAPI || typeof window.sheetsAPI.getAllWorkersFromRoute !== 'function') {
+      return [];
+    }
+    try {
+      return window.sheetsAPI.getAllWorkersFromRoute(route) || [];
+    } catch (e) {
+      console.error('getWorkersFromRoute failed:', e);
+      return [];
+    }
+  }
+
+  /**
+   * Volunteers from a route (if any)
+   */
+  getVolunteersFromRoute(route) {
+    if (!route || !window.sheetsAPI || typeof window.sheetsAPI.getAllVolunteers !== 'function') {
+      return [];
+    }
+    try {
+      return window.sheetsAPI.getAllVolunteers(route) || [];
+    } catch (e) {
+      console.error('getVolunteersFromRoute failed:', e);
+      return [];
+    }
+  }
+
+  /**
+   * Vans from a route (if any)
+   */
+  getVansFromRoute(route) {
+    if (!route || !window.sheetsAPI || typeof window.sheetsAPI.getAllVans !== 'function') {
+      return [];
+    }
+    try {
+      return window.sheetsAPI.getAllVans(route) || [];
+    } catch (e) {
+      console.error('getVansFromRoute failed:', e);
+      return [];
+    }
+  }
+
+  // ========================================
+  // NORMALIZATION HELPERS
+  // ========================================
+
+  _normalizeRoute(raw, fallbackType = 'spfm') {
+    const type = raw.type || fallbackType;
+    const dateVal = raw.date || raw.Date || raw.DATE || raw.sortDate || raw.parsed || '';
+    const dateObj = (dateVal instanceof Date) ? dateVal : new Date(dateVal);
+    const dateStr = (dateObj && !isNaN(dateObj)) ? dateObj.toISOString().slice(0,10) : (typeof dateVal === 'string' ? dateVal : '');
+    const startTime = raw.startTime || raw.Time || raw.time || '';
+    const market = raw.market || raw.Market || raw.location || raw.Location || (type === 'recovery' ? 'Recovery' : '');
+    const dropOff = raw.dropOff || raw.dropoff || raw['drop off'] || '';
+    const workers = this.getWorkersFromRoute(raw) || [];
+    const volunteers = this.getVolunteersFromRoute(raw) || [];
+    const vans = this.getVansFromRoute(raw) || [];
+    const officeMaterials = (raw.materials_office || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const storageMaterials = (raw.materials_storage || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const atMarket = (raw.atMarket || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const backAtOffice = (raw.backAtOffice || '').split(',').map(s=>s.trim()).filter(Boolean);
+
+    // Build stops list similar to legacy logic
+    const stops = this._extractStops(raw, type, market, dropOff);
+
+    // Build display date
+    const displayDate = this._formatDisplayDate(dateVal);
+
+    // id
+    const id = raw._routeId || [type, dateStr, startTime, market, dropOff].join('|');
+
+    // Contacts for convenience
+    const contactFor = (name) => {
+      if (!name) return null;
+      try { return window.sheetsAPI?.getAddressFromContacts?.(name) || null; } catch { return null; }
+    };
+
+    return {
+      ...raw,
+      id,
+      type,
+      date: dateStr,
+      displayDate,
+      sortDate: (dateObj && !isNaN(dateObj)) ? dateObj : null,
+      startTime,
+      market,
+      dropOff,
+      workers,
+      volunteers,
+      vans,
+      materials: {
+        office: officeMaterials,
+        storage: storageMaterials,
+        atMarket,
+        backAtOffice,
+      },
+      stops: stops.map((s) => ({
+        location: s,
+        contact: contactFor(s),
+      })),
+      contacts: window.sheetsAPI?.getAllRouteContacts?.(raw) || [],
+      phones: window.sheetsAPI?.getAllRoutePhones?.(raw) || [],
+    };
+  }
+
+  _extractStops(route, type, market, dropOff) {
+    const stops = [];
+    if (type === 'recovery' || type === 'spfm-delivery') {
+      let i = 1;
+      for (;;) {
+        const s = route[`stop${i}`] || route[`Stop ${i}`] || route[`stop ${i}`];
+        if (!s || !String(s).trim()) break;
+        stops.push(String(s).trim());
+        i++;
+      }
+      if (stops.length === 0) {
+        if (market) stops.push(String(market).trim());
+        if (dropOff) stops.push(String(dropOff).trim());
+      }
+    } else {
+      if (market) stops.push(String(market).trim());
+      if (dropOff) stops.push(String(dropOff).trim());
+    }
+    return stops;
+  }
+
+  _formatDisplayDate(dateVal) {
+    try {
+      const d = (dateVal instanceof Date) ? dateVal : new Date(dateVal);
+      if (isNaN(d)) return String(dateVal || '');
+      return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return String(dateVal || '');
+    }
+  }
+
   async getUpcomingRoutes(limit = 7) {
     // Load API data if needed
     if (window.sheetsAPI && typeof window.loadApiDataIfNeeded === 'function') {

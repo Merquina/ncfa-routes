@@ -180,9 +180,29 @@ class RouteList extends HTMLElement {
 
     const grouped = {};
     this.routes.forEach(route => {
-      const key = route[this.groupBy] || 'Unknown';
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(route);
+      const val = route[this.groupBy];
+      if (Array.isArray(val)) {
+        // group under each value (e.g., each worker)
+        if (val.length === 0) {
+          const key = 'Unknown';
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key].push(route);
+        } else {
+          const filterActive = this._filterBy && this._filterValue && (this._filterBy === this._groupBy);
+          val.forEach(v => {
+            const key = String(v || 'Unknown');
+            if (filterActive) {
+              if (String(v).toLowerCase() !== String(this._filterValue).toLowerCase()) return;
+            }
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(route);
+          });
+        }
+      } else {
+        const key = val || 'Unknown';
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(route);
+      }
     });
 
     return grouped;

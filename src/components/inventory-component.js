@@ -175,7 +175,13 @@ class InventoryComponent extends HTMLElement {
         const nameInput = shadow.querySelector('#updateName');
         
         if (smallInput && largeInput && nameInput) {
-          const userName = nameInput.value.trim() || 'Anonymous';
+          // Prefer signed-in Google name from localStorage, then input, then Anonymous
+          let userName = nameInput.value.trim();
+          try {
+            const stored = localStorage.getItem('gapi_user_name');
+            if (!userName && stored) userName = stored;
+          } catch {}
+          if (!userName) userName = 'Anonymous';
           this.updateInventory(smallInput.value, largeInput.value, userName);
         }
       });
@@ -192,6 +198,22 @@ class InventoryComponent extends HTMLElement {
           this.updateDistributionCalculator();
         });
       }
+    });
+  }
+
+  // Ensure section titles are visible at top when interacting
+  attachSectionScrollHandlers() {
+    const sections = this.shadowRoot.querySelectorAll('.section');
+    sections.forEach(sec => {
+      const scrollToTop = () => {
+        try { sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+      };
+      sec.addEventListener('focusin', scrollToTop);
+      sec.addEventListener('click', (e) => {
+        // Only scroll if clicking inside inputs/interactive areas
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (['input','button','select','textarea','label'].includes(tag)) scrollToTop();
+      });
     });
   }
 
@@ -432,6 +454,8 @@ class InventoryComponent extends HTMLElement {
     this.setupEventListeners();
     // Update calculator display
     this.updateCalculator();
+    // Attach scroll helpers for sections
+    this.attachSectionScrollHandlers();
   }
 }
 

@@ -11,17 +11,11 @@ class PageController {
   }
 
   setupEventListeners() {
-    // Listen for data service events
-    if (this.dataService) {
-      this.dataService.addEventListener("loading-started", () =>
-        this.handleLoadingStarted()
-      );
-      this.dataService.addEventListener("loading-finished", () =>
-        this.handleLoadingFinished()
-      );
-      this.dataService.addEventListener("data-error", (e) =>
-        this.handleDataError(e.detail)
-      );
+    // Listen for data service events (guard for storybook mocks)
+    if (this.dataService && typeof this.dataService.addEventListener === 'function') {
+      this.dataService.addEventListener("loading-started", () => this.handleLoadingStarted());
+      this.dataService.addEventListener("loading-finished", () => this.handleLoadingFinished());
+      this.dataService.addEventListener("data-error", (e) => this.handleDataError(e.detail));
     }
   }
 
@@ -51,6 +45,25 @@ class PageController {
   showError(message) {
     // Override in subclasses
     console.error(message);
+  }
+
+  // Render a route-details component into a #routeDetails container if present
+  renderRouteDetailsInPage(route) {
+    const root = this.pageElement.shadowRoot || this.pageElement;
+    const container = root && root.querySelector('#routeDetails');
+    if (!container) return;
+    container.innerHTML = '';
+    const details = document.createElement('route-details');
+    if (typeof details.setRoute === 'function') {
+      details.setRoute(route);
+    } else {
+      details.setAttribute('route', JSON.stringify(route));
+    }
+    container.appendChild(details);
+    // Scroll into view for better UX
+    setTimeout(() => {
+      details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }
 }
 
@@ -106,37 +119,78 @@ class BoxesPageController extends PageController {
 class WorkersPageController extends PageController {
   constructor(pageElement) {
     super(pageElement);
-    this.workerComponent = null;
+    this.routesListComponent = null;
     this.selectedWorker = null;
   }
 
   async initialize() {
-    // Check if using new route-tabs component or legacy worker component
-    this.routeTabsComponent =
-      this.pageElement.shadowRoot?.querySelector("#routeTabs");
-    this.workerComponent =
-      this.pageElement.shadowRoot?.querySelector("worker-component");
-
-    if (this.routeTabsComponent) {
-      // Wait for component to be ready or set up immediately if already connected
-      if (this.routeTabsComponent.isConnected) {
-        await this.setupRouteTabs();
-      } else {
-        this.routeTabsComponent.addEventListener(
-          "component-ready",
-          async () => {
-            await this.setupRouteTabs();
-          },
-          { once: true }
-        );
+    this.routesListComponent = this.pageElement.shadowRoot?.querySelector("#routesList");
+    this.workerPicker = this.pageElement.shadowRoot?.querySelector('#workerPicker');
+    this.volunteerPicker = this.pageElement.shadowRoot?.querySelector('#volunteerPicker');
+    this.clearFilterBtn = this.pageElement.shadowRoot?.querySelector('#clearFilter');
+    if (this.routesListComponent) {
+      // Re-render when data loads
+      if (this.dataService) {
+        this.dataService.addEventListener('data-loaded', () => this.loadRoutesDataForWorkers());
       }
-    } else if (this.workerComponent) {
-      // Legacy worker component setup
-      this.workerComponent.addEventListener("worker-selected", (e) => {
-        this.handleWorkerSelected(e.detail.worker);
+      // Ensure API is loaded before first render
+      if (this.dataService && typeof this.dataService.loadApiData === 'function') {
+        await this.dataService.loadApiData();
+      }
+      await this.loadRoutesDataForWorkers();
+      // Forward route selection from shadow to here (route-card emits composed events)
+      this.routesListComponent.addEventListener('route-selected', (e) => {
+        this.handleRouteSelected(e.detail);
       });
-
-      await this.loadWorkersData();
+      // Listener added above
+      if (this.workerPicker) {
+        // Initialize worker picker from data service
+        try {
+          const workers = await this.dataService.getWorkers();
+          const icons = this.dataService.getWorkerIcons();
+          this.workerPicker.setWorkersData(workers, icons, '👤');
+          this.workerPicker.addEventListener('worker-selected', (e) => {
+            const name = e.detail.worker;
+            // Clear volunteer selection
+            if (this.volunteerPicker) { this.volunteerPicker.selectedWorker = null; this.volunteerPicker.render(); }
+            this.routesListComponent.setFilter('workers', name);
+            this.routesListComponent.setGroupBy(null);
+            this.routesListComponent.setTitle(`Routes for ${name}`);
+          });
+        } catch (e) {
+          console.warn('Failed to init worker picker', e);
+        }
+      }
+      if (this.volunteerPicker) {
+        try {
+          // Build volunteers list from routes
+          const routes = await this.dataService.getAllRoutes();
+          const vSet = new Set();
+          routes.forEach(r => (r.volunteers || []).forEach(v => vSet.add(v)));
+          const volunteers = Array.from(vSet).sort();
+          const icons = this.dataService.getWorkerIcons();
+          this.volunteerPicker.setWorkersData(volunteers, icons, '👤');
+          this.volunteerPicker.addEventListener('worker-selected', (e) => {
+            const name = e.detail.worker;
+            // Clear worker selection
+            if (this.workerPicker) { this.workerPicker.selectedWorker = null; this.workerPicker.render(); }
+            this.routesListComponent.setFilter('volunteers', name);
+            this.routesListComponent.setGroupBy(null);
+            this.routesListComponent.setTitle(`Volunteer routes for ${name}`);
+          });
+        } catch (e) {
+          console.warn('Failed to init volunteer picker', e);
+        }
+      }
+      if (this.clearFilterBtn) {
+        this.clearFilterBtn.addEventListener('click', () => {
+          this.routesListComponent.setFilter(null, null);
+          this.routesListComponent.setGroupBy('workers');
+          this.routesListComponent.setTitle('Routes by Worker');
+          if (this.workerPicker) { this.workerPicker.selectedWorker = null; this.workerPicker.render(); }
+          if (this.volunteerPicker) { this.volunteerPicker.selectedWorker = null; this.volunteerPicker.render(); }
+        });
+      }
     }
   }
 
@@ -153,31 +207,18 @@ class WorkersPageController extends PageController {
     }
   }
 
-  async setupRouteTabs() {
-    await this.loadRoutesData();
-
-    this.routeTabsComponent.addEventListener("route-selected", (e) => {
-      this.handleRouteSelected(e.detail);
-    });
-  }
-
-  async loadRoutesData() {
-    if (!this.routeTabsComponent || !this.dataService) return;
+  async loadRoutesDataForWorkers() {
+    if (!this.routesListComponent || !this.dataService) return;
 
     try {
-      const [routes, workers] = await Promise.all([
-        this.dataService.getAllRoutes(),
-        this.dataService.getWorkers(),
-      ]);
+      const routes = await this.dataService.getAllRoutes();
+      // Group by worker array (already normalized)
+      this.routesListComponent.setRoutes(routes);
+      this.routesListComponent.setGroupBy('workers');
+      this.routesListComponent.setTitle('Routes by Worker');
+      this.routesListComponent.clickable = true;
 
-      // Transform routes to include worker assignments
-      const enrichedRoutes = routes.map((route) => ({
-        ...route,
-        workers: this.dataService.getWorkersFromRoute(route) || [],
-      }));
-
-      this.routeTabsComponent.setRoutes(enrichedRoutes);
-      this.routeTabsComponent.setWorkers(workers);
+      // Worker picker is used instead of chips
     } catch (error) {
       this.showError("Failed to load routes data");
     }
@@ -185,8 +226,14 @@ class WorkersPageController extends PageController {
 
   handleRouteSelected(routeData) {
     console.log("Route selected:", routeData);
-    // Handle route selection - could navigate to detail view, etc.
+    const route = routeData && (routeData.route || routeData);
+    if (route && route.id) {
+      const rid = encodeURIComponent(route.id);
+      window.location.hash = `/route?rid=${rid}`;
+    }
   }
+
+  // chip-based filters removed in favor of worker-component with emojis
 
   async handleWorkerSelected(workerName) {
     this.selectedWorker = workerName;
@@ -218,58 +265,44 @@ class WorkersPageController extends PageController {
 class DatesPageController extends PageController {
   constructor(pageElement) {
     super(pageElement);
-    this.routeTabsComponent = null;
+    this.routesListComponent = null;
   }
 
   async initialize() {
-    // Check if using new route-tabs component
-    this.routeTabsComponent =
-      this.pageElement.shadowRoot?.querySelector("#routeTabs");
-
-    if (this.routeTabsComponent) {
-      // Wait for component to be ready or set up immediately if already connected
-      if (this.routeTabsComponent.isConnected) {
-        await this.setupRouteTabs();
-      } else {
-        this.routeTabsComponent.addEventListener(
-          "component-ready",
-          async () => {
-            await this.setupRouteTabs();
-          },
-          { once: true }
-        );
+    this.routesListComponent = this.pageElement.shadowRoot?.querySelector("#routesList");
+    if (this.routesListComponent) {
+      if (this.dataService) {
+        this.dataService.addEventListener('data-loaded', () => this.loadRoutesDataForDates());
       }
+      if (this.dataService && typeof this.dataService.loadApiData === 'function') {
+        await this.dataService.loadApiData();
+      }
+      await this.loadRoutesDataForDates();
+      this.routesListComponent.addEventListener('route-selected', (e) => {
+        this.handleRouteSelected(e.detail);
+      });
     } else {
-      // Fallback to legacy implementation
       await this.loadDatesData();
     }
   }
 
-  async setupRouteTabs() {
-    await this.loadRoutesDataForDates();
-
-    this.routeTabsComponent.addEventListener("route-selected", (e) => {
-      this.handleRouteSelected(e.detail);
-    });
-  }
-
   async loadRoutesDataForDates() {
-    if (!this.routeTabsComponent || !this.dataService) return;
+    if (!this.routesListComponent || !this.dataService) return;
 
     try {
-      const [routes, workers] = await Promise.all([
-        this.dataService.getAllRoutes(),
-        this.dataService.getWorkers(),
-      ]);
+      const routes = await this.dataService.getAllRoutes();
 
-      // Transform routes to include worker assignments
-      const enrichedRoutes = routes.map((route) => ({
-        ...route,
-        workers: this.dataService.getWorkersFromRoute(route) || [],
-      }));
+      // Filter to upcoming and group by date using normalized sortDate
+      const today = new Date(); today.setHours(0,0,0,0);
+      const upcoming = routes
+        .filter(r => (r.sortDate instanceof Date) && r.sortDate >= today)
+        .sort((a,b) => (a.sortDate - b.sortDate))
+        .slice(0, 7);
 
-      this.routeTabsComponent.setRoutes(enrichedRoutes);
-      this.routeTabsComponent.setWorkers(workers);
+      this.routesListComponent.setRoutes(upcoming);
+      this.routesListComponent.setGroupBy(null);
+      this.routesListComponent.setTitle('Next Upcoming Routes');
+      this.routesListComponent.clickable = true;
     } catch (error) {
       this.showError("Failed to load routes data");
     }
@@ -277,7 +310,11 @@ class DatesPageController extends PageController {
 
   handleRouteSelected(routeData) {
     console.log("Route selected:", routeData);
-    // Handle route selection - could navigate to detail view, etc.
+    const route = routeData && (routeData.route || routeData);
+    if (route && route.id) {
+      const rid = encodeURIComponent(route.id);
+      window.location.hash = `/route?rid=${rid}`;
+    }
   }
 
   async loadDatesData() {

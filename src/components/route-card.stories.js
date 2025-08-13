@@ -5,11 +5,7 @@ export default {
   component: 'route-card',
   argTypes: {
     routeData: { control: 'object' },
-    variant: { 
-      control: { type: 'select' },
-      options: ['default', 'compact', 'minimal']
-    },
-    clickable: { control: 'boolean' }
+    routeId: { control: 'text' }
   },
 };
 
@@ -17,62 +13,73 @@ const Template = (args) => {
   const element = document.createElement('route-card');
   
   if (args.routeData) {
-    element.setRoute(args.routeData);
-  }
-  if (args.variant) {
-    element.setAttribute('variant', args.variant);
-  }
-  if (args.clickable !== undefined) {
-    element.setAttribute('clickable', args.clickable);
+    element.setRoute(args.routeData, args.routeId);
   }
 
   // Listen for route selection events
   element.addEventListener('route-selected', (e) => {
-    console.log('Route selected:', e.detail.route);
+    console.log('Route selected:', e.detail);
   });
 
   return element;
 };
 
-export const Default = Template.bind({});
-Default.args = {
+export const SPFMRoute = Template.bind({});
+SPFMRoute.args = {
   routeData: {
-    worker: 'Samuel',
+    displayDate: 'Mon, Jan 15',
     date: '2024-01-15',
     market: 'Downtown Farmers Market',
-    route: 'Route A',
-    vehicle: 'Truck #1',
-    stops: [
-      'Green Valley Farm',
-      'Sunrise Organic Farm',
-      'Mountain View Produce',
-      'Heritage Vegetables'
-    ]
+    startTime: '8:00 AM',
+    type: 'spfm',
+    workers: ['Samuel', 'Emmanuel'],
+    volunteers: ['Volunteer'],
+    vans: ['Van #1', 'Truck #2']
   },
-  variant: 'default',
-  clickable: true
+  routeId: 'spfm_1'
 };
 
-export const Compact = Template.bind({});
-Compact.args = {
+export const RecoveryRoute = Template.bind({});
+RecoveryRoute.args = {
   routeData: {
-    worker: 'Emmanuel',
+    displayDate: 'Tue, Jan 16',
     date: '2024-01-16',
-    market: 'Westside Market',
-    route: 'Route B',
-    stops: ['River Valley Farm', 'Golden Harvest Co-op']
+    market: 'Community Market',
+    startTime: '2:00 PM',
+    type: 'recovery',
+    workers: ['Tess'],
+    volunteers: [],
+    vans: ['Recovery Van']
   },
-  variant: 'compact',
-  clickable: true
+  routeId: 'recovery_1'
 };
 
-export const Minimal = Template.bind({});
-Minimal.args = {
+export const SPFMDelivery = Template.bind({});
+SPFMDelivery.args = {
   routeData: {
-    worker: 'Tess',
+    displayDate: 'Wed, Jan 17',
     date: '2024-01-17',
-    route: 'Recovery Route'
+    market: 'Westside Market',
+    startTime: '10:00 AM',
+    type: 'spfm-delivery',
+    workers: ['Irmydel', 'Rosey'],
+    volunteers: ['Volunteer'],
+    vans: ['Delivery Truck']
   },
-  variant: 'minimal',
-  clickable: false
+  routeId: 'delivery_1'
+};
+
+export const NoWorkersAssigned = Template.bind({});
+NoWorkersAssigned.args = {
+  routeData: {
+    displayDate: 'Thu, Jan 18',
+    date: '2024-01-18',
+    market: 'Downtown Market',
+    startTime: 'TBD',
+    type: 'spfm',
+    workers: [],
+    volunteers: [],
+    vans: []
+  },
+  routeId: 'empty_1'
 };

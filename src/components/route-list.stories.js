@@ -68,6 +68,28 @@ export const GroupedByMarket = () => {
   return el;
 };
 
+export const GroupedByDate = () => {
+  const el = document.createElement('route-list');
+  el.setTitle('Routes by Date');
+  el.setRoutes(sampleRoutes);
+  el.setGroupBy('date');
+  return el;
+};
+
+export const GroupedByWorkers = () => {
+  const el = document.createElement('route-list');
+  el.setTitle('Routes by Worker');
+  const routes = [
+    { date: '2024-01-15', market: 'Downtown', workers: ['Samuel', 'Emmanuel'] },
+    { date: '2024-01-16', market: 'Westside', workers: ['Tess'] },
+    { date: '2024-01-17', market: 'Recovery', workers: ['Samuel'] },
+  ];
+  el.setRoutes(routes);
+  el.setGroupBy('workers');
+  el.clickable = true;
+  return el;
+};
+
 export const CompactVariant = () => {
   const el = document.createElement('route-list');
   el.setTitle('Compact Route List');

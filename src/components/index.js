@@ -7,31 +7,42 @@ import '../controllers/page-controller.js';
 // Import components
 import './inventory-component.js';
 import './worker-component.js';
-import './assignment-card.js';
-import './date-card.js';
 import './route-card.js';
+import './date-card.js';
 import './route-list.js';
-import './route-tabs.js';
 import './hash-router.js';
 import './app-layout.js';
+import './route-details.js';
 
 // Import pages
 import '../pages/boxes-page.js';
 import '../pages/workers-page.js';
 import '../pages/dates-page.js';
+import '../pages/route-details-page.js';
 
-// Export for convenience if needed
-export {
-  InventoryComponent: customElements.get('inventory-component'),
-  WorkerComponent: customElements.get('worker-component'),
-  AssignmentCard: customElements.get('assignment-card'),
-  DateCard: customElements.get('date-card'),
-  RouteCard: customElements.get('route-card'),
-  RouteList: customElements.get('route-list'),
-  RouteTabs: customElements.get('route-tabs'),
-  HashRouter: customElements.get('hash-router'),
-  AppLayout: customElements.get('app-layout'),
-  BoxesPage: customElements.get('boxes-page'),
-  WorkersPage: customElements.get('workers-page'),
-  DatesPage: customElements.get('dates-page')
-};
+// Optional named exports for convenience (valid ESM syntax)
+export const InventoryComponent = customElements.get('inventory-component');
+export const WorkerComponent = customElements.get('worker-component');
+export const RouteCard = customElements.get('route-card');
+export const DateCard = customElements.get('date-card');
+export const RouteList = customElements.get('route-list');
+export const RouteDetails = customElements.get('route-details');
+export const HashRouter = customElements.get('hash-router');
+export const AppLayout = customElements.get('app-layout');
+export const BoxesPage = customElements.get('boxes-page');
+export const WorkersPage = customElements.get('workers-page');
+export const DatesPage = customElements.get('dates-page');
+export const RouteDetailsPage = customElements.get('route-details-page');
+
+// In dev, force a full reload when any web component module changes.
+// This avoids stale customElements definitions that cannot be re-registered.
+if (import.meta && import.meta.hot) {
+  try {
+    import.meta.hot.accept(() => {
+      console.log('[HMR] Web component update detected; reloading page.');
+      window.location.reload();
+    });
+  } catch (e) {
+    // ignore
+  }
+}

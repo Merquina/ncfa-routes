@@ -31,28 +31,6 @@ class BoxesPage extends HTMLElement {
           max-width: 100%;
           overflow-x: hidden;
         }
-        
-        .page-header {
-          text-align: center;
-          margin-bottom: 20px;
-          padding: 20px;
-          background: #f8f9fa;
-          border-radius: 8px;
-        }
-        
-        .page-title {
-          margin: 0;
-          color: #333;
-          font-size: 1.5rem;
-          font-weight: 600;
-        }
-        
-        .page-description {
-          margin: 8px 0 0 0;
-          color: #666;
-          font-size: 0.9rem;
-        }
-        
         .inventory-container {
           max-width: 600px;
           margin: 0 auto;
@@ -62,25 +40,9 @@ class BoxesPage extends HTMLElement {
           :host {
             padding: 0 5px;
           }
-          
-          .page-header {
-            padding: 15px;
-            margin-bottom: 15px;
-          }
-          
-          .page-title {
-            font-size: 1.3rem;
-          }
         }
       </style>
-      
-      <div class="page-header">
-        <h2 class="page-title">📦 Box Inventory Management</h2>
-        <p class="page-description">
-          Track and manage your SPFM box inventory
-        </p>
-      </div>
-      
+
       <div class="inventory-container">
         <inventory-component id="inventoryComponent"></inventory-component>
       </div>
