@@ -1,0 +1,286 @@
+class AppLayout extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+    this.setupMenuHandlers();
+    this.setupRouting();
+  }
+
+  setupRouting() {
+    // Listen for route changes to update active tabs
+    const router = document.querySelector('hash-router');
+    if (router) {
+      router.addEventListener('route-changed', (e) => {
+        this.updateActiveTab(e.detail.path);
+      });
+    }
+  }
+
+  toggleMenu() {
+    const menu = this.shadowRoot.querySelector('#dropdownMenu');
+    if (menu) {
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+
+  setupMenuHandlers() {
+    const hamburger = this.shadowRoot.querySelector('#hamburgerMenu');
+    if (hamburger) {
+      hamburger.addEventListener('click', () => this.toggleMenu());
+    }
+
+    // Close menu when clicking outside
+    this.shadowRoot.addEventListener('click', (event) => {
+      const menu = this.shadowRoot.querySelector('#dropdownMenu');
+      const hamburger = this.shadowRoot.querySelector('#hamburgerMenu');
+      if (menu && hamburger && 
+          !menu.contains(event.target) && 
+          !hamburger.contains(event.target)) {
+        menu.style.display = 'none';
+      }
+    });
+
+    // Set up tab navigation
+    const tabs = this.shadowRoot.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const route = tab.getAttribute('data-route');
+        if (route) {
+          window.location.hash = route;
+        }
+      });
+    });
+  }
+
+  handleSignOut() {
+    this.dispatchEvent(new CustomEvent('sign-out', { bubbles: true }));
+  }
+
+  openBackendData() {
+    const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
+    const sheetsUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
+    window.open(sheetsUrl, "_blank");
+  }
+
+  render() {
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          font-family: var(--body-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+          background: #f5f5f5;
+          overflow: hidden;
+        }
+        
+        .header {
+          background: #28a745;
+          color: white;
+          padding: 8px;
+          text-align: center;
+          position: relative;
+          flex-shrink: 0;
+          z-index: 1001;
+        }
+        
+        .header h1 {
+          font-family: var(--header-font, "Barrio", cursive);
+          font-size: 2.2rem;
+          font-weight: 400;
+          margin: 0 0 8px 0;
+        }
+        
+        .header p {
+          font-size: 1rem;
+          opacity: 0.9;
+          margin: 0 0 8px 0;
+        }
+        
+        .hamburger-menu {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: none;
+          border: none;
+          color: white;
+          font-size: 1.5rem;
+          cursor: pointer;
+          padding: 5px;
+          z-index: 1002;
+        }
+        
+        .dropdown-menu {
+          position: absolute;
+          top: 45px;
+          right: 10px;
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          z-index: 1003;
+          display: none;
+          min-width: 200px;
+        }
+        
+        .menu-item {
+          width: 100%;
+          background: none;
+          border: none;
+          padding: 12px 20px;
+          text-align: left;
+          cursor: pointer;
+          font-size: 0.9rem;
+          color: #333;
+          font-family: inherit;
+        }
+        
+        .menu-item:hover {
+          background: #f8f9fa;
+        }
+        
+        .main-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          position: relative;
+        }
+        
+        .page-container {
+          flex: 1;
+          overflow-y: auto;
+          padding: 10px;
+          background: white;
+        }
+        
+        .bottom-tabs {
+          background: white;
+          border-top: 1px solid #ddd;
+          display: flex;
+          justify-content: space-around;
+          padding: 8px 0;
+          flex-shrink: 0;
+          position: relative;
+          z-index: 100;
+        }
+        
+        .tab-btn {
+          flex: 1;
+          background: none;
+          border: none;
+          padding: 8px 4px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: #666;
+          font-family: inherit;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+        
+        .tab-btn.active {
+          color: #007bff;
+          background: #f8f9fa;
+        }
+        
+        .tab-btn:hover {
+          background: #f8f9fa;
+        }
+        
+        .tab-icon {
+          font-size: 1.2rem;
+        }
+        
+        .tab-label {
+          font-size: 0.75rem;
+          font-weight: 500;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+          .header h1 {
+            font-size: 1.8rem;
+          }
+          
+          .tab-label {
+            font-size: 0.7rem;
+          }
+        }
+      </style>
+      
+      <div class="header">
+        <button id="hamburgerMenu" class="hamburger-menu" title="Menu">☰</button>
+        
+        <div id="dropdownMenu" class="dropdown-menu">
+          <button class="menu-item" id="signOutBtn">🚪 Sign Out</button>
+          <button class="menu-item" id="backendDataBtn">📊 Backend Data</button>
+        </div>
+        
+        <h1>North Country Food Alliance</h1>
+        <div style="font-size: 1.2rem; margin: 5px 0;">🥕 🥒 🥬</div>
+        <p>SPFM and Recovery Routes</p>
+      </div>
+      
+      <div class="main-content">
+        <div class="page-container">
+          <slot></slot>
+        </div>
+      </div>
+      
+      <div class="bottom-tabs">
+        <a href="/boxes" class="tab-btn" data-route="/boxes">
+          <div class="tab-icon">📦</div>
+          <div class="tab-label">Boxes</div>
+        </a>
+        <a href="/dates" class="tab-btn" data-route="/dates">
+          <div class="tab-icon">📅</div>
+          <div class="tab-label">By Date</div>
+        </a>
+        <a href="/workers" class="tab-btn" data-route="/workers">
+          <div class="tab-icon">👥</div>
+          <div class="tab-label">By Worker</div>
+        </a>
+      </div>
+    `;
+
+    // Set up menu event listeners
+    const signOutBtn = this.shadowRoot.querySelector('#signOutBtn');
+    const backendDataBtn = this.shadowRoot.querySelector('#backendDataBtn');
+    
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        this.handleSignOut();
+        this.toggleMenu();
+      });
+    }
+    
+    if (backendDataBtn) {
+      backendDataBtn.addEventListener('click', () => {
+        this.openBackendData();
+        this.toggleMenu();
+      });
+    }
+  }
+
+  updateActiveTab(route) {
+    const tabs = this.shadowRoot.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+      const tabRoute = tab.getAttribute('data-route');
+      if (tabRoute === route) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+  }
+}
+
+customElements.define('app-layout', AppLayout);

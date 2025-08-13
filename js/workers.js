@@ -21,33 +21,23 @@ class WorkersManager {
   // WORKER RENDERING
   // ========================================
   renderWorkers() {
-    const workersContainer = document.getElementById("workersContainer");
-    if (!workersContainer) return;
-
-    const workers = sheetsAPI.getAllWorkers();
-
-    if (workers.length === 0) {
-      workersContainer.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #666;">
-                    <p>No workers found. Make sure your spreadsheet has worker data.</p>
-                </div>
-            `;
+    const workerComponent = document.getElementById("workerComponent");
+    if (!workerComponent) {
+      console.error("❌ Worker component not found");
       return;
     }
 
-    workersContainer.innerHTML = `
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center;">
-        ${workers
-          .map(
-            (worker) => `
-              <div class="worker-card" onclick="selectWorker('${worker}')" style="display: inline-block; text-align: center;">
-                ${this.getWorkerEmoji(worker)} ${worker}
-              </div>
-            `,
-          )
-          .join("")}
-      </div>
-    `;
+    const workers = sheetsAPI.getAllWorkers();
+
+    // Set up the worker component with current data
+    workerComponent.setWorkers(workers);
+    workerComponent.setWorkerIcons(this.workerIcons);
+    workerComponent.setDefaultIcon("👤");
+
+    // Listen for worker selection events
+    workerComponent.addEventListener('worker-selected', (e) => {
+      this.selectWorker(e.detail.worker);
+    });
   }
 
   // ========================================

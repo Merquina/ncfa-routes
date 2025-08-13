@@ -302,6 +302,7 @@
                 <div id="boxTab" class="tab-content active">
                     <div id="inventoryContainer">
                         <!-- Box inventory will be loaded here -->
+                        <inventory-component id="inventoryComponent"></inventory-component>
                     </div>
                 </div>
 
@@ -317,6 +318,7 @@
                 <div id="workerTab" class="tab-content hidden">
                     <div id="workersContainer" class="worker-grid">
                         <!-- Workers will be loaded here -->
+                        <worker-component id="workerComponent"></worker-component>
                     </div>
                 </div>
 
@@ -385,6 +387,9 @@
             </div>
         </div>
 
+        <!-- Web Components -->
+        <script src="src/components/index.js?v=5" type="module"></script>
+        
         <!-- Application Modules - Load synchronously to ensure order -->
         <script src="js/sheets.js?v=4" type="text/javascript"></script>
         <script src="js/assignments.js?v=4" type="text/javascript"></script>

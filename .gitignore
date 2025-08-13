@@ -1,27 +1,5 @@
-# OAuth token file - contains sensitive authentication data
-token.json
-
-# Node modules (if we add any)
 node_modules/
-
-# Environment variables
-.env
-.env.local
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
+storybook-static/
+dist/
 *.log
-npm-debug.log*
-
-# Temporary files
-*.tmp
-*.temp
+token.json

@@ -14,9 +14,9 @@ class InventoryManager {
   // INVENTORY RENDERING
   // ========================================
   async renderInventory() {
-    const inventoryContainer = document.getElementById("inventoryContainer");
-    if (!inventoryContainer) {
-      console.error("❌ Inventory container not found");
+    const inventoryComponent = document.getElementById("inventoryComponent");
+    if (!inventoryComponent) {
+      console.error("❌ Inventory component not found");
       return;
     }
 
@@ -24,10 +24,37 @@ class InventoryManager {
       // Try to load from Google Sheets first, fall back to localStorage
       await this.loadInventoryFromSheets();
 
-      this.renderInventoryContent(inventoryContainer);
+      // Configure the web component with current data
+      const inventory = this.getLocalInventory();
+      inventoryComponent.updateInventory(
+        inventory.smallBoxes,
+        inventory.largeBoxes,
+        inventory.updatedBy || 'System'
+      );
+
+      // Set up the default box configuration for SPFM
+      inventoryComponent.setBoxConfig({
+        small: {
+          label: 'small',
+          description: '5/9 bushel',
+          farmersRatio: 2
+        },
+        large: {
+          label: 'LARGE', 
+          description: '1 1/9 bushel',
+          farmersRatio: 1
+        }
+      });
+
+      // Listen for inventory updates from the component
+      inventoryComponent.addEventListener('inventory-updated', (e) => {
+        this.saveInventoryToLocalStorage(e.detail);
+        this.tryUploadInventoryToSheets(e.detail);
+      });
 
       // Scroll to the top of inventory container
       setTimeout(() => {
+        const inventoryContainer = document.getElementById("inventoryContainer");
         if (inventoryContainer) {
           inventoryContainer.scrollIntoView({
             behavior: "smooth",
@@ -37,12 +64,16 @@ class InventoryManager {
       }, 100);
     } catch (error) {
       console.error("❌ Error rendering inventory:", error);
-      inventoryContainer.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <h3>📦 Box Inventory</h3>
-          <p>❌ Error loading inventory data.</p>
-        </div>
-      `;
+      // Show error in the component area
+      const inventoryContainer = document.getElementById("inventoryContainer");
+      if (inventoryContainer) {
+        inventoryContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #666;">
+            <h3>📦 Box Inventory</h3>
+            <p>❌ Error loading inventory data.</p>
+          </div>
+        `;
+      }
     }
   }
 

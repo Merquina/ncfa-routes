@@ -23,7 +23,7 @@ class AssignmentsManager {
     } = config;
 
     const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
+      "assignmentsContainer"
     );
     if (!assignmentsContainer) return;
 
@@ -110,7 +110,9 @@ class AssignmentsManager {
       .map((v) => `${this.getVanEmoji(v)} ${v}`);
 
     return `
-      <div onclick="assignmentsManager.openDetailedView('${route._routeId}')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+      <div onclick="assignmentsManager.openDetailedView('${
+        route._routeId
+      }')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate || route.date} - ${route.market || "Market"}
         </div>
@@ -124,7 +126,10 @@ class AssignmentsManager {
           ${this.formatWorkerList(workers, volunteers, 3)}
         </div>
         <div style="font-size: 0.9rem; color: #666;">
-          ${vans.join(", ") || '<span style="color: #800020; font-style: italic;">No vans assigned</span>'}
+          ${
+            vans.join(", ") ||
+            '<span style="color: #800020; font-style: italic;">No vans assigned</span>'
+          }
         </div>
       </div>
     `;
@@ -132,7 +137,9 @@ class AssignmentsManager {
 
   renderRecoveryCard(route) {
     return `
-      <div onclick="assignmentsManager.openDetailedView('${route._routeId}')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+      <div onclick="assignmentsManager.openDetailedView('${
+        route._routeId
+      }')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #007bff; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate}
         </div>
@@ -193,7 +200,9 @@ class AssignmentsManager {
       const status = route.status || route.Status || "";
       const routeDate = new Date(route.date);
       console.log(
-        `🔍 Route ${route.routeId}: status="${status}", date=${route.date}, dateObj=${routeDate}, future=${routeDate >= today}`,
+        `🔍 Route ${route.routeId}: status="${status}", date=${
+          route.date
+        }, dateObj=${routeDate}, future=${routeDate >= today}`
       );
       return !flexibleTextMatch(status, "completed") && routeDate >= today;
     });
@@ -280,15 +289,15 @@ class AssignmentsManager {
     console.log("🔍 Original SPFM assignments:", assignments.spfm.length);
     console.log(
       "🔍 Original recovery assignments:",
-      assignments.recovery.length,
+      assignments.recovery.length
     );
     console.log(
       "🔍 Original delivery assignments:",
-      assignments.delivery ? assignments.delivery.length : 0,
+      assignments.delivery ? assignments.delivery.length : 0
     );
     console.log(
       "🔍 Filtered SPFM routes (not completed):",
-      workerSPFMRoutes.length,
+      workerSPFMRoutes.length
     );
     console.log("🔍 Generated recovery dates:", allRecoveryDates.length);
     console.log("🔍 Total routes found:", allRoutes.length);
@@ -366,7 +375,7 @@ class AssignmentsManager {
   // ========================================
   renderRecoveryRouteAssignment(worker, dayName) {
     const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
+      "assignmentsContainer"
     );
     if (!assignmentsContainer) return;
 
@@ -466,7 +475,7 @@ class AssignmentsManager {
     };
 
     const workerIcon = Object.keys(workerIcons).find((key) =>
-      flexibleTextMatch(key, workerName),
+      flexibleTextMatch(key, workerName)
     );
 
     return workerIcon ? workerIcons[workerIcon] : "👤";
@@ -610,7 +619,7 @@ class AssignmentsManager {
 
   renderSPFMDetailedView(route) {
     const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
+      "assignmentsContainer"
     );
 
     const materialsOffice = (route.materials_office || "")
@@ -632,15 +641,26 @@ class AssignmentsManager {
     assignmentsContainer.innerHTML = `
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #ff8c00;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "Market"} - SPFM Route</h2>
-          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || "TBD"}</p>
-          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
+          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${
+            route.market || "Market"
+          } - SPFM Route</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${
+            route.displayDate || route.date
+          } at ${route.startTime || "TBD"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${
+            workers.length > 0
+              ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ")
+              : "No workers assigned"
+          }</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            <button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            <button onclick="window.open('${googleMapsUrl.replace(
+              /'/g,
+              "\\'"
+            )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🗺️ Full route on Google Maps
             </button>
           </div>
@@ -659,10 +679,14 @@ class AssignmentsManager {
                   <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                     <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                   </label>
-                `,
+                `
                   )
                   .join("")}
-                ${materialsOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+                ${
+                  materialsOffice.length === 0
+                    ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+                    : ""
+                }
               </div>
               <div>
                 <h4 style="margin: 0 0 10px 0; color: #666;">📦</h4>
@@ -672,10 +696,14 @@ class AssignmentsManager {
                   <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                     <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                   </label>
-                `,
+                `
                   )
                   .join("")}
-                ${materialsStorage.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+                ${
+                  materialsStorage.length === 0
+                    ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+                    : ""
+                }
               </div>
             </div>
           </div>
@@ -689,11 +717,13 @@ class AssignmentsManager {
               <div style="margin-bottom: 15px;">
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
-                    route.market,
+                    route.market
                   );
                   const addressToUse =
                     contact && contact.address ? contact.address : route.market;
-                  return `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(addressToUse)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📍 ${addressToUse}</button>`;
+                  return `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
+                    addressToUse
+                  )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📍 ${addressToUse}</button>`;
                 })()}
               </div>
               `
@@ -705,10 +735,14 @@ class AssignmentsManager {
               <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                 <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
               </label>
-            `,
+            `
               )
               .join("")}
-            ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+            ${
+              atMarket.length === 0
+                ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+                : ""
+            }
           </div>
 
 
@@ -721,15 +755,15 @@ class AssignmentsManager {
               const contact = sheetsAPI.getAddressFromContacts(locationName);
               console.log(
                 `🔍 DEBUG Dropoff contact data for "${locationName}":`,
-                contact,
+                contact
               );
               console.log(
                 `🔍 DEBUG Dropoff keys:`,
-                contact ? Object.keys(contact) : "null",
+                contact ? Object.keys(contact) : "null"
               );
               console.log(
                 `🔍 DEBUG Dropoff Type:`,
-                contact ? contact.Type : "no contact",
+                contact ? contact.Type : "no contact"
               );
               const type =
                 contact && (contact.Type || contact.type || contact.TYPE)
@@ -744,13 +778,15 @@ class AssignmentsManager {
                   ? `
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
-                    route.dropOff,
+                    route.dropOff
                   );
                   const addressToUse =
                     contact && contact.address
                       ? contact.address
                       : route.dropOff;
-                  return `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(addressToUse)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${addressToUse}</button>`;
+                  return `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
+                    addressToUse
+                  )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${addressToUse}</button>`;
                 })()}
               `
                   : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'
@@ -773,10 +809,14 @@ class AssignmentsManager {
               <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                 <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
               </label>
-            `,
+            `
               )
               .join("")}
-            ${backAtOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+            ${
+              backAtOffice.length === 0
+                ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+                : ""
+            }
           </div>
         </div>
 
@@ -798,7 +838,7 @@ class AssignmentsManager {
 
   renderUnifiedDetailedView(route) {
     const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
+      "assignmentsContainer"
     );
 
     // Extract stops based on route type
@@ -812,16 +852,26 @@ class AssignmentsManager {
     assignmentsContainer.innerHTML = `
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #333;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #333; margin: 0 0 10px 0;">${routeInfo.emoji} ${routeInfo.title}</h2>
-          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || route.Time || "TBD"}</p>
-          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${this.formatWorkerListDetailed(route, workers)}</p>
+          <h2 style="color: #333; margin: 0 0 10px 0;">${routeInfo.emoji} ${
+      routeInfo.title
+    }</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${
+            route.displayDate || route.date
+          } at ${route.startTime || route.Time || "TBD"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${this.formatWorkerListDetailed(
+            route,
+            workers
+          )}</p>
 
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            <button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            <button onclick="window.open('${googleMapsUrl.replace(
+              /'/g,
+              "\\'"
+            )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🗺️ Full route on Google Maps
             </button>
           </div>
@@ -834,7 +884,9 @@ class AssignmentsManager {
             .map(
               (stop, index) => `
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #333;">
-              <h3 style="color: #333; margin: 0 0 15px 0;">${index + 1} - ${this.getStopDisplayName(stop.location)}</h3>
+              <h3 style="color: #333; margin: 0 0 15px 0;">${
+                index + 1
+              } - ${this.getStopDisplayName(stop.location)}</h3>
               <div style="margin-bottom: 10px;">
                 ${this.renderAddressButton(stop.location)}
                 ${this.renderPhoneButtons(stop.location)}
@@ -842,11 +894,15 @@ class AssignmentsManager {
               ${this.renderPickupForm(route, stop.location)}
               ${this.renderStopNotes(route, stop.location)}
             </div>
-          `,
+          `
             )
             .join("")}
 
-          ${stops.length === 0 ? '<div style="background: white; padding: 15px; border-radius: 8px; text-align: center; color: #999;">No stops found for this route</div>' : ""}
+          ${
+            stops.length === 0
+              ? '<div style="background: white; padding: 15px; border-radius: 8px; text-align: center; color: #999;">No stops found for this route</div>'
+              : ""
+          }
         </div>
 
         <div style="text-align: center; margin-top: 20px;">
@@ -917,7 +973,9 @@ class AssignmentsManager {
     if (route.type === "recovery") {
       return {
         emoji: "🛒",
-        title: `${route.dayName || route["recovery route"] || "Recovery"} Route`,
+        title: `${
+          route.dayName || route["recovery route"] || "Recovery"
+        } Route`,
       };
     } else if (route.type === "spfm-delivery" || route.type === "spfm") {
       return {
@@ -973,10 +1031,14 @@ class AssignmentsManager {
                 <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                   <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                 </label>
-              `,
+              `
                 )
                 .join("")}
-              ${materialsOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+              ${
+                materialsOffice.length === 0
+                  ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+                  : ""
+              }
             </div>
             <div>
               <h4 style="margin: 0 0 10px 0; color: #666;">🏪 Storage</h4>
@@ -986,10 +1048,14 @@ class AssignmentsManager {
                 <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
                   <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
                 </label>
-              `,
+              `
                 )
                 .join("")}
-              ${materialsStorage.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+              ${
+                materialsStorage.length === 0
+                  ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+                  : ""
+              }
             </div>
           </div>
         </div>
@@ -1003,10 +1069,14 @@ class AssignmentsManager {
             <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
               <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
             </label>
-          `,
+          `
             )
             .join("")}
-          ${atMarket.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+          ${
+            atMarket.length === 0
+              ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+              : ""
+          }
         </div>
 
         <!-- Back at Office Section -->
@@ -1018,10 +1088,14 @@ class AssignmentsManager {
             <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
               <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
             </label>
-          `,
+          `
             )
             .join("")}
-          ${backAtOffice.length === 0 ? '<p style="color: #999; font-style: italic;">No items listed</p>' : ""}
+          ${
+            backAtOffice.length === 0
+              ? '<p style="color: #999; font-style: italic;">No items listed</p>'
+              : ""
+          }
         </div>
       </div>
     `;
@@ -1039,8 +1113,14 @@ class AssignmentsManager {
   renderAddressButton(location) {
     const contact = sheetsAPI.getAddressFromContacts(location);
     return contact && contact.address
-      ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${contact.address}</button>`
-      : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${location}</button>`;
+      ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
+          contact.address
+        )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${
+          contact.address
+        }</button>`
+      : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
+          location
+        )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${location}</button>`;
   }
 
   renderPhoneButtons(location) {
@@ -1078,17 +1158,25 @@ class AssignmentsManager {
         <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #28a745;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <span style="font-size: 0.9em; color: #495057; font-weight: 500;">📦 Pickup:</span>
-            <input type="number" id="boxes_${routeId}_${location.replace(/[^a-zA-Z0-9]/g, "_")}"
+            <input type="number" id="boxes_${routeId}_${location.replace(
+        /[^a-zA-Z0-9]/g,
+        "_"
+      )}"
                    placeholder="Boxes" min="0" step="1"
                    onchange="assignmentsManager.handlePickupInputChange('boxes', '${routeId}', '${location}')"
-                   style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+                   style="width: 50px; height: 28px; padding: 2px 4px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.8em;">
             <span style="color: #6c757d; font-size: 0.85em;">or</span>
-            <input type="number" id="lbs_${routeId}_${location.replace(/[^a-zA-Z0-9]/g, "_")}"
+            <input type="number" id="lbs_${routeId}_${location.replace(
+        /[^a-zA-Z0-9]/g,
+        "_"
+      )}"
                    placeholder="Lbs" min="0" step="0.1"
                    onchange="assignmentsManager.handlePickupInputChange('lbs', '${routeId}', '${location}')"
-                   style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
-            <button onclick="assignmentsManager.submitPickupData('${routeId}', '${location}', '${route.date || ""}')"
-                    style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; height: 32px;">
+                   style="width: 50px; height: 28px; padding: 2px 4px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.8em;">
+            <button onclick="assignmentsManager.submitPickupData('${routeId}', '${location}', '${
+        route.date || ""
+      }')"
+                    style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.75em; height: 28px;">
               💾 Log
             </button>
           </div>
@@ -1162,7 +1250,9 @@ class AssignmentsManager {
 
   renderSPFMDeliveryCard(route) {
     return `
-      <div onclick="assignmentsManager.openDetailedView('${route._routeId}')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+      <div onclick="assignmentsManager.openDetailedView('${
+        route._routeId
+      }')" style="background: white; padding: 12px; margin: 0 0 8px 0; border-radius: 6px; border-left: 4px solid #ff8c00; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-weight: bold; color: #333; margin-bottom: 4px;">
           ${route.displayDate} - ${route.market || "SPFM Delivery"}
         </div>
@@ -1210,7 +1300,7 @@ class AssignmentsManager {
 
   renderSPFMDeliveryDetailedView(route) {
     const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
+      "assignmentsContainer"
     );
 
     const stops = [];
@@ -1251,15 +1341,30 @@ class AssignmentsManager {
     assignmentsContainer.innerHTML = `
       <div style="background: #f8f9fa; margin: 10px; padding: 15px; border-radius: 8px; border: 2px solid #ff8c00;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${route.market || "SPFM"} Route</h2>
-          <p style="margin: 0 0 15px 0; color: #666;">${route.displayDate || route.date} at ${route.startTime || route.Time || "TBD"}</p>
-          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${workers.length > 0 ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ") : "No workers assigned"}</p>
+          <h2 style="color: #ff8c00; margin: 0 0 10px 0;">👨‍🌾 ${
+            route.market || "SPFM"
+          } Route</h2>
+          <p style="margin: 0 0 15px 0; color: #666;">${
+            route.displayDate || route.date
+          } at ${route.startTime || route.Time || "TBD"}</p>
+          <p style="margin: 0 0 15px 0;"><strong>Workers:</strong> ${
+            workers.length > 0
+              ? workers.map((w) => `${this.getWorkerEmoji(w)} ${w}`).join(", ")
+              : "No workers assigned"
+          }</p>
 
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button onclick="assignmentsManager.printAssignment()" style="background: #6f42c1; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
               🖨️ Print this assignment
             </button>
-            ${stops.length > 0 ? `<button onclick="window.open('${googleMapsUrl.replace(/'/g, "\\'")}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">🗺️ Full route on Google Maps</button>` : ""}
+            ${
+              stops.length > 0
+                ? `<button onclick="window.open('${googleMapsUrl.replace(
+                    /'/g,
+                    "\\'"
+                  )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">🗺️ Full route on Google Maps</button>`
+                : ""
+            }
           </div>
         </div>
 
@@ -1271,19 +1376,21 @@ class AssignmentsManager {
             .map(
               (stop, index) => `
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
-              <h3 style="color: #333; margin: 0 0 15px 0;">${stops.length > 1 ? `${index + 1} - ` : ""}${(() => {
+              <h3 style="color: #333; margin: 0 0 15px 0;">${
+                stops.length > 1 ? `${index + 1} - ` : ""
+              }${(() => {
                 const contact = sheetsAPI.getAddressFromContacts(stop.location);
                 console.log(
                   `🔍 DEBUG Delivery contact data for "${stop.location}":`,
-                  contact,
+                  contact
                 );
                 console.log(
                   `🔍 DEBUG Delivery object keys:`,
-                  contact ? Object.keys(contact) : "null",
+                  contact ? Object.keys(contact) : "null"
                 );
                 console.log(
                   `🔍 DEBUG Delivery Type value:`,
-                  contact ? contact.Type : "no contact",
+                  contact ? contact.Type : "no contact"
                 );
                 const type =
                   contact && (contact.Type || contact.type || contact.TYPE)
@@ -1295,15 +1402,23 @@ class AssignmentsManager {
               <div style="margin-bottom: 10px;">
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
-                    stop.location,
+                    stop.location
                   );
                   return contact && contact.address
-                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(contact.address)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${contact.address}</button>`
-                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(stop.location)}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${stop.location}</button>`;
+                    ? `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
+                        contact.address
+                      )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${
+                        contact.address
+                      }</button>`
+                    : `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
+                        stop.location
+                      )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${
+                        stop.location
+                      }</button>`;
                 })()}
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
-                    stop.location,
+                    stop.location
                   );
                   if (!contact) return "";
 
@@ -1339,17 +1454,29 @@ class AssignmentsManager {
                     <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #28a745;">
                       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span style="font-size: 0.9em; color: #495057; font-weight: 500;">📦 Pickup:</span>
-                        <input type="number" id="boxes_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                        <input type="number" id="boxes_${routeId}_${stop.location.replace(
+                    /[^a-zA-Z0-9]/g,
+                    "_"
+                  )}"
                                placeholder="Boxes" min="0" step="1"
-                               onchange="assignmentsManager.handlePickupInputChange('boxes', '${routeId}', '${stop.location}')"
-                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
+                               onchange="assignmentsManager.handlePickupInputChange('boxes', '${routeId}', '${
+                    stop.location
+                  }')"
+                               style="width: 50px; height: 28px; padding: 2px 4px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.8em;">
                         <span style="color: #6c757d; font-size: 0.85em;">or</span>
-                        <input type="number" id="lbs_${routeId}_${stop.location.replace(/[^a-zA-Z0-9]/g, "_")}"
+                        <input type="number" id="lbs_${routeId}_${stop.location.replace(
+                    /[^a-zA-Z0-9]/g,
+                    "_"
+                  )}"
                                placeholder="Lbs" min="0" step="0.1"
-                               onchange="assignmentsManager.handlePickupInputChange('lbs', '${routeId}', '${stop.location}')"
-                               style="width: 65px; height: 32px; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.85em;">
-                        <button onclick="assignmentsManager.submitPickupData('${routeId}', '${stop.location}', '${route.date || ""}')"
-                                style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; height: 32px;">
+                               onchange="assignmentsManager.handlePickupInputChange('lbs', '${routeId}', '${
+                    stop.location
+                  }')"
+                               style="width: 50px; height: 28px; padding: 2px 4px; border: 1px solid #ced4da; border-radius: 3px; font-size: 0.8em;">
+                        <button onclick="assignmentsManager.submitPickupData('${routeId}', '${
+                    stop.location
+                  }', '${route.date || ""}')"
+                                style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.75em; height: 28px;">
                           💾 Log
                         </button>
                       </div>
@@ -1380,7 +1507,7 @@ class AssignmentsManager {
                   : "";
               })()}
             </div>
-          `,
+          `
             )
             .join("")}
         </div>
@@ -1389,9 +1516,17 @@ class AssignmentsManager {
         <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; color: #666;">
           <div style="font-size: 2rem; margin-bottom: 15px;">📍</div>
           <h3 style="color: #ff8c00; margin-bottom: 15px;">Route Information</h3>
-          <p style="margin-bottom: 10px;"><strong>Market:</strong> ${route.market || "Not specified"}</p>
-          <p style="margin-bottom: 10px;"><strong>Start Time:</strong> ${route.startTime || route.Time || "TBD"}</p>
-          ${route.dropOff ? `<p style="margin-bottom: 10px;"><strong>Drop Off:</strong> ${route.dropOff}</p>` : ""}
+          <p style="margin-bottom: 10px;"><strong>Market:</strong> ${
+            route.market || "Not specified"
+          }</p>
+          <p style="margin-bottom: 10px;"><strong>Start Time:</strong> ${
+            route.startTime || route.Time || "TBD"
+          }</p>
+          ${
+            route.dropOff
+              ? `<p style="margin-bottom: 10px;"><strong>Drop Off:</strong> ${route.dropOff}</p>`
+              : ""
+          }
           ${(() => {
             const contacts = sheetsAPI.getAllRouteContacts(route);
             return contacts.length > 0
@@ -1418,7 +1553,7 @@ class AssignmentsManager {
   // Remove total weight sections from the DOM
   removeWeightSections() {
     const assignmentsContainer = document.getElementById(
-      "assignmentsContainer",
+      "assignmentsContainer"
     );
     if (!assignmentsContainer) return;
 
@@ -1455,7 +1590,9 @@ class AssignmentsManager {
       html += contacts
         .map(
           (contact, index) =>
-            `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`,
+            `<p style="margin-bottom: 5px;"><strong>Contact ${
+              index + 1
+            }:</strong> ${contact}</p>`
         )
         .join("");
     }
@@ -1487,7 +1624,9 @@ class AssignmentsManager {
       html += contactData.contacts
         .map(
           (contact, index) =>
-            `<p style="margin-bottom: 5px;"><strong>Contact ${index + 1}:</strong> ${contact}</p>`,
+            `<p style="margin-bottom: 5px;"><strong>Contact ${
+              index + 1
+            }:</strong> ${contact}</p>`
         )
         .join("");
     } else if (contactData.contactName) {
@@ -1521,10 +1660,10 @@ class AssignmentsManager {
     try {
       const safeLocation = location.replace(/[^a-zA-Z0-9]/g, "_");
       const boxesInput = document.getElementById(
-        `boxes_${routeId}_${safeLocation}`,
+        `boxes_${routeId}_${safeLocation}`
       );
       const lbsInput = document.getElementById(
-        `lbs_${routeId}_${safeLocation}`,
+        `lbs_${routeId}_${safeLocation}`
       );
 
       const boxes = boxesInput ? parseFloat(boxesInput.value) || 0 : 0;
@@ -1575,7 +1714,7 @@ class AssignmentsManager {
         name: error.name,
       });
       alert(
-        `Error logging pickup data: ${error.message}. Check console for details.`,
+        `Error logging pickup data: ${error.message}. Check console for details.`
       );
     }
   }
@@ -1596,7 +1735,7 @@ class AssignmentsManager {
       console.log("📊 Append result:", success);
       if (!success) {
         console.log(
-          "📊 Charts sheet may not exist - data logged to console instead",
+          "📊 Charts sheet may not exist - data logged to console instead"
         );
         console.log("📊 Pickup data:", data);
         return false;
@@ -1620,7 +1759,7 @@ class AssignmentsManager {
   handlePickupInputChange(inputType, routeId, location) {
     const safeLocation = location.replace(/[^a-zA-Z0-9]/g, "_");
     const boxesInput = document.getElementById(
-      `boxes_${routeId}_${safeLocation}`,
+      `boxes_${routeId}_${safeLocation}`
     );
     const lbsInput = document.getElementById(`lbs_${routeId}_${safeLocation}`);
 
@@ -1641,48 +1780,18 @@ class AssignmentsManager {
       .filter((person) => person && person.trim())
       .map((person) => `${this.getWorkerEmoji(person)} ${person}`);
 
-    // Add "Need worker" for missing positions
-    const teamSlots = [...allTeam];
-    while (teamSlots.length < required) {
-      teamSlots.push(
-        '<span style="color: #dc3545; font-weight: 500;">Need worker</span>',
-      );
-    }
-
-    return teamSlots.slice(0, required).join(", ");
+    return allTeam.join(", ");
   }
 
   formatWorkerListDetailed(route, workers) {
     const volunteers = sheetsAPI.getAllVolunteers(route);
     const allTeam = [...workers, ...volunteers].filter(
-      (person) => person && person.trim(),
+      (person) => person && person.trim()
     );
 
-    if (
-      route.type === "spfm" ||
-      route.type === "spfm-delivery" ||
-      (!route.type && route.market)
-    ) {
-      // SPFM routes need 3 workers
-      const teamSlots = allTeam.map(
-        (person) => `${this.getWorkerEmoji(person)} ${person}`,
-      );
-      while (teamSlots.length < 3) {
-        teamSlots.push(
-          '<span style="color: #dc3545; font-weight: 500;">Need worker</span>',
-        );
-      }
-      return teamSlots.slice(0, 3).join(", ");
-    } else if (route.type === "recovery") {
-      // Recovery routes need 1 worker minimum
-      if (allTeam.length > 0) {
-        return allTeam
-          .map((person) => `${this.getWorkerEmoji(person)} ${person}`)
-          .join(", ");
-      } else {
-        return '<span style="color: #dc3545; font-weight: 500;">Need worker</span>';
-      }
-    }
+    return allTeam
+      .map((person) => `${this.getWorkerEmoji(person)} ${person}`)
+      .join(", ");
 
     return allTeam.length > 0
       ? allTeam

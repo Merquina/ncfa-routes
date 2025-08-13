@@ -1,0 +1,17 @@
+{
+  "name": "spfm-routes",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "storybook": "storybook dev -p 6008",
+    "build-storybook": "storybook build"
+  },
+  "devDependencies": {
+    "@storybook/web-components-vite": "^7.6.7",
+    "@storybook/addon-docs": "^7.6.7",
+    "@storybook/addon-controls": "^7.6.7",
+    "@storybook/addon-viewport": "^7.6.7",
+    "storybook": "^7.6.7",
+    "vite": "^5.0.0"
+  }
+}
