@@ -482,7 +482,7 @@ class DatesPageController extends PageController {
 
       this.routesListComponent.setRoutes(upcoming);
       this.routesListComponent.setGroupBy(null);
-      this.routesListComponent.setTitle('Next Upcoming Routes');
+      this.routesListComponent.setTitle('Upcoming Routes');
       this.routesListComponent.clickable = true;
     } catch (error) {
       this.showError("Failed to load routes data");
@@ -510,7 +510,7 @@ class DatesPageController extends PageController {
         if (window.assignmentsManager) {
           window.assignmentsManager.renderUnifiedAssignments({
             routes: upcomingRoutes,
-            title: "Next Upcoming Routes",
+            title: "Upcoming Routes",
             emoji: "📅",
             color: "#007bff",
             groupByMarket: false,

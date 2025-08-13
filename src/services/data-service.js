@@ -214,7 +214,72 @@ class DataService extends EventTarget {
     // SPFM routes
     if (Array.isArray(sheetsAPI.data)) {
       console.debug('[DataService] SPFM data count:', sheetsAPI.data.length);
-      sheetsAPI.data.forEach((r) => routes.push(this._normalizeRoute(r, 'spfm')));
+      sheetsAPI.data.forEach((r) => {
+        // Skip routes if routeID is empty (same filter as Routes sheet)
+        const routeId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
+        if (!routeId || routeId.toString().trim() === '') {
+          // Debug: Show which SPFM routes are being filtered out
+          const market = this._getField(r, ['market','Market','location','Location']);
+          const date = this._getField(r, ['date', 'Date', 'DATE']);
+          console.log('[DEBUG] Skipping SPFM route with empty routeID:', { market, date });
+          return; // Skip this route if no routeID
+        }
+        
+        // Debug: Check for Woodbury in SPFM data
+        const market = this._getField(r, ['market','Market','location','Location']);
+        const date = this._getField(r, ['date', 'Date', 'DATE']);
+        
+        // Debug: Check for any Thursday routes (Aug 14, 2025) or upcoming routes
+        if (date && (date.includes('August 14') || date.includes('Thursday') || date.includes('Aug 14'))) {
+          console.log('[DEBUG] Found Thursday/Aug 14 route in SPFM:', {
+            date: date,
+            market: market,
+            routeId: routeId,
+            hasRouteId: !!(routeId && routeId.toString().trim()),
+            rawRow: r
+          });
+        }
+        
+        // Debug: Log ALL routes with dates to see what's available (first 10 only)
+        if (date && routeId) {
+          console.log('[DEBUG] SPFM route:', {
+            date: date,
+            market: market || 'No market',
+            routeId: routeId,
+            dateContainsAug14: date.includes('14')
+          });
+        }
+        
+        if (market && market.toLowerCase().includes('woodbury')) {
+          const isAug17Date = date && (date.includes('August 17') || date.includes('8/17') || date.includes('17/8'));
+          console.log('[DEBUG] Found Woodbury in SPFM data:', {
+            date: date,
+            market: market,
+            routeId: routeId,
+            isAug17: isAug17Date,
+            allFields: Object.keys(r).map(key => `${key}: ${r[key]}`),
+            rawRow: r
+          });
+          
+          if (isAug17Date) {
+            console.warn('[ISSUE] This might be the problematic Aug 17 route from SPFM sheet');
+          }
+        }
+        const normalizedRoute = this._normalizeRoute(r, 'spfm');
+        
+        // Debug: Check what the normalized route looks like for Aug 17 Woodbury
+        if (market && market.toLowerCase().includes('woodbury') && date && date.includes('August 17')) {
+          console.log('[DEBUG] Normalized Aug 17 Woodbury route:', {
+            originalMarket: market,
+            normalizedMarket: normalizedRoute.market,
+            originalDate: date,
+            normalizedDate: normalizedRoute.date || normalizedRoute.displayDate,
+            fullNormalized: normalizedRoute
+          });
+        }
+        
+        routes.push(normalizedRoute);
+      });
     }
 
     // Recovery routes (skip if consolidated Routes is available to avoid duplicates)
@@ -265,6 +330,25 @@ class DataService extends EventTarget {
 
       // 3) Push dated rows as-is (custom overrides)
       datedRows.forEach((r) => {
+        // Skip routes if routeID is empty
+        const routeId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
+        if (!routeId || routeId.toString().trim() === '') {
+          return; // Skip this route if no routeID
+        }
+        
+        // Debug: Check for Woodbury in dated rows
+        const market = this._getField(r, ['market','Market','location','Location']);
+        const date = this._getField(r, ['date', 'Date', 'DATE']);
+        if (market && market.toLowerCase().includes('woodbury')) {
+          console.log('[DEBUG] Found Woodbury in DATED row:', {
+            date: date,
+            market: market,
+            routeId: routeId,
+            isAug17: date === '2025-08-17' || date === '8/17/2025' || date === '17/8/2025',
+            rawRow: r
+          });
+        }
+        
         const rt = (this._getField(r, ['routeType', 'RouteType', 'type', 'route type', 'Route Type']) || '').toString();
         const fType = /recovery/i.test(rt) ? 'recovery' : (/delivery/i.test(rt) ? 'spfm-delivery' : 'spfm');
         routes.push(this._normalizeRoute(r, fType));
@@ -272,12 +356,41 @@ class DataService extends EventTarget {
 
       // 4) Expand periodic rows into occurrences, skipping those that match overrides by (date,type,market)
       periodicRows.forEach((r) => {
+        // Skip routes if routeID is empty
+        const routeId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
+        if (!routeId || routeId.toString().trim() === '') {
+          return; // Skip this route if no routeID
+        }
+        
         const rt = (this._getField(r, ['routeType', 'RouteType', 'type', 'route type', 'Route Type']) || '').toString();
         const fType = /recovery/i.test(rt) ? 'recovery' : (/delivery/i.test(rt) ? 'spfm-delivery' : 'spfm');
         const weekday = this._getField(r, ['Weekday', 'weekday', 'DAY', 'dayName', 'Day', 'day']);
+        const market = this._getField(r, ['market','Market','location','Location']);
         if (!weekday) return;
+        
+        // Debug: Filter out any dates that fall on Sunday (day 0) 
+        if (market && market.toLowerCase().includes('woodbury')) {
+          console.log('[DEBUG] Processing Woodbury route for weekday:', weekday);
+        }
+        
         const occurrences = this._generateNextOccurrences(String(weekday), 8);
         occurrences.forEach((d) => {
+          // Debug: Log all generated dates for Woodbury route
+          if (market && market.toLowerCase().includes('woodbury')) {
+            console.log('[DEBUG] Generated date for Woodbury Monday route:', {
+              iso: d.toISOString().slice(0,10),
+              dayOfWeek: d.getDay(),
+              dateString: d.toDateString(),
+              isAug17: d.toISOString().slice(0,10) === '2025-08-17'
+            });
+          }
+          
+          // Safety check: Skip any Sunday dates (day 0) that shouldn't be generated
+          if (d.getDay() === 0 && weekday.toLowerCase() !== 'sunday') {
+            console.warn('[FILTER] Skipping Sunday date generated from', weekday, 'template:', d.toDateString(), 'Market:', market);
+            return;
+          }
+          
           const iso = d.toISOString().slice(0,10);
           const overrides = overridesByDate.get(iso) || [];
           if (overrides.length) {
@@ -382,8 +495,10 @@ class DataService extends EventTarget {
     // Build display date
     const displayDate = this._formatDisplayDate(dateVal);
 
-    // id
-    const id = raw._routeId || [type, dateStr, startTime, market, dropOff].join('|');
+    // id - create a more robust ID by filtering out empty values
+    const idParts = [type, dateStr, startTime, market, dropOff].filter(p => p && p.toString().trim());
+    const id = raw._routeId || idParts.join('|');
+    
 
     // Contacts for convenience
     const contactFor = (name) => {
@@ -440,34 +555,10 @@ class DataService extends EventTarget {
     return stops;
   }
 
-  _formatDisplayDate(dateVal) {
-    try {
-      const d = (dateVal instanceof Date) ? dateVal : new Date(dateVal);
-      if (isNaN(d)) return String(dateVal || '');
-      return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
-    } catch {
-      return String(dateVal || '');
-    }
-  }
 
   // ========================================
   // PERIODIC DATES HELPERS
   // ========================================
-  _generateNextOccurrences(dayName, count = 8) {
-    const results = [];
-    const target = this._weekdayIndex(dayName);
-    if (target < 0) return results;
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const current = today.getDay();
-    let daysUntil = (target - current + 7) % 7;
-    for (let i = 0; i < count; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + daysUntil + i * 7);
-      results.push(d);
-    }
-    return results;
-  }
 
   _weekdayIndex(name) {
     const n = (name || '').toString().trim().toLowerCase();
@@ -612,6 +703,57 @@ class DataService extends EventTarget {
       Boniat: "🌊",
       Volunteer: "👤"
     };
+  }
+
+  _generateNextOccurrences(dayName, count = 8) {
+    const dayMap = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+      sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6
+    };
+    
+    const targetDay = dayMap[dayName.toLowerCase().trim()];
+    if (typeof targetDay !== 'number') return [];
+    
+    // Use local midnight to avoid timezone issues
+    const today = new Date();
+    const results = [];
+    let current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    // Find the next occurrence of the target day (including today if it matches)
+    let daysToAdd = (targetDay - current.getDay() + 7) % 7;
+    if (daysToAdd === 0 && current.getTime() <= today.getTime()) {
+      daysToAdd = 7; // If it's today but we want future occurrences, go to next week
+    }
+    current.setDate(current.getDate() + daysToAdd);
+    
+    // Generate the specified count of occurrences
+    for (let i = 0; i < count; i++) {
+      results.push(new Date(current));
+      current.setDate(current.getDate() + 7); // Next week
+    }
+    
+    return results;
+  }
+
+
+  _formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+      // Handle ISO date strings by parsing them as local dates to avoid timezone issues
+      let d;
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        // ISO date format - parse as local date
+        const [year, month, day] = dateStr.split('-');
+        d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        d = new Date(dateStr);
+      }
+      
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
   }
 
   getBoxConfig() {

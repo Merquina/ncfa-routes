@@ -23,7 +23,7 @@ class AppLayout extends HTMLElement {
       const existing = router.getRoutes && router.getRoutes();
       if (existing && existing.length > 0) return; // already registered
       router.registerRoute('/boxes', 'boxes-page', 'Box Inventory');
-      router.registerRoute('/dates', 'dates-page', 'Next Upcoming');
+      router.registerRoute('/dates', 'dates-page', 'Upcoming Routes');
       router.registerRoute('/workers', 'workers-page', 'Routes by Worker');
       router.registerRoute('/route', 'route-details-page', 'Route Details');
     } catch {}

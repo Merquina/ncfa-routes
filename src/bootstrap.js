@@ -8,7 +8,7 @@ function registerRoutes() {
   if (existing && existing.length > 0) return true; // already registered elsewhere
   try {
     router.registerRoute('/boxes', 'boxes-page', 'Box Inventory');
-    router.registerRoute('/dates', 'dates-page', 'Next Upcoming');
+    router.registerRoute('/dates', 'dates-page', 'Upcoming Routes');
     router.registerRoute('/workers', 'workers-page', 'Routes by Worker');
     router.registerRoute('/route', 'route-details-page', 'Route Details');
     return true;

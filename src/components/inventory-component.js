@@ -228,6 +228,20 @@ class InventoryComponent extends HTMLElement {
         });
       }
     });
+
+    // Add focus handlers to clear fields and show cursor
+    const allInputs = shadow.querySelectorAll('input[type="number"]');
+    allInputs.forEach(input => {
+      input.addEventListener('focus', (e) => {
+        e.target.dataset.originalValue = e.target.value;
+        e.target.value = '';
+      });
+      input.addEventListener('blur', (e) => {
+        if (e.target.value === '' && e.target.dataset.originalValue) {
+          e.target.value = e.target.dataset.originalValue;
+        }
+      });
+    });
   }
 
   // Ensure section titles are visible at top when interacting
@@ -462,15 +476,15 @@ class InventoryComponent extends HTMLElement {
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div class="form-row">
             <label class="form-label">How many farmers:</label>
-            <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" class="form-input" onfocus="this.select()">
+            <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" class="form-input">
           </div>
           <div class="form-row">
             <label class="form-label">How many small boxes:</label>
-            <input type="number" id="smallBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input" onfocus="this.select()">
+            <input type="number" id="smallBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input">
           </div>
           <div class="form-row">
             <label class="form-label">How many LARGE boxes:</label>
-            <input type="number" id="largeBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input" onfocus="this.select()">
+            <input type="number" id="largeBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input">
           </div>
           <div id="calculationResult" class="calculation-result">
             <h4 style="margin: 2px 0; font-size: 0.9rem;">Give to each farmer:</h4>
@@ -485,11 +499,11 @@ class InventoryComponent extends HTMLElement {
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div class="form-row">
             <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">small boxes:</label>
-            <input type="number" id="updateSmallBoxes" min="0" value="${smallBoxes}" inputmode="numeric" class="form-input" onfocus="this.select()">
+            <input type="number" id="updateSmallBoxes" min="0" value="${smallBoxes}" inputmode="numeric" class="form-input">
           </div>
           <div class="form-row">
             <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">LARGE boxes:</label>
-            <input type="number" id="updateLargeBoxes" min="0" value="${largeBoxes}" inputmode="numeric" class="form-input" onfocus="this.select()">
+            <input type="number" id="updateLargeBoxes" min="0" value="${largeBoxes}" inputmode="numeric" class="form-input">
           </div>
           <!-- Name field removed; we use OAuth profile name -->
           <button id="updateBtn" class="btn" style="margin-top: 5px; font-size: 0.9rem;">📊 Update & Share Inventory</button>

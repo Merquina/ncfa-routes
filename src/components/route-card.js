@@ -4,10 +4,11 @@ class RouteCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.assignmentData = null;
     this.routeId = null;
+    this.clickable = false;
   }
 
   static get observedAttributes() {
-    return ['assignment-data', 'route-id'];
+    return ['assignment-data', 'route-id', 'clickable'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -20,6 +21,8 @@ class RouteCard extends HTMLElement {
         }
       } else if (name === 'route-id') {
         this.routeId = newValue;
+      } else if (name === 'clickable') {
+        this.clickable = newValue === 'true';
       }
       this.render();
     }
@@ -92,26 +95,37 @@ class RouteCard extends HTMLElement {
 
     const route = this.assignmentData;
     
-    // Determine route type and styling
-    const isRecovery = route.type === "recovery";
-    const isSPFMDelivery = route.type === "spfm-delivery" || route.type === "spfm";
+    // Debug: Check what market data the route card is receiving for any Woodbury route
+    if (route.market && route.market.toLowerCase().includes('woodbury')) {
+      console.log('[ROUTE CARD DEBUG] Woodbury route data:', {
+        market: route.market,
+        date: route.date,
+        displayDate: route.displayDate,
+        isAug17: (route.date && route.date.includes && route.date.includes('August 17')) || 
+                 (route.displayDate && route.displayDate.includes && route.displayDate.includes('Aug 17')),
+        allFields: Object.keys(route).map(key => `${key}: ${route[key]}`),
+        fullRoute: route
+      });
+    }
     
-    // Set border color and icon based on route type
-    let borderColor = "#ff8c00"; // Default SPFM orange
-    let routeIcon = "👨‍🌾";
-    let routeLabel = "SPFM Route";
-    let routeColor = "#ff8c00";
+    // Get route type from sheets data (routeType) or fallback to internal type
+    const routeTypeFromSheets = route.routeType || route.type || 'SPFM';
+    const normalizedType = routeTypeFromSheets.toString().toLowerCase();
+    
+    // Determine route styling based on type
+    const isRecovery = normalizedType.includes('recovery');
+    const isSPFM = normalizedType.includes('spfm') || normalizedType === 'spfm';
+    
+    // Set border color and icon based on route type  
+    let borderColor = "#28a745"; // SPFM green
+    let routeIcon = "🧑‍🌾"; // farmer emoji for SPFM
+    let displayType = routeTypeFromSheets; // Use actual value from sheets
+    let routeColor = "#28a745";
     
     if (isRecovery) {
-      borderColor = "#007bff";
-      routeIcon = "🛒";
-      routeLabel = "Recovery Route";
+      borderColor = "#007bff"; // Recovery blue
+      routeIcon = "🛒"; // shopping cart emoji for Recovery
       routeColor = "#007bff";
-    } else if (isSPFMDelivery) {
-      borderColor = "#28a745";
-      routeIcon = "🚚";
-      routeLabel = "SPFM Delivery";
-      routeColor = "#28a745";
     }
 
     // Get workers, volunteers, and vans
@@ -147,11 +161,20 @@ class RouteCard extends HTMLElement {
           font-size: 0.9rem;
           color: #666;
           margin-bottom: 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .card-type {
           font-size: 0.85rem;
           color: ${routeColor};
           margin-bottom: 4px;
+        }
+        .route-type-text {
+          color: ${routeColor};
+        }
+        .market-text {
+          color: #28a745;
         }
         .card-workers {
           font-size: 0.9rem;
@@ -170,10 +193,10 @@ class RouteCard extends HTMLElement {
 
       <div class="assignment-card">
         <div class="card-title">
-          ${route.displayDate || route.date} - ${route.market || "Market"}
+          ${route.displayDate || route.date}
         </div>
         <div class="card-time">
-          ${(route.startTime || route.Time || "TBD")} · ${routeLabel}
+          ${(route.startTime || route.Time || "TBD")} · ${routeIcon}&nbsp;<span class="route-type-text">${displayType}</span>${isSPFM ? ` <span class="market-text">- ${route.market || "Market"}</span>` : ''}
         </div>
         <div class="card-workers">
           ${this.formatWorkerList(workers, volunteers, isRecovery ? 1 : 3)}
@@ -187,10 +210,14 @@ class RouteCard extends HTMLElement {
       </div>
     `;
 
-    // Add click handler
-    this.shadowRoot.querySelector('.assignment-card').addEventListener('click', () => {
-      this.handleCardClick();
-    });
+    // Add click handler only if clickable
+    if (this.clickable) {
+      const card = this.shadowRoot.querySelector('.assignment-card');
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        this.handleCardClick();
+      });
+    }
   }
 }
 
