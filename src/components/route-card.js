@@ -39,16 +39,17 @@ class RouteCard extends HTMLElement {
   }
 
   getWorkerEmoji(workerName) {
-    const icons = {
-      Samuel: "🐋", Emmanuel: "🦁", Irmydel: "🐸", Tess: "🌟",
-      Ayoyo: "⚡", Rosey: "🌹", Boniat: "🌊", Volunteer: "👤"
-    };
-    return icons[workerName] || "👤";
+    if (!workerName) return '👤';
+    try {
+      const icons = (window.dataService && typeof window.dataService.getWorkerIcons === 'function')
+        ? window.dataService.getWorkerIcons() : {};
+      return icons[workerName] || '👤';
+    } catch { return '👤'; }
   }
 
   getVanEmoji(vanName) {
-    // Simple van emoji mapping
-    return "🚐";
+    if (!vanName) return '🚐';
+    try { return window.sheetsAPI?.getVehicleEmoji?.(vanName) || '🚐'; } catch { return '🚐'; }
   }
 
   formatWorkerList(workers, volunteers, maxDisplay = 3) {

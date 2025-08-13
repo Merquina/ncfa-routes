@@ -95,7 +95,7 @@ class DatesManager {
         const routes = sheetsAPI.getRoutesByDate(dateObj.original);
         const workers = routes
           .flatMap((r) => sheetsAPI.getAllWorkersFromRoute(r))
-          .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
+          .map((w) => `${(window.sheetsAPI?.getWorkerEmoji?.(w) || '👤')} ${w}`)
           .join(", ");
 
         const markets = [...new Set(routes.map((r) => r.market))].join(", ");
@@ -179,9 +179,9 @@ class DatesManager {
         const workerDisplay =
           workers.length > 0
             ? workers
-                .map((w) => `${workersManager.getWorkerEmoji(w)} ${w}`)
+                .map((w) => `${(window.sheetsAPI?.getWorkerEmoji?.(w) || '👤')} ${w}`)
                 .join(", ")
-            : "No workers assigned";
+                : "No workers assigned";
 
         return `
                 <div class="date-card" onclick="selectRecoveryRoute('${firstWorker}', '${
@@ -823,30 +823,7 @@ class DatesManager {
     return this.calculateNextOccurrence(dayName, weeksFromNow);
   }
 
-  getWorkerEmoji(workerName) {
-    if (!workerName || workerName.trim() === "") return "👤";
-
-    if (flexibleTextIncludes(workerName, "volunteer")) {
-      return "👤";
-    }
-
-    const workerIcons = {
-      Samuel: "🐋",
-      Emmanuel: "🦁",
-      Irmydel: "🐸",
-      Tess: "🌟",
-      Ayoyo: "⚡",
-      Rosey: "🌹",
-      Boniat: "🌊",
-      Volunteer: "👤",
-    };
-
-    const workerIcon = Object.keys(workerIcons).find((key) =>
-      flexibleTextMatch(key, workerName)
-    );
-
-    return workerIcon ? workerIcons[workerIcon] : "👤";
-  }
+  // Deprecated: use sheetsAPI.getWorkerEmoji
 }
 
 // Export instance

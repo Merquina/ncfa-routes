@@ -5,16 +5,7 @@
 class WorkersManager {
   constructor() {
     this.currentWorker = null;
-    this.workerIcons = {
-      Samuel: "🐋",
-      Emmanuel: "🦁",
-      Irmydel: "🐸",
-      Tess: "🌟",
-      Ayoyo: "⚡",
-      Rosey: "🌹",
-      Boniat: "🌊",
-      Volunteer: "👤",
-    };
+    this.workerIcons = {};
   }
 
   // ========================================
@@ -31,6 +22,10 @@ class WorkersManager {
 
     // Set up the worker component with current data
     workerComponent.setWorkers(workers);
+    // Prefer icons from DataService/Misc table
+    const iconMap = (window.dataService && typeof window.dataService.getWorkerIcons === 'function')
+      ? window.dataService.getWorkerIcons() : {};
+    this.workerIcons = iconMap || {};
     workerComponent.setWorkerIcons(this.workerIcons);
     workerComponent.setDefaultIcon("👤");
 
@@ -93,11 +88,8 @@ class WorkersManager {
       return "👤";
     }
 
-    const workerIcon = Object.keys(this.workerIcons).find((key) =>
-      flexibleTextMatch(key, workerName),
-    );
-
-    return workerIcon ? this.workerIcons[workerIcon] : "👤";
+    const icon = this.workerIcons[workerName] || (window.sheetsAPI?.getWorkerEmoji?.(workerName) || '👤');
+    return icon || '👤';
   }
 }
 
