@@ -73,32 +73,59 @@ class SheetsAPI {
   // ========================================
   async fetchRecoveryData() {
     try {
-      // Try to fetch recovery routes from the "Recovery" sheet tab
+      // Prefer dedicated "Recovery" tab if present
       const recoveryRange = 'Recovery!A:P';
       console.log("🚗 Attempting to fetch recovery routes (OAuth)...");
-      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: recoveryRange,
-      });
-      const result = resp.result;
+      let result;
+      try {
+        const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: recoveryRange,
+        });
+        result = resp.result;
+      } catch (e) {
+        result = null;
+      }
 
-      if (!result.values || result.values.length < 2) {
-        console.log("Recovery tab is empty - skipping recovery routes");
+      if (result && result.values && result.values.length >= 2) {
+        const headers = result.values[0];
+        this.recoveryData = result.values.slice(1).map((row) => {
+          const obj = {};
+          headers.forEach((header, index) => {
+            obj[header] = row[index] || "";
+          });
+          return obj;
+        });
+        console.log(`✅ Loaded ${this.recoveryData.length} recovery routes`);
+        console.log("🔍 Debug: Sample recovery route:", this.recoveryData[0]);
         return;
       }
 
-      // Convert recovery rows to JavaScript objects
-      const headers = result.values[0];
-      this.recoveryData = result.values.slice(1).map((row) => {
-        const obj = {};
-        headers.forEach((header, index) => {
-          obj[header] = row[index] || "";
-        });
-        return obj;
+      // Fallback: derive Recovery from consolidated Routes sheet by routeType
+      console.log("🔄 Recovery tab missing; deriving from Routes (routeType=Recovery)");
+      const routesRange = 'Routes!A:Z';
+      const routesResp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: routesRange,
       });
-
-      console.log(`✅ Loaded ${this.recoveryData.length} recovery routes`);
-      console.log("🔍 Debug: Sample recovery route:", this.recoveryData[0]);
+      const rValues = routesResp.result?.values || [];
+      if (rValues.length < 2) {
+        console.log("Routes sheet empty; no recovery routes available");
+        this.recoveryData = [];
+        return;
+      }
+      const rHeaders = rValues[0];
+      const rows = rValues.slice(1);
+      const idxType = rHeaders.indexOf('routeType');
+      this.recoveryData = rows
+        .filter((row) => idxType >= 0 && (row[idxType] || '').toLowerCase() === 'recovery')
+        .map((row) => {
+          const obj = {};
+          rHeaders.forEach((h, i) => { obj[h] = row[i] || ''; });
+          obj.type = 'recovery';
+          return obj;
+        });
+      console.log(`✅ Derived ${this.recoveryData.length} recovery routes from Routes`);
     } catch (error) {
       console.log("Recovery data not available (this is optional):", error);
     }
@@ -109,41 +136,56 @@ class SheetsAPI {
   // ========================================
   async fetchDeliveryData() {
     try {
-      // Try to fetch SPFM delivery routes from the "SPFM Delivery" sheet tab
+      // Try dedicated tab first
       const deliveryRange = 'SPFM_Delivery!A:P';
       console.log("🚚 Attempting to fetch SPFM delivery routes (OAuth)...");
-      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: deliveryRange,
-      });
-      const result = resp.result;
+      let result;
+      try {
+        const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: deliveryRange,
+        });
+        result = resp.result;
+      } catch (e) {
+        result = null;
+      }
 
-      if (!result.values || result.values.length < 2) {
-        console.log("SPFM Delivery tab is empty - skipping delivery routes");
+      if (result && result.values && result.values.length >= 2) {
+        const headers = result.values[0];
+        this.deliveryData = result.values.slice(1).map((row) => {
+          const obj = {};
+          headers.forEach((header, index) => {
+            obj[header] = row[index] || "";
+          });
+          return obj;
+        });
+        console.log(`✅ Loaded ${this.deliveryData.length} SPFM delivery routes`);
         return;
       }
 
-      // Convert delivery rows to JavaScript objects
-      const headers = result.values[0];
-      this.deliveryData = result.values.slice(1).map((row) => {
-        const obj = {};
-        headers.forEach((header, index) => {
-          obj[header] = row[index] || "";
+      // Fallback: derive delivery from Routes sheet if routeType matches
+      console.log("🔄 Delivery tab missing; deriving from Routes (routeType contains 'delivery')");
+      const routesRange = 'Routes!A:Z';
+      const routesResp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: routesRange,
+      });
+      const rValues = routesResp.result?.values || [];
+      if (rValues.length < 2) {
+        this.deliveryData = [];
+        return;
+      }
+      const rHeaders = rValues[0];
+      const idxType = rHeaders.indexOf('routeType');
+      this.deliveryData = rValues.slice(1)
+        .filter((row) => idxType >= 0 && /delivery/i.test(row[idxType] || ''))
+        .map((row) => {
+          const obj = {};
+          rHeaders.forEach((h, i) => { obj[h] = row[i] || ''; });
+          obj.type = 'spfm-delivery';
+          return obj;
         });
-        return obj;
-      });
-
-      console.log(`✅ Loaded ${this.deliveryData.length} SPFM delivery routes`);
-      console.log("🔍 Debug: Sample delivery route:", this.deliveryData[0]);
-      console.log("🔍 Debug: All delivery data:", this.deliveryData);
-
-      // Debug each delivery route's Food from column
-      this.deliveryData.forEach((delivery, index) => {
-        console.log(
-          `🔍 DELIVERY ${index}: Food from = "${delivery["Food from"]}"`,
-        );
-        console.log(`🔍 DELIVERY ${index}: All keys =`, Object.keys(delivery));
-      });
+      console.log(`✅ Derived ${this.deliveryData.length} delivery routes from Routes`);
     } catch (error) {
       console.log(
         "SPFM Delivery data not available (this is optional):",

@@ -418,7 +418,7 @@ class InventoryComponent extends HTMLElement {
           left: 50%;
           bottom: 24px;
           transform: translateX(-50%);
-          background: rgba(40,167,69,0.95);
+          background: rgba(0,0,0,0.9);
           color: #fff;
           padding: 10px 14px;
           border-radius: 20px;
