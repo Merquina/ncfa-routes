@@ -714,50 +714,17 @@ class SheetsAPI {
       });
     }
 
-    // Get workers from SPFM data
-    this.data.forEach((route) => {
-      const routeWorkers = this.getAllWorkersFromRoute(route);
-      const routeVolunteers = this.getAllVolunteers(route);
-
-      routeWorkers.forEach((worker) => {
-        workers.add(worker);
+    // Add workers found in route rows (do NOT include volunteers here)
+    const addFromRoutes = (rows) => {
+      rows.forEach((route) => {
+        const routeWorkers = this.getAllWorkersFromRoute(route);
+        routeWorkers.forEach((worker) => workers.add(worker));
       });
-
-      // Add volunteers as they are also workers
-      routeVolunteers.forEach((volunteer) => {
-        workers.add(volunteer);
-      });
-    });
-
-    // Get workers from Recovery data
-    this.recoveryData.forEach((route) => {
-      const routeWorkers = this.getAllWorkersFromRoute(route);
-      const routeVolunteers = this.getAllVolunteers(route);
-
-      routeWorkers.forEach((worker) => {
-        workers.add(worker);
-      });
-
-      // Add volunteers as they are also workers
-      routeVolunteers.forEach((volunteer) => {
-        workers.add(volunteer);
-      });
-    });
-
-    // Get workers from Delivery data
-    this.deliveryData.forEach((route) => {
-      const routeWorkers = this.getAllWorkersFromRoute(route);
-      const routeVolunteers = this.getAllVolunteers(route);
-
-      routeWorkers.forEach((worker) => {
-        workers.add(worker);
-      });
-
-      // Add volunteers as they are also workers
-      routeVolunteers.forEach((volunteer) => {
-        workers.add(volunteer);
-      });
-    });
+    };
+    addFromRoutes(this.data);
+    addFromRoutes(this.recoveryData);
+    addFromRoutes(this.deliveryData);
+    addFromRoutes(this.routesData || []);
 
     return Array.from(workers).sort();
   }
