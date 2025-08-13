@@ -143,16 +143,29 @@ class DataService extends EventTarget {
       window.sheetsAPI.data.forEach((r) => routes.push(this._normalizeRoute(r, 'spfm')));
     }
 
-    // Recovery routes
-    if (window.sheetsAPI && Array.isArray(window.sheetsAPI.recoveryData)) {
+    // Recovery routes (skip if consolidated Routes is available to avoid duplicates)
+    if (window.sheetsAPI && (!Array.isArray(window.sheetsAPI.routesData) || window.sheetsAPI.routesData.length === 0) && Array.isArray(window.sheetsAPI.recoveryData)) {
       console.log('[DataService] Recovery data count:', window.sheetsAPI.recoveryData.length);
       window.sheetsAPI.recoveryData.forEach((r) => routes.push(this._normalizeRoute(r, 'recovery')));
     }
 
     // SPFM Delivery routes (if present)
-    if (window.sheetsAPI && Array.isArray(window.sheetsAPI.deliveryData)) {
+    if (window.sheetsAPI && (!Array.isArray(window.sheetsAPI.routesData) || window.sheetsAPI.routesData.length === 0) && Array.isArray(window.sheetsAPI.deliveryData)) {
       console.log('[DataService] Delivery data count:', window.sheetsAPI.deliveryData.length);
       window.sheetsAPI.deliveryData.forEach((r) => routes.push(this._normalizeRoute(r, 'spfm-delivery')));
+    }
+
+    // Consolidated Routes sheet (if present)
+    if (window.sheetsAPI && Array.isArray(window.sheetsAPI.routesData) && window.sheetsAPI.routesData.length > 0) {
+      console.log('[DataService] Routes sheet count:', window.sheetsAPI.routesData.length);
+      window.sheetsAPI.routesData.forEach((r) => {
+        // Map routeType to our normalized types
+        const rt = (r.routeType || r.RouteType || r.type || '').toString();
+        let fType = 'spfm';
+        if (/recovery/i.test(rt)) fType = 'recovery';
+        else if (/delivery/i.test(rt)) fType = 'spfm-delivery';
+        routes.push(this._normalizeRoute(r, fType));
+      });
     }
 
     console.log('[DataService] Normalized routes:', routes.length);
@@ -215,7 +228,14 @@ class DataService extends EventTarget {
   // ========================================
 
   _normalizeRoute(raw, fallbackType = 'spfm') {
-    const type = raw.type || fallbackType;
+    const rawType = raw.type || raw.routeType || fallbackType || 'spfm';
+    let type = rawType;
+    try {
+      const t = (rawType || '').toString();
+      if (/recovery/i.test(t)) type = 'recovery';
+      else if (/delivery/i.test(t)) type = 'spfm-delivery';
+      else type = 'spfm';
+    } catch {}
     const dateVal = raw.date || raw.Date || raw.DATE || raw.sortDate || raw.parsed || '';
     const dateObj = (dateVal instanceof Date) ? dateVal : new Date(dateVal);
     const dateStr = (dateObj && !isNaN(dateObj)) ? dateObj.toISOString().slice(0,10) : (typeof dateVal === 'string' ? dateVal : '');

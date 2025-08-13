@@ -5,6 +5,7 @@
 class SheetsAPI {
   constructor() {
     this.data = [];
+    this.routesData = [];
     this.recoveryData = [];
     this.deliveryData = [];
     this.inventoryData = [];
@@ -37,10 +38,21 @@ class SheetsAPI {
         throw new Error("No data found in the spreadsheet");
       }
 
+      // Find the header row dynamically (handles intro rows)
+      const values = result.values;
+      let headerIndex = 0;
+      for (let i = 0; i < Math.min(values.length, 10); i++) {
+        const row = values[i].map((c) => (c || '').toString().toLowerCase());
+        if (row.includes('date') || row.includes('routeid') || row.includes('market')) {
+          headerIndex = i;
+          break;
+        }
+      }
+
       // Convert spreadsheet rows into JavaScript objects for easier use
-      const headers = result.values[0]; // First row contains column names
-      this.data = result.values
-        .slice(1) // Skip the header row
+      const headers = values[headerIndex];
+      this.data = values
+        .slice(headerIndex + 1) // Skip to the row after headers
         .filter((row) => row && row.length > 0 && row[0]) // Remove empty rows
         .map((row) => {
           // Create an object for each row using headers as keys
@@ -57,6 +69,7 @@ class SheetsAPI {
 
       // Also fetch recovery routes, box inventory, and contacts data
       await Promise.all([
+        this.fetchRoutesData(),
         this.fetchRecoveryData(),
         this.fetchDeliveryData(),
         this.fetchInventoryData(),
@@ -270,6 +283,38 @@ class SheetsAPI {
       );
     } catch (error) {
       console.error("❌ Error fetching contacts data:", error);
+    }
+  }
+
+  // ========================================
+  // CONSOLIDATED ROUTES (Routes sheet)
+  // ========================================
+  async fetchRoutesData() {
+    try {
+      const routesRange = 'Routes!A:Z';
+      console.log("🧭 Fetching consolidated Routes sheet (OAuth)...");
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: routesRange,
+      });
+      const result = resp.result;
+      this.routesData = [];
+      if (!result.values || result.values.length < 2) {
+        console.log("Routes sheet empty - skipping consolidated routes");
+        return;
+      }
+      const headers = result.values[0];
+      this.routesData = result.values.slice(1).map((row) => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
+      console.log(`✅ Loaded ${this.routesData.length} rows from Routes sheet`);
+    } catch (error) {
+      console.log("Routes sheet not available (optional):", error);
+      this.routesData = [];
     }
   }
 
