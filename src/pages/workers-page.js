@@ -90,18 +90,10 @@ class WorkersPage extends HTMLElement {
         }
       </style>
       
-      <div class="page-header">
-        <h2 class="page-title">👥 Routes by Worker</h2>
-        <p class="page-description">
-          Select a worker to view their assigned routes
-        </p>
-      </div>
-      
       <div class="workers-container">
         <div class="filters">
           <div class="toolbar">
             <div class="label" style="color:#333; font-weight:600;">Select Worker</div>
-            <button id="clearFilter" class="btn-clear" title="Clear filters">Clear</button>
           </div>
           <worker-component id="workerPicker"></worker-component>
 
@@ -110,7 +102,7 @@ class WorkersPage extends HTMLElement {
           </div>
           <worker-component id="volunteerPicker"></worker-component>
         </div>
-        <route-list id="routesList" title="Routes by Worker" variant="default"></route-list>
+        <route-list id="routesList" title="" variant="default"></route-list>
         <div id="routeDetails" style="margin-top:16px;"></div>
       </div>
     `;

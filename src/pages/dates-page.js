@@ -87,15 +87,8 @@ class DatesPage extends HTMLElement {
         }
       </style>
       
-      <div class="page-header">
-        <h2 class="page-title">📅 Routes by Date</h2>
-        <p class="page-description">
-          View upcoming route assignments organized by date
-        </p>
-      </div>
-      
       <div class="dates-container">
-        <route-list id="routesList" title="Next Upcoming Routes" variant="default"></route-list>
+        <route-list id="routesList" title="Upcoming Routes" variant="default"></route-list>
         <div id="routeDetails" style="margin-top:16px;"></div>
       </div>
     `;

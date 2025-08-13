@@ -203,16 +203,13 @@ class InventoryComponent extends HTMLElement {
       updateBtn.addEventListener('click', () => {
         const smallInput = shadow.querySelector('#updateSmallBoxes');
         const largeInput = shadow.querySelector('#updateLargeBoxes');
-        const nameInput = shadow.querySelector('#updateName');
-        
-        if (smallInput && largeInput && nameInput) {
-          // Prefer signed-in Google name first, then input, then Anonymous
+        if (smallInput && largeInput) {
+          // Always use Google OAuth profile name if available
           let userName = null;
           try {
             const stored = localStorage.getItem('gapi_user_name');
             if (stored) userName = stored;
           } catch {}
-          if (!userName) userName = nameInput.value.trim();
           if (!userName) userName = 'Anonymous';
           this.updateInventory(smallInput.value, largeInput.value, userName);
         }
@@ -494,10 +491,7 @@ class InventoryComponent extends HTMLElement {
             <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">LARGE boxes:</label>
             <input type="number" id="updateLargeBoxes" min="0" value="${largeBoxes}" inputmode="numeric" class="form-input" onfocus="this.select()">
           </div>
-          <div class="form-row">
-            <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">Your name:</label>
-            <input type="text" id="updateName" placeholder="Enter your name" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
-          </div>
+          <!-- Name field removed; we use OAuth profile name -->
           <button id="updateBtn" class="btn" style="margin-top: 5px; font-size: 0.9rem;">📊 Update & Share Inventory</button>
         </div>
       </div>
@@ -506,14 +500,6 @@ class InventoryComponent extends HTMLElement {
 
     // Re-setup event listeners after render
     this.setupEventListeners();
-    // Pre-fill name with Google profile if available
-    try {
-      const nameEl = this.shadowRoot.querySelector('#updateName');
-      if (nameEl && !nameEl.value) {
-        const stored = localStorage.getItem('gapi_user_name');
-        if (stored) nameEl.value = stored;
-      }
-    } catch {}
     // Update calculator display
     this.updateCalculator();
     // Attach scroll helpers for sections

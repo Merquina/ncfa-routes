@@ -156,6 +156,9 @@ class WorkersPageController extends PageController {
             this.routesListComponent.setFilter('workers', name);
             this.routesListComponent.setGroupBy(null);
             this.routesListComponent.setTitle(`Routes for ${name}`);
+            const host = this.pageElement.shadowRoot;
+            const listEl = host && host.querySelector('#routesList');
+            if (listEl) listEl.style.display = '';
           });
         } catch (e) {
           console.warn('Failed to init worker picker', e);
@@ -163,10 +166,13 @@ class WorkersPageController extends PageController {
       }
       if (this.volunteerPicker) {
         try {
-          // Build volunteers list from routes
+          // Build volunteers list from upcoming routes
           const routes = await this.dataService.getAllRoutes();
           const vSet = new Set();
-          routes.forEach(r => (r.volunteers || []).forEach(v => vSet.add(v)));
+          const today = new Date(); today.setHours(0,0,0,0);
+          routes
+            .filter(r => (r.sortDate instanceof Date) && r.sortDate >= today)
+            .forEach(r => (r.volunteers || []).forEach(v => vSet.add(v)));
           const volunteers = Array.from(vSet).sort();
           const icons = this.dataService.getWorkerIcons();
           this.volunteerPicker.setWorkersData(volunteers, icons, '👤');
@@ -177,20 +183,15 @@ class WorkersPageController extends PageController {
             this.routesListComponent.setFilter('volunteers', name);
             this.routesListComponent.setGroupBy(null);
             this.routesListComponent.setTitle(`Volunteer routes for ${name}`);
+            const host = this.pageElement.shadowRoot;
+            const listEl = host && host.querySelector('#routesList');
+            if (listEl) listEl.style.display = '';
           });
         } catch (e) {
           console.warn('Failed to init volunteer picker', e);
         }
       }
-      if (this.clearFilterBtn) {
-        this.clearFilterBtn.addEventListener('click', () => {
-          this.routesListComponent.setFilter(null, null);
-          this.routesListComponent.setGroupBy('workers');
-          this.routesListComponent.setTitle('Routes by Worker');
-          if (this.workerPicker) { this.workerPicker.selectedWorker = null; this.workerPicker.render(); }
-          if (this.volunteerPicker) { this.volunteerPicker.selectedWorker = null; this.volunteerPicker.render(); }
-        });
-      }
+      // Clear button removed; routes remain hidden until a selection
     }
   }
 
@@ -212,11 +213,14 @@ class WorkersPageController extends PageController {
 
     try {
       const routes = await this.dataService.getAllRoutes();
-      // Group by worker array (already normalized)
+      // Prepare list but keep hidden until a selection is made
       this.routesListComponent.setRoutes(routes);
-      this.routesListComponent.setGroupBy('workers');
-      this.routesListComponent.setTitle('Routes by Worker');
+      this.routesListComponent.setGroupBy(null);
+      this.routesListComponent.setTitle('');
       this.routesListComponent.clickable = true;
+      const host = this.pageElement.shadowRoot;
+      const listEl = host && host.querySelector('#routesList');
+      if (listEl) listEl.style.display = 'none';
 
       // Worker picker is used instead of chips
     } catch (error) {
