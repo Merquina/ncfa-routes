@@ -603,7 +603,6 @@ class AssignmentsManager {
     );
 
     // Get materials and reminders from Misc sheet Reminders table
-    // Only show materials for routes with routeType = SPFM
     let reminderBuckets = {
       dropoff: [],
       atoffice: [],
@@ -612,33 +611,26 @@ class AssignmentsManager {
       materials_office: [],
       materials_storage: [],
     };
-
-    const showMaterials = route.routeType === "SPFM";
-
-    if (showMaterials) {
-      try {
-        const res =
-          window.sheetsAPI && window.sheetsAPI.getRemindersForRoute
-            ? window.sheetsAPI.getRemindersForRoute(route)
-            : null;
-        if (res && typeof res === "object") {
-          reminderBuckets = {
-            dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
-            atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-            backatoffice: Array.isArray(res.backatoffice)
-              ? res.backatoffice
-              : [],
-            atmarket: Array.isArray(res.atmarket) ? res.atmarket : [],
-            materials_office: Array.isArray(res.materials_office)
-              ? res.materials_office
-              : [],
-            materials_storage: Array.isArray(res.materials_storage)
-              ? res.materials_storage
-              : [],
-          };
-        }
-      } catch {}
-    }
+    try {
+      const res =
+        window.sheetsAPI && window.sheetsAPI.getRemindersForRoute
+          ? window.sheetsAPI.getRemindersForRoute(route)
+          : null;
+      if (res && typeof res === "object") {
+        reminderBuckets = {
+          dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
+          atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
+          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : [],
+          atmarket: Array.isArray(res.atmarket) ? res.atmarket : [],
+          materials_office: Array.isArray(res.materials_office)
+            ? res.materials_office
+            : [],
+          materials_storage: Array.isArray(res.materials_storage)
+            ? res.materials_storage
+            : [],
+        };
+      }
+    } catch {}
 
     const materialsOffice = reminderBuckets.materials_office;
     const materialsStorage = reminderBuckets.materials_storage;
@@ -677,53 +669,45 @@ class AssignmentsManager {
         </div>
 
         <div style="display: grid; gap: 20px;">
-          <!-- At the Office Section - Only show materials for routeType = SPFM -->
+          <!-- At the Office Section -->
           <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
             <h3 style="color: #17a2b8; margin: 0 0 15px 0;">🏢 At the Office</h3>
-            ${
-              showMaterials
-                ? `
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                  <h4 style="margin: 0 0 10px 0; color: #666;">📁 Office Materials</h4>
-                  ${materialsOffice
-                    .map(
-                      (item) => `
-                    <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                      <input type="checkbox" style="margin-right: 8px;"> ${item}
-                    </label>
-                  `
-                    )
-                    .join("")}
-                  ${
-                    materialsOffice.length === 0
-                      ? "<p style=\"color: #999; font-style: italic;\">No office materials listed (add to Misc sheet 'materials_office' column)</p>"
-                      : ""
-                  }
-                </div>
-                <div>
-                  <h4 style="margin: 0 0 10px 0; color: #666;">📦 Storage Materials</h4>
-                  ${materialsStorage
-                    .map(
-                      (item) => `
-                    <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                      <input type="checkbox" style="margin-right: 8px;"> ${item}
-                    </label>
-                  `
-                    )
-                    .join("")}
-                  ${
-                    materialsStorage.length === 0
-                      ? "<p style=\"color: #999; font-style: italic;\">No storage materials listed (add to Misc sheet 'materials_storage' column)</p>"
-                      : ""
-                  }
-                </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div>
+                <h4 style="margin: 0 0 10px 0; color: #666;">📁 Office Materials</h4>
+                ${materialsOffice
+                  .map(
+                    (item) => `
+                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+                    <input type="checkbox" style="margin-right: 8px;"> ${item}
+                  </label>
+                `
+                  )
+                  .join("")}
+                ${
+                  materialsOffice.length === 0
+                    ? "<p style=\"color: #999; font-style: italic;\">No office materials listed (add to Misc sheet 'materials_office' column)</p>"
+                    : ""
+                }
               </div>
-            `
-                : `
-              <p style="color: #666; font-style: italic;">Office tasks and preparations</p>
-            `
-            }
+              <div>
+                <h4 style="margin: 0 0 10px 0; color: #666;">📦 Storage Materials</h4>
+                ${materialsStorage
+                  .map(
+                    (item) => `
+                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+                    <input type="checkbox" style="margin-right: 8px;"> ${item}
+                  </label>
+                `
+                  )
+                  .join("")}
+                ${
+                  materialsStorage.length === 0
+                    ? "<p style=\"color: #999; font-style: italic;\">No storage materials listed (add to Misc sheet 'materials_storage' column)</p>"
+                    : ""
+                }
+              </div>
+            </div>
           </div>
 
           <!-- At Market Section -->
@@ -1023,7 +1007,6 @@ class AssignmentsManager {
     }
 
     // Get materials and reminders from Misc sheet Reminders table
-    // Only show materials for routes with routeType = SPFM
     let reminderBuckets = {
       dropoff: [],
       atoffice: [],
@@ -1032,33 +1015,26 @@ class AssignmentsManager {
       materials_office: [],
       materials_storage: [],
     };
-
-    const showMaterials = route.routeType === "SPFM";
-
-    if (showMaterials) {
-      try {
-        const res =
-          window.sheetsAPI && window.sheetsAPI.getRemindersForRoute
-            ? window.sheetsAPI.getRemindersForRoute(route)
-            : null;
-        if (res && typeof res === "object") {
-          reminderBuckets = {
-            dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
-            atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-            backatoffice: Array.isArray(res.backatoffice)
-              ? res.backatoffice
-              : [],
-            atmarket: Array.isArray(res.atmarket) ? res.atmarket : [],
-            materials_office: Array.isArray(res.materials_office)
-              ? res.materials_office
-              : [],
-            materials_storage: Array.isArray(res.materials_storage)
-              ? res.materials_storage
-              : [],
-          };
-        }
-      } catch {}
-    }
+    try {
+      const res =
+        window.sheetsAPI && window.sheetsAPI.getRemindersForRoute
+          ? window.sheetsAPI.getRemindersForRoute(route)
+          : null;
+      if (res && typeof res === "object") {
+        reminderBuckets = {
+          dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
+          atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
+          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : [],
+          atmarket: Array.isArray(res.atmarket) ? res.atmarket : [],
+          materials_office: Array.isArray(res.materials_office)
+            ? res.materials_office
+            : [],
+          materials_storage: Array.isArray(res.materials_storage)
+            ? res.materials_storage
+            : [],
+        };
+      }
+    } catch {}
 
     const materialsOffice = reminderBuckets.materials_office;
     const materialsStorage = reminderBuckets.materials_storage;
@@ -1066,53 +1042,45 @@ class AssignmentsManager {
 
     return `
       <div style="display: grid; gap: 20px; margin-bottom: 20px;">
-        <!-- At the Office Section - Only show materials for routeType = SPFM -->
+        <!-- At the Office Section -->
         <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
           <h3 style="color: #17a2b8; margin: 0 0 15px 0;">🏢 At the Office</h3>
-          ${
-            showMaterials
-              ? `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-              <div>
-                <h4 style="margin: 0 0 10px 0; color: #666;">📁 Office Materials</h4>
-                ${materialsOffice
-                  .map(
-                    (item) => `
-                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                    <input type="checkbox" style="margin-right: 8px;"> ${item}
-                  </label>
-                `
-                  )
-                  .join("")}
-                ${
-                  materialsOffice.length === 0
-                    ? "<p style=\"color: #999; font-style: italic;\">No office materials listed (add to Misc sheet 'materials_office' column)</p>"
-                    : ""
-                }
-              </div>
-              <div>
-                <h4 style="margin: 0 0 10px 0; color: #666;">📦 Storage Materials</h4>
-                ${materialsStorage
-                  .map(
-                    (item) => `
-                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                    <input type="checkbox" style="margin-right: 8px;"> ${item}
-                  </label>
-                `
-                  )
-                  .join("")}
-                ${
-                  materialsStorage.length === 0
-                    ? "<p style=\"color: #999; font-style: italic;\">No storage materials listed (add to Misc sheet 'materials_storage' column)</p>"
-                    : ""
-                }
-              </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <h4 style="margin: 0 0 10px 0; color: #666;">📁 Office Materials</h4>
+              ${materialsOffice
+                .map(
+                  (item) => `
+                <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+                  <input type="checkbox" style="margin-right: 8px;"> ${item}
+                </label>
+              `
+                )
+                .join("")}
+              ${
+                materialsOffice.length === 0
+                  ? "<p style=\"color: #999; font-style: italic;\">No office materials listed (add to Misc sheet 'materials_office' column)</p>"
+                  : ""
+              }
             </div>
-          `
-              : `
-            <p style="color: #666; font-style: italic;">Office tasks and preparations</p>
-          `
-          }
+            <div>
+              <h4 style="margin: 0 0 10px 0; color: #666;">📦 Storage Materials</h4>
+              ${materialsStorage
+                .map(
+                  (item) => `
+                <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
+                  <input type="checkbox" style="margin-right: 8px;"> ${item}
+                </label>
+              `
+                )
+                .join("")}
+              ${
+                materialsStorage.length === 0
+                  ? "<p style=\"color: #999; font-style: italic;\">No storage materials listed (add to Misc sheet 'materials_storage' column)</p>"
+                  : ""
+              }
+            </div>
+          </div>
         </div>
 
         <!-- At Market Section -->
