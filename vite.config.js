@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 
 // Basic Vite config to serve index.html with HMR
 export default defineConfig({
+  base: process.env.VITE_BASE || './',
   server: {
     port: 5173,
     // Allow disabling auto-open via env to avoid double-opening when

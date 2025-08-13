@@ -12,7 +12,7 @@
         <meta name="format-detection" content="telephone=no" />
         <title>NCFA Routes</title>
 
-        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="manifest" href="./manifest.webmanifest" />
         <meta name="theme-color" content="#28a745" />
 
         <!-- Font Awesome Icons -->
@@ -191,28 +191,8 @@
         <script src="js/inventory.js?v=7" type="text/javascript"></script>
         <!-- Removed legacy app.js to avoid duplicate routing and API loads -->
 
-        <!-- Web Components (load after legacy so API helpers exist) -->
-        <script src="src/components/index.js?v=6" type="module"></script>
-        <script>
-          // Register routes once custom elements are ready and router is present
-          document.addEventListener('DOMContentLoaded', function() {
-            function register() {
-              const router = document.querySelector('hash-router');
-              if (!router || typeof router.registerRoute !== 'function') {
-                return setTimeout(register, 50);
-              }
-              try {
-                router.registerRoute('/boxes', 'boxes-page', 'Box Inventory');
-                router.registerRoute('/dates', 'dates-page', 'Next Upcoming');
-                router.registerRoute('/workers', 'workers-page', 'Routes by Worker');
-                router.registerRoute('/route', 'route-details-page', 'Route Details');
-              } catch (e) {
-                console.warn('Route registration failed:', e);
-              }
-            }
-            register();
-          });
-        </script>
+        <!-- Web Components + Bootstrap routes -->
+        <script src="src/bootstrap.js" type="module"></script>
 
         <!-- Initialize app directly -->
         <script>
@@ -220,7 +200,8 @@
             // Avoid registering Service Worker during local dev to prevent cache/HMR issues
             if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !['localhost','127.0.0.1'].includes(location.hostname)) {
                 window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js').then(() => {
+                    const swUrl = new URL('sw.js', location.href).toString();
+                    navigator.serviceWorker.register(swUrl).then(() => {
                         console.info('✅ Service worker registered');
                     }).catch((e) => {
                         console.warn('SW registration failed:', e);
@@ -663,24 +644,6 @@
             });
         </script>
 
-        <!-- SPA Router Setup -->
-        <script type="module">
-            document.addEventListener('DOMContentLoaded', () => {
-                const router = document.querySelector('hash-router');
-                const appLayout = document.querySelector('app-layout');
-                if (router && appLayout) {
-                    router.registerRoute('/boxes', 'boxes-page', 'Box Inventory');
-                    router.registerRoute('/workers', 'workers-page', 'Routes by Worker');
-                    router.registerRoute('/dates', 'dates-page', 'Next Upcoming');
-                    router.registerRoute('/route', 'route-details-page', 'Route Details');
-                    router.addEventListener('route-changed', (e) => {
-                        appLayout.updateActiveTab && appLayout.updateActiveTab(e.detail.path);
-                    });
-                    appLayout.addEventListener('sign-out', () => {
-                        handleSignOutClick();
-                    });
-                }
-            });
-        </script>
+        <!-- SPA Router Setup handled by bootstrap + app-layout -->
     </body>
 </html>
