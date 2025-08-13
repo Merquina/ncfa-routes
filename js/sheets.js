@@ -25,6 +25,8 @@ class SheetsAPI {
     this.isLoading = true;
 
     try {
+      // Ensure Google API client is ready
+      await this.ensureGapiClientReady();
       console.log("Fetching fresh data from Google Sheets (OAuth)...");
 
       const resp = await window.gapi.client.sheets.spreadsheets.values.get({
@@ -86,11 +88,21 @@ class SheetsAPI {
     }
   }
 
+  // Wait for gapi client.sheets to be available (on hard refresh timing issues)
+  async ensureGapiClientReady(maxWaitMs = 5000) {
+    const start = Date.now();
+    while (!window.gapi || !window.gapi.client || !window.gapi.client.sheets) {
+      if (Date.now() - start > maxWaitMs) break;
+      await new Promise(r => setTimeout(r, 100));
+    }
+  }
+
   // ========================================
   // RECOVERY ROUTES DATA
   // ========================================
   async fetchRecoveryData() {
     try {
+      await this.ensureGapiClientReady();
       // Prefer dedicated "Recovery" tab if present
       const recoveryRange = 'Recovery!A:P';
       console.log("🚗 Attempting to fetch recovery routes (OAuth)...");
@@ -154,6 +166,7 @@ class SheetsAPI {
   // ========================================
   async fetchDeliveryData() {
     try {
+      await this.ensureGapiClientReady();
       // Try dedicated tab first
       const deliveryRange = 'SPFM_Delivery!A:P';
       console.log("🚚 Attempting to fetch SPFM delivery routes (OAuth)...");
@@ -217,6 +230,7 @@ class SheetsAPI {
   // ========================================
   async fetchInventoryData() {
     try {
+      await this.ensureGapiClientReady();
       // Try to fetch box inventory from the "Inventory" sheet tab
       // Inventory table now resides on the 'Status' sheet (columns A:E)
       const inventoryRange = 'Status!A:E';
@@ -253,6 +267,7 @@ class SheetsAPI {
   // ========================================
   async fetchContactsData() {
     try {
+      await this.ensureGapiClientReady();
       const contactsRange = 'Contacts!A:Z';
       console.log("📞 Attempting to fetch contacts data (OAuth)...");
       const resp = await window.gapi.client.sheets.spreadsheets.values.get({
@@ -323,6 +338,7 @@ class SheetsAPI {
   // ========================================
   async fetchMiscData() {
     try {
+      await this.ensureGapiClientReady();
       const rangeWorkers = 'Misc!A:B'; // worker, Emoji
       const rangeVehicles = 'Misc!D:E'; // Van, Emoji
 

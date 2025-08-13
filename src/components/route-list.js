@@ -159,23 +159,25 @@ class RouteList extends HTMLElement {
 
   // Apply simple equality filters (supports array values like workers: [])
   getFilteredRoutes() {
+    let base = this.routes || [];
     if (!this._filterBy || this._filterValue === null || this._filterValue === undefined) {
-      return this.routes;
+      return this._sortRoutes(base);
     }
     const key = this._filterBy;
     const wanted = this._filterValue;
-    return this.routes.filter(route => {
+    const filtered = base.filter(route => {
       const val = route ? route[key] : undefined;
       if (Array.isArray(val)) {
         return val.some(v => String(v).toLowerCase() === String(wanted).toLowerCase());
       }
       return String(val).toLowerCase() === String(wanted).toLowerCase();
     });
+    return this._sortRoutes(filtered);
   }
 
   groupRoutes() {
     if (!this.groupBy || !this.routes.length) {
-      return { 'All Routes': this.routes };
+      return { 'All Routes': this._sortRoutes(this.routes) };
     }
 
     const grouped = {};
@@ -353,6 +355,24 @@ class RouteList extends HTMLElement {
       if (this.shadowRoot) {
         this.shadowRoot.innerHTML = '<div>Error rendering: ' + error.message + '</div>';
       }
+    }
+  }
+
+  // Always sort by date ascending (interleave types)
+  _sortRoutes(routes) {
+    try {
+      const copy = [...(routes || [])];
+      copy.sort((a, b) => {
+        const da = (a && a.sortDate instanceof Date) ? a.sortDate : new Date(a?.date || a?.Date || 0);
+        const db = (b && b.sortDate instanceof Date) ? b.sortDate : new Date(b?.date || b?.Date || 0);
+        if (isNaN(da) && isNaN(db)) return 0;
+        if (isNaN(da)) return 1;
+        if (isNaN(db)) return -1;
+        return da - db;
+      });
+      return copy;
+    } catch {
+      return routes || [];
     }
   }
 }
