@@ -155,15 +155,34 @@ class DataService extends EventTarget {
       window.sheetsAPI.deliveryData.forEach((r) => routes.push(this._normalizeRoute(r, 'spfm-delivery')));
     }
 
-    // Consolidated Routes sheet (if present)
+    // Consolidated Routes sheet (if present) - expand periodic definitions into dated routes
     if (window.sheetsAPI && Array.isArray(window.sheetsAPI.routesData) && window.sheetsAPI.routesData.length > 0) {
       console.log('[DataService] Routes sheet count:', window.sheetsAPI.routesData.length);
       window.sheetsAPI.routesData.forEach((r) => {
-        // Map routeType to our normalized types
         const rt = (r.routeType || r.RouteType || r.type || '').toString();
         let fType = 'spfm';
         if (/recovery/i.test(rt)) fType = 'recovery';
         else if (/delivery/i.test(rt)) fType = 'spfm-delivery';
+
+        // If a concrete date exists, include as-is
+        const hasDate = !!(r.date || r.Date || r.DATE);
+        const weekday = r.Weekday || r.weekday || r.DAY || r.dayName || '';
+        if (hasDate) {
+          routes.push(this._normalizeRoute(r, fType));
+          return;
+        }
+
+        // Expand periodic routes (e.g., Weekday) into the next N occurrences
+        if (weekday) {
+          const occurrences = this._generateNextOccurrences(String(weekday), 8);
+          occurrences.forEach((d) => {
+            const clone = { ...r, date: d.toISOString().slice(0,10), sortDate: d };
+            routes.push(this._normalizeRoute(clone, fType));
+          });
+          return;
+        }
+
+        // Fallback: include without a date (will sort to bottom); not ideal
         routes.push(this._normalizeRoute(r, fType));
       });
     }
@@ -322,6 +341,34 @@ class DataService extends EventTarget {
     } catch {
       return String(dateVal || '');
     }
+  }
+
+  // ========================================
+  // PERIODIC DATES HELPERS
+  // ========================================
+  _generateNextOccurrences(dayName, count = 8) {
+    const results = [];
+    const target = this._weekdayIndex(dayName);
+    if (target < 0) return results;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const current = today.getDay();
+    let daysUntil = (target - current + 7) % 7;
+    if (daysUntil === 0) daysUntil = 7; // start with next week if today is the day
+    for (let i = 0; i < count; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + daysUntil + i * 7);
+      results.push(d);
+    }
+    return results;
+  }
+
+  _weekdayIndex(name) {
+    const n = (name || '').toString().trim().toLowerCase();
+    const map = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+    };
+    return map[n] ?? -1;
   }
 
   async getUpcomingRoutes(limit = 7) {

@@ -710,7 +710,10 @@ class SheetsAPI {
     // Prefer Misc Workers list if present
     if (this.miscWorkers && this.miscWorkers.length > 0) {
       this.miscWorkers.forEach((w) => {
-        if (w.worker) workers.add(w.worker);
+        const name = (w.worker || '').toString();
+        if (!name) return;
+        if (/volunteer/i.test(name)) return; // exclude volunteers from worker list
+        workers.add(name);
       });
     }
 
@@ -718,7 +721,9 @@ class SheetsAPI {
     const addFromRoutes = (rows) => {
       rows.forEach((route) => {
         const routeWorkers = this.getAllWorkersFromRoute(route);
-        routeWorkers.forEach((worker) => workers.add(worker));
+        routeWorkers.forEach((worker) => {
+          if (worker && !/volunteer/i.test(worker)) workers.add(worker);
+        });
       });
     };
     addFromRoutes(this.data);
