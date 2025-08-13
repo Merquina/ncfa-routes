@@ -367,6 +367,20 @@ class DataService extends EventTarget {
   // ========================================
 
   getWorkerIcons() {
+    try {
+      // Build from Misc workers if available
+      if (window.sheetsAPI && Array.isArray(window.sheetsAPI.miscWorkers) && window.sheetsAPI.miscWorkers.length > 0) {
+        const map = {};
+        window.sheetsAPI.miscWorkers.forEach((w) => {
+          if (!w || !w.worker) return;
+          if (w.emoji) map[w.worker] = w.emoji;
+        });
+        // Provide default for Volunteer if not specified
+        if (!map.Volunteer) map.Volunteer = '👤';
+        return map;
+      }
+    } catch {}
+    // Fallback hardcoded defaults
     return {
       Samuel: "🐋",
       Emmanuel: "🦁",

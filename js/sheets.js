@@ -9,6 +9,10 @@ class SheetsAPI {
     this.deliveryData = [];
     this.inventoryData = [];
     this.contactsData = [];
+    this.miscWorkers = [];
+    this.miscWorkerMap = {};
+    this.miscVehicles = [];
+    this.miscVehicleMap = {};
     this.isLoading = false;
   }
 
@@ -57,6 +61,7 @@ class SheetsAPI {
         this.fetchDeliveryData(),
         this.fetchInventoryData(),
         this.fetchContactsData(),
+        this.fetchMiscData(),
       ]);
 
       return this.data;
@@ -265,6 +270,64 @@ class SheetsAPI {
       );
     } catch (error) {
       console.error("❌ Error fetching contacts data:", error);
+    }
+  }
+
+  // ========================================
+  // MISC DATA (Workers, Vehicles, Materials)
+  // ========================================
+  async fetchMiscData() {
+    try {
+      const rangeWorkers = 'Misc!A:B'; // worker, Emoji
+      const rangeVehicles = 'Misc!D:E'; // Van, Emoji
+
+      // Workers
+      const respW = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: rangeWorkers,
+      });
+      const valuesW = respW.result?.values || [];
+      this.miscWorkers = [];
+      this.miscWorkerMap = {};
+      if (valuesW.length >= 2) {
+        const headers = valuesW[0].map((h) => (h || '').toString().trim());
+        const idxName = headers.findIndex((h) => /worker/i.test(h));
+        const idxEmoji = headers.findIndex((h) => /emoji/i.test(h));
+        valuesW.slice(1).forEach((row) => {
+          const name = (row[idxName] || '').toString().trim();
+          if (!name) return;
+          const emoji = (row[idxEmoji] || '').toString().trim();
+          const rec = { worker: name, emoji };
+          this.miscWorkers.push(rec);
+          if (emoji) this.miscWorkerMap[name] = emoji;
+        });
+        console.log(`✅ Loaded ${this.miscWorkers.length} workers from Misc`);
+      }
+
+      // Vehicles
+      const respV = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: rangeVehicles,
+      });
+      const valuesV = respV.result?.values || [];
+      this.miscVehicles = [];
+      this.miscVehicleMap = {};
+      if (valuesV.length >= 2) {
+        const headers = valuesV[0].map((h) => (h || '').toString().trim());
+        const idxVan = headers.findIndex((h) => /van/i.test(h));
+        const idxEmoji = headers.findIndex((h) => /emoji/i.test(h));
+        valuesV.slice(1).forEach((row) => {
+          const van = (row[idxVan] || '').toString().trim();
+          if (!van) return;
+          const emoji = (row[idxEmoji] || '').toString().trim();
+          const rec = { van, emoji };
+          this.miscVehicles.push(rec);
+          if (emoji) this.miscVehicleMap[van] = emoji;
+        });
+        console.log(`✅ Loaded ${this.miscVehicles.length} vehicles from Misc`);
+      }
+    } catch (error) {
+      console.log('Misc data not available (optional):', error);
     }
   }
 
@@ -599,6 +662,13 @@ class SheetsAPI {
   getAllWorkers() {
     const workers = new Set();
 
+    // Prefer Misc Workers list if present
+    if (this.miscWorkers && this.miscWorkers.length > 0) {
+      this.miscWorkers.forEach((w) => {
+        if (w.worker) workers.add(w.worker);
+      });
+    }
+
     // Get workers from SPFM data
     this.data.forEach((route) => {
       const routeWorkers = this.getAllWorkersFromRoute(route);
@@ -645,6 +715,16 @@ class SheetsAPI {
     });
 
     return Array.from(workers).sort();
+  }
+
+  getWorkerEmoji(name) {
+    if (!name) return '';
+    return this.miscWorkerMap?.[name] || '';
+  }
+
+  getVehicleEmoji(name) {
+    if (!name) return '';
+    return this.miscVehicleMap?.[name] || '';
   }
 
   // Helper method to identify common column header names that should not be treated as workers
