@@ -197,7 +197,8 @@ class InventoryManager {
 
       // Use Google Sheets API with OAuth
       const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
-      const range = "Inventory!A2:E2";
+      // Inventory table now lives on the 'Status' sheet (A1:E1 headers, A2:E2 values)
+      const range = "Status!A2:E2";
 
       const response = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
@@ -262,21 +263,40 @@ class InventoryManager {
         ],
       ];
 
-      const response =
-        await window.gapi.client.sheets.spreadsheets.values.update({
-          spreadsheetId: SPREADSHEET_ID,
-          range: "Inventory!A2:E2",
-          valueInputOption: "RAW",
-          resource: {
-            values: data,
-          },
-        });
+      const response = await window.gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: "Status!A2:E2",
+        valueInputOption: "RAW",
+        resource: {
+          values: data,
+        },
+      });
 
       console.log("✅ Inventory updated via OAuth:", response);
       return response;
     } catch (error) {
       console.error("❌ Error updating inventory via OAuth:", error);
       throw error;
+    }
+  }
+
+  // Attempt to upload inventory, preferring Google sign-in name
+  async tryUploadInventoryToSheets(inventory) {
+    try {
+      // Prefer stored Google profile name if available
+      let name = inventory?.updatedBy;
+      try {
+        const stored = localStorage.getItem('gapi_user_name');
+        if (stored) name = stored;
+      } catch {}
+      const payload = {
+        ...inventory,
+        updatedBy: name || inventory?.updatedBy || 'Anonymous',
+      };
+      return await this.saveInventoryToSheets(payload);
+    } catch (err) {
+      console.error('❌ tryUploadInventoryToSheets failed:', err);
+      throw err;
     }
   }
 

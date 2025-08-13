@@ -175,12 +175,13 @@ class InventoryComponent extends HTMLElement {
         const nameInput = shadow.querySelector('#updateName');
         
         if (smallInput && largeInput && nameInput) {
-          // Prefer signed-in Google name from localStorage, then input, then Anonymous
-          let userName = nameInput.value.trim();
+          // Prefer signed-in Google name first, then input, then Anonymous
+          let userName = null;
           try {
             const stored = localStorage.getItem('gapi_user_name');
-            if (!userName && stored) userName = stored;
+            if (stored) userName = stored;
           } catch {}
+          if (!userName) userName = nameInput.value.trim();
           if (!userName) userName = 'Anonymous';
           this.updateInventory(smallInput.value, largeInput.value, userName);
         }
