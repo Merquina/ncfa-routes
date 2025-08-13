@@ -25,6 +25,17 @@ class InventoryComponent extends HTMLElement {
     this.isLoading = false;
     this.attachShadow({ mode: 'open' });
   }
+  
+  showToast(message) {
+    const toast = this.shadowRoot && this.shadowRoot.querySelector('#toast');
+    if (!toast) return;
+    toast.textContent = message || 'Done';
+    toast.classList.add('show');
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2200);
+  }
 
   static get observedAttributes() {
     return ['small-boxes', 'large-boxes', 'last-updated', 'updated-by', 'box-config'];
@@ -115,7 +126,7 @@ class InventoryComponent extends HTMLElement {
         this.setInventoryData(updatedInventory);
         this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...updatedInventory }, bubbles: true }));
         if (updatedInventory && updatedInventory.synced) {
-          try { alert('✅ Inventory synced to Google Sheets'); } catch {}
+          this.showToast('✅ Inventory synced to Google Sheets');
         }
       } else {
         const inv = {
@@ -128,7 +139,7 @@ class InventoryComponent extends HTMLElement {
         if (window.inventoryManager && typeof window.inventoryManager.tryUploadInventoryToSheets === 'function') {
           try {
             await window.inventoryManager.tryUploadInventoryToSheets(inv);
-            try { alert('✅ Inventory synced to Google Sheets'); } catch {}
+            this.showToast('✅ Inventory synced to Google Sheets');
           } catch (e) {
             console.error('Upload failed:', e);
           }
@@ -397,6 +408,26 @@ class InventoryComponent extends HTMLElement {
           margin-top: 2px;
           display: none;
         }
+        /* Toast */
+        #toast {
+          position: fixed;
+          left: 50%;
+          bottom: 24px;
+          transform: translateX(-50%);
+          background: rgba(40,167,69,0.95);
+          color: #fff;
+          padding: 10px 14px;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 180ms ease, transform 180ms ease;
+        }
+        #toast.show {
+          opacity: 1;
+          transform: translateX(-50%) translateY(-4px);
+        }
       </style>
 
       <!-- Box Inventory Section -->
@@ -465,6 +496,7 @@ class InventoryComponent extends HTMLElement {
           <button id="updateBtn" class="btn" style="margin-top: 5px; font-size: 0.9rem;">📊 Update & Share Inventory</button>
         </div>
       </div>
+      <div id="toast" role="status" aria-live="polite"></div>
     `;
 
     // Re-setup event listeners after render
