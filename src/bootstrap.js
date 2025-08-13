@@ -7,8 +7,8 @@ function registerRoutes() {
   const existing = router.getRoutes && router.getRoutes();
   if (existing && existing.length > 0) return true; // already registered elsewhere
   try {
-    router.registerRoute("/", "materials-page", "Materials Dashboard");
-    router.registerRoute("/materials", "materials-page", "Materials Dashboard");
+    router.registerRoute("/", "reminders-page", "Reminders Dashboard");
+    router.registerRoute("/reminders", "reminders-page", "Reminders Dashboard");
     router.registerRoute("/boxes", "boxes-page", "Box Inventory");
     router.registerRoute("/dates", "dates-page", "Upcoming Routes");
     router.registerRoute("/workers", "workers-page", "Routes by Worker");

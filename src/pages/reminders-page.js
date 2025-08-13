@@ -1,4 +1,4 @@
-class MaterialsPage extends HTMLElement {
+class RemindersPage extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -93,7 +93,7 @@ class MaterialsPage extends HTMLElement {
 
     container.innerHTML = `
       <div class="welcome-section">
-        <h2>📋 SPFM Materials Checklist</h2>
+        <h2>📋 SPFM Reminders Checklist</h2>
         <p>Everything you need for a successful route</p>
       </div>
 
@@ -497,4 +497,4 @@ class MaterialsPage extends HTMLElement {
   }
 }
 
-customElements.define("materials-page", MaterialsPage);
+customElements.define("reminders-page", RemindersPage);

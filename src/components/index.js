@@ -15,7 +15,7 @@ import "./app-layout.js";
 import "./route-details.js";
 
 // Import pages
-import "../pages/materials-page.js";
+import "../pages/reminders-page.js";
 import "../pages/boxes-page.js";
 import "../pages/workers-page.js";
 import "../pages/dates-page.js";
@@ -30,7 +30,7 @@ export const RouteList = customElements.get("route-list");
 export const RouteDetails = customElements.get("route-details");
 export const HashRouter = customElements.get("hash-router");
 export const AppLayout = customElements.get("app-layout");
-export const MaterialsPage = customElements.get("materials-page");
+export const RemindersPage = customElements.get("reminders-page");
 export const BoxesPage = customElements.get("boxes-page");
 export const WorkersPage = customElements.get("workers-page");
 export const DatesPage = customElements.get("dates-page");
@@ -60,11 +60,11 @@ if (typeof window !== "undefined") {
       // Avoid duplicate registration by checking if any route exists
       const existing = router.getRoutes && router.getRoutes();
       if (existing && existing.length > 0) return;
-      router.registerRoute("/", "materials-page", "Materials Dashboard");
+      router.registerRoute("/", "reminders-page", "Reminders Dashboard");
       router.registerRoute(
-        "/materials",
-        "materials-page",
-        "Materials Dashboard"
+        "/reminders",
+        "reminders-page",
+        "Reminders Dashboard"
       );
       router.registerRoute("/boxes", "boxes-page", "Box Inventory");
       router.registerRoute("/dates", "dates-page", "Next Upcoming");

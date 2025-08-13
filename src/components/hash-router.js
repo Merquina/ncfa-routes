@@ -4,7 +4,7 @@ class HashRouter extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.routes = new Map();
     this.currentRoute = null;
-    this.defaultRoute = "/materials";
+    this.defaultRoute = "/reminders";
     this._didInitialDataLoad = false;
 
     // Bind methods

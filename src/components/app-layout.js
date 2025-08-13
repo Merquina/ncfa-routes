@@ -22,11 +22,11 @@ class AppLayout extends HTMLElement {
       if (!router || typeof router.registerRoute !== "function") return;
       const existing = router.getRoutes && router.getRoutes();
       if (existing && existing.length > 0) return; // already registered
-      router.registerRoute("/", "materials-page", "Materials Dashboard");
+      router.registerRoute("/", "reminders-page", "Reminders Dashboard");
       router.registerRoute(
-        "/materials",
-        "materials-page",
-        "Materials Dashboard"
+        "/reminders",
+        "reminders-page",
+        "Reminders Dashboard"
       );
       router.registerRoute("/boxes", "boxes-page", "Box Inventory");
       router.registerRoute("/dates", "dates-page", "Upcoming Routes");
@@ -267,9 +267,9 @@ class AppLayout extends HTMLElement {
       </div>
 
       <div class="bottom-tabs">
-        <a href="/materials" class="tab-btn" data-route="/materials">
+        <a href="/reminders" class="tab-btn" data-route="/reminders">
           <div class="tab-icon">📋</div>
-          <div class="tab-label">Materials</div>
+          <div class="tab-label">Reminders</div>
         </a>
         <a href="/boxes" class="tab-btn" data-route="/boxes">
           <div class="tab-icon">📦</div>
