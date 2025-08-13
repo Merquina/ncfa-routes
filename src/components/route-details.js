@@ -136,12 +136,13 @@ class RouteDetails extends HTMLElement {
     } catch {}
 
     // Create layout sections as variables to avoid nested template literal issues
+    // Only show SPFM 3-section layout for routes with routeType = SPFM
     const spfmLayout =
-      type === "spfm"
+      type === "spfm" && route.routeType === "SPFM"
         ? this.renderSPFMLayout(materials, reminderBuckets, route, stops)
         : "";
     const standardLayout =
-      type !== "spfm"
+      type !== "spfm" || route.routeType !== "SPFM"
         ? this.renderStandardLayout(materials, reminderBuckets, route, stops)
         : "";
 
