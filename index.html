@@ -25,7 +25,18 @@
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
 
-    <!-- Runtime App Config: set via window.__APP_CONFIG in local dev if needed -->
+    <!-- Optional local config (ignored in git): define window.__APP_CONFIG here -->
+    <script>
+      (function(){
+        try {
+          var s = document.createElement('script');
+          s.src = './config.local.js';
+          s.async = false;
+          s.onerror = function(){};
+          document.head.appendChild(s);
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- Performance: Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
