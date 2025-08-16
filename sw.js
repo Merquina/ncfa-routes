@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const APP_SHELL_CACHE = `app-shell-${CACHE_VERSION}`;
 
 // Only cache same-origin static assets. Do not cache Google API responses.
