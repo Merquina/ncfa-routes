@@ -542,6 +542,14 @@ class DataService extends EventTarget {
 
         const occurrences = this._generateNextOccurrences(String(weekday), 8);
         occurrences.forEach((d) => {
+          // Skip Sunday route generation - Sundays come from SPFM sheet only
+          if (weekday.toLowerCase() === "sunday" && d.getDay() === 0) {
+            console.log(
+              `[Sunday Skip] Skipping Sunday ${d.toDateString()} - using SPFM sheet instead of Routes template`
+            );
+            return; // Skip Sunday route generation entirely
+          }
+
           // For Monday routes, only create routes that have a linked Sunday SPFM route
           if (weekday.toLowerCase() === "monday" && d.getDay() === 1) {
             const sundayDate = new Date(d);
