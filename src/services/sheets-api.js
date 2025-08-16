@@ -822,6 +822,7 @@ class SheetsAPIService extends EventTarget {
         pickRanges("reminders")
       );
       this.miscReminders = [];
+      let primaryWidth = (values && values[0]) ? values[0].length : 0;
       if (values.length > 0) {
         this._parseReminders(values);
         this._tableSources.reminders = range;
@@ -830,25 +831,23 @@ class SheetsAPIService extends EventTarget {
             `✅ Loaded ${this.miscReminders.length} reminders from ${range}`
           );
       }
-    } catch (e) {
-      console.info("Reminders table not available:", e);
-    }
-
-    // Last-resort dynamic detection in Misc when still empty (makes it work without config)
-    try {
-      if (!this.miscReminders || this.miscReminders.length === 0) {
+      // If a named range clipped the table horizontally, auto-detect a wider range and prefer it
+      try {
         const detected = await this._scanMiscForReminders();
         if (detected && detected.values && detected.values.length) {
-          this._parseReminders(detected.values);
-          this._tableSources.reminders = detected.a1 || "Misc!A:Z(auto)";
-          if (this.miscReminders.length)
-            console.info(
-              `✅ Loaded ${this.miscReminders.length} reminders from ${this._tableSources.reminders}`
-            );
+          const detectedWidth = (detected.values[0] || []).length;
+          if ((this.miscReminders || []).length === 0 || detectedWidth > primaryWidth) {
+            this._parseReminders(detected.values);
+            this._tableSources.reminders = detected.a1 || "Misc!A:Z(auto)";
+            if (this.miscReminders.length)
+              console.info(
+                `✅ Loaded ${this.miscReminders.length} reminders from ${this._tableSources.reminders}`
+              );
+          }
         }
-      }
+      } catch {}
     } catch (e) {
-      console.info("Reminders auto-detect failed:", e);
+      console.info("Reminders table not available:", e);
     }
   }
 
@@ -905,9 +904,10 @@ class SheetsAPIService extends EventTarget {
       const idxMarketKey = matchCol([/^(market|location)$/i]);
       const idxTypeKey = matchCol([/^(type|route\s?type|routetype)$/i]);
       const splitItems = (val) =>
-        (val || "")
-          .toString()
-          .split(/\n|[;,]/g)
+        (val == null ? [] : [val])
+          .flat()
+          .map((v) => (v || "").toString())
+          .flatMap((s) => s.split(/\n|[;,]/g))
           .map((t) => t.trim())
           .filter(Boolean);
       const out = [];
@@ -991,6 +991,48 @@ class SheetsAPIService extends EventTarget {
                 atoffice: [],
                 backatoffice: [],
               });
+          }
+        }
+      } else {
+        // Row-oriented format: a 'where/section/bucket' column with items spread across other columns.
+      const idxWhere = headers.findIndex((h) => /^(where|section|bucket)$/i.test(h));
+      if (idxWhere >= 0) {
+          const merge = {
+            keys: ['all'],
+            dropoff: [], atoffice: [], backatoffice: [], atmarket: [],
+            materials_office: [], materials_storage: [], backAtOffice: [],
+          };
+          const norm = (s) => (s == null ? '' : String(s)).trim().toLowerCase();
+          const mapBucket = (w) => {
+            const n = norm(w);
+            if (/^drop/.test(n)) return 'dropoff';
+            if (/^(at\s*)?office$|^atoffice$/.test(n)) return 'atoffice';
+            if (/^back/.test(n)) return 'backatoffice';
+            if (/^(at\s*)?market$|^atmarket$/.test(n)) return 'atmarket';
+            if (/materials.*office/.test(n)) return 'materials_office';
+            if (/materials.*storage/.test(n)) return 'materials_storage';
+            return '';
+          };
+          // Only include cells from recognized step columns
+          const stepIdxs = headers
+            .map((h, i) => (/^step\s*\d+$/i.test(h) ? i : -1))
+            .filter((i) => i >= 0);
+          for (let i = 1; i < values.length; i++) {
+            const row = values[i] || [];
+            const where = row[idxWhere];
+            if (!where) continue;
+            const b = mapBucket(where);
+            if (!b) continue;
+            const items = stepIdxs.length
+              ? stepIdxs.map((ci) => row[ci]).flatMap(splitItems)
+              : row.filter((_, ci) => ci !== idxWhere).flatMap(splitItems);
+            items.forEach((t) => { if (t && !merge[b].includes(t)) merge[b].push(t); });
+          }
+          if (
+            merge.dropoff.length || merge.atoffice.length || merge.backatoffice.length || merge.atmarket.length ||
+            merge.materials_office.length || merge.materials_storage.length
+          ) {
+            out.push(merge);
           }
         }
       }
@@ -1386,65 +1428,88 @@ class SheetsAPIService extends EventTarget {
       });
       const rows = resp.result?.values || [];
       if (!rows || rows.length === 0) return null;
-      const isHeader = (arr) => {
-        const lower = (arr || []).map((h) =>
-          String(h || "")
-            .trim()
-            .toLowerCase()
-        );
-        const hasKey = lower.some((h) =>
-          /^(key|keys|context|contexts|name|names|market|location|type|route)$/.test(h)
-        );
-        const hasCols =
-          lower.some((h) =>
-            /(^|\b)(drop\s?off|dropoff|drop-off)(\b|$)/.test(h)
-          ) ||
-          lower.some((h) =>
-            /(^|\b)(at\s?office|atoffice|office)(\b|$)/.test(h)
-          ) ||
-          lower.some((h) =>
-            /(^|\b)(back\s?at\s?office|back\s?office|backatoffice)(\b|$)/.test(
-              h
-            )
-          ) ||
-          lower.some((h) => /^(reminder|notes?)$/.test(h)) ||
-          lower.some((h) => /^(materials[_\s]?office|materials[_\s]?storage)$/.test(h)) ||
-          lower.some((h) => /^(at\s?market|atmarket|market)$/.test(h));
-        // Accept headers that contain recognizable columns even without a key column (treated as global)
-        return hasCols || (hasKey && hasCols);
+
+      // Score potential header rows. Prefer explicit bucket columns; next prefer a row-oriented header with 'where' + stepN.
+      const scoreHeader = (hdr) => {
+        const lower = (hdr || []).map((h) => String(h || "").trim().toLowerCase());
+        let score = 0;
+        const has = (re) => lower.some((h) => re.test(h));
+        const count = (re) => lower.filter((h) => re.test(h)).length;
+        // Positive signals
+        if (has(/^(where|section|bucket)$/i)) score += 3;
+        score += Math.min(5, count(/^step\d+$/i));
+        if (has(/(^|\b)(drop\s?off|dropoff|drop-off)(\b|$)/i)) score += 2;
+        if (has(/(^|\b)(at\s?office|atoffice|office)(\b|$)/i)) score += 2;
+        if (has(/(^|\b)(back\s?at\s?office|back\s?office|backatoffice)(\b|$)/i)) score += 2;
+        if (has(/^(materials[_\s]?office|materials[_\s]?storage)$/i)) score += 2;
+        if (has(/^(at\s?market|atmarket|market)$/i)) score += 2;
+        // Key/market/type give slight boost but are not required for global lists
+        if (has(/^(key|keys|context|contexts|name|names|market|location|type|route)$/i)) score += 1;
+        // Negative signals: workers/vehicles tables
+        if (has(/worker|van|vehicle/i)) score -= 3;
+        return score;
       };
-      let headerIdx = -1;
+
+      const candidates = [];
       for (let i = 0; i < rows.length; i++) {
-        if (isHeader(rows[i])) {
-          headerIdx = i;
-          break;
+        const s = scoreHeader(rows[i]);
+        if (s > 0) {
+          candidates.push({ idx: i, score: s });
         }
       }
-      if (headerIdx < 0) return null;
-      // Compute right edge and bottom edge
+      if (!candidates.length) return null;
+      candidates.sort((a, b) => b.score - a.score || a.idx - b.idx);
+      const headerIdx = candidates[0].idx;
+
+      // Compute left/right edges and bottom edge from this header
       const lastColIndex = (hdr) => {
         let idx = hdr.length - 1;
         while (idx >= 0 && String(hdr[idx] || "").trim() === "") idx--;
         return idx;
       };
-      const c2 = lastColIndex(rows[headerIdx]);
+      const headerRow = rows[headerIdx] || [];
+      const lowerHdr = headerRow.map((h) => String(h || '').trim().toLowerCase());
+      const idxWhere = lowerHdr.findIndex((h) => /^(where|section|bucket)$/i.test(h));
+      const stepIdxs = lowerHdr
+        .map((h, i) => (/^step\s*\d+$/i.test(h) ? i : -1))
+        .filter((i) => i >= 0);
+      const bucketIdxs = lowerHdr
+        .map((h, i) => ((/^(drop\s?off|dropoff|drop-off)$/i.test(h) || /^(at\s?office|atoffice|office)$/i.test(h) || /^(back\s?at\s?office|back\s?office|backatoffice)$/i.test(h) || /^(materials[_\s]?office|materials[_\s]?storage)$/i.test(h) || /^(at\s?market|atmarket|market)$/i.test(h)) ? i : -1))
+        .filter((i) => i >= 0);
+      const nonEmptyIdxs = lowerHdr.map((h, i) => (h ? i : -1)).filter((i) => i >= 0);
+      let c1 = Math.min(
+        ...[idxWhere >= 0 ? idxWhere : Infinity, ...(stepIdxs.length ? stepIdxs : [Infinity]), ...(bucketIdxs.length ? bucketIdxs : [Infinity])]
+      );
+      if (!isFinite(c1)) c1 = nonEmptyIdxs.length ? Math.min(...nonEmptyIdxs) : 0;
+      const c2 = (() => {
+        const rightCandidates = [];
+        if (stepIdxs.length) rightCandidates.push(Math.max(...stepIdxs));
+        if (bucketIdxs.length) rightCandidates.push(Math.max(...bucketIdxs));
+        if (!rightCandidates.length) rightCandidates.push(lastColIndex(headerRow));
+        return Math.max(...rightCandidates);
+      })();
       const endRow = (() => {
         let last = headerIdx;
         for (let r = headerIdx + 1; r < rows.length; r++) {
           const row = rows[r] || [];
           const empty = row
-            .slice(0, c2 + 1)
+            .slice(c1, c2 + 1)
             .every((v) => String(v || "").trim() === "");
           if (empty) break;
           last = r;
         }
         return last;
       })();
-      const a1 = `Misc!A${headerIdx + 1}:${String.fromCharCode(65 + c2)}${
-        endRow + 1
-      }`;
+      const colToA1 = (n) => {
+        let s = '';
+        n = n + 1; // 1-based
+        while (n > 0) { const mod = (n - 1) % 26; s = String.fromCharCode(65 + mod) + s; n = Math.floor((n - 1) / 26); }
+        return s;
+      };
+      const a1 = `Misc!${colToA1(c1)}${headerIdx + 1}:${colToA1(c2)}${endRow + 1}`;
       console.info("[Reminders] Auto-detected table at", a1);
-      return { a1, values: rows.slice(headerIdx, endRow + 1) };
+      const sliced = rows.slice(headerIdx, endRow + 1).map((row) => (row || []).slice(c1, c2 + 1));
+      return { a1, values: sliced };
     } catch (e) {
       return null;
     }
