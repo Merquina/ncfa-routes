@@ -1393,9 +1393,7 @@ class SheetsAPIService extends EventTarget {
             .toLowerCase()
         );
         const hasKey = lower.some((h) =>
-          /^(key|keys|context|contexts|name|names|market|location|type|route)$/.test(
-            h
-          )
+          /^(key|keys|context|contexts|name|names|market|location|type|route)$/.test(h)
         );
         const hasCols =
           lower.some((h) =>
@@ -1409,8 +1407,11 @@ class SheetsAPIService extends EventTarget {
               h
             )
           ) ||
-          lower.some((h) => /^(reminder|notes?)$/.test(h));
-        return hasKey && hasCols;
+          lower.some((h) => /^(reminder|notes?)$/.test(h)) ||
+          lower.some((h) => /^(materials[_\s]?office|materials[_\s]?storage)$/.test(h)) ||
+          lower.some((h) => /^(at\s?market|atmarket|market)$/.test(h));
+        // Accept headers that contain recognizable columns even without a key column (treated as global)
+        return hasCols || (hasKey && hasCols);
       };
       let headerIdx = -1;
       for (let i = 0; i < rows.length; i++) {
