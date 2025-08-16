@@ -13,6 +13,7 @@ import "./route-list.js";
 import "./hash-router.js";
 import "./app-layout.js";
 import "./route-details.js";
+import "./dev-overlay.js";
 
 // Import pages
 import "../pages/reminders-page.js";
@@ -76,5 +77,30 @@ if (typeof window !== "undefined") {
     document.addEventListener("DOMContentLoaded", registerRoutesIfReady);
   } else {
     registerRoutesIfReady();
+  }
+
+  // Optionally attach a dev overlay if enabled
+  const maybeAttachOverlay = () => {
+    try {
+      const url = new URL(window.location.href);
+      const enabled = url.searchParams.get('dev') === '1' || localStorage.getItem('devOverlay') === '1';
+      if (!enabled) return;
+      if (!document.querySelector('dev-overlay')) {
+        const el = document.createElement('dev-overlay');
+        document.body.appendChild(el);
+      }
+      // Allow Ctrl/Meta + D to toggle visibility
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+          const flag = localStorage.getItem('devOverlay') === '1';
+          localStorage.setItem('devOverlay', flag ? '0' : '1');
+        }
+      });
+    } catch {}
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAttachOverlay);
+  } else {
+    maybeAttachOverlay();
   }
 }

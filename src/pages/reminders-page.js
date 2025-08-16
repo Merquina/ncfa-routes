@@ -32,14 +32,17 @@ class RemindersPage extends HTMLElement {
       ];
 
       for (const key of keysToTry) {
-        const result = window.sheetsAPI?.getRemindersForRoute(key);
-        if (
-          result &&
-          (result.materials_office?.length ||
-            result.materials_storage?.length ||
-            result.atMarket?.length ||
-            result.backAtOffice?.length)
-        ) {
+        if (!(window.dataService && typeof window.dataService.getRemindersForRoute === 'function')) break;
+        const result = await window.dataService.getRemindersForRoute(key);
+        const hasOffice = Array.isArray(result?.materials_office) && result.materials_office.length;
+        const hasStorage = Array.isArray(result?.materials_storage) && result.materials_storage.length;
+        const hasAtMarket = Array.isArray(result?.atMarket)
+          ? result.atMarket.length
+          : (Array.isArray(result?.atmarket) && result.atmarket.length);
+        const hasBackAtOffice = Array.isArray(result?.backAtOffice)
+          ? result.backAtOffice.length
+          : (Array.isArray(result?.backatoffice) && result.backatoffice.length);
+        if (result && (hasOffice || hasStorage || hasAtMarket || hasBackAtOffice)) {
           reminders = result;
           console.log(`Found materials with key:`, key, result);
           break;
@@ -47,8 +50,10 @@ class RemindersPage extends HTMLElement {
       }
 
       // If no specific match, try getting all reminders and find any with materials
-      if (!reminders && window.sheetsAPI?.miscReminders) {
-        const allReminders = window.sheetsAPI.miscReminders;
+      if (!reminders) {
+        const allReminders = (window.dataService && typeof window.dataService.getAllReminders === 'function')
+          ? await window.dataService.getAllReminders()
+          : [];
         console.log("All available reminders:", allReminders);
 
         // Find any reminder row that has materials
@@ -69,21 +74,24 @@ class RemindersPage extends HTMLElement {
       this._materialsData = {
         office: reminders?.materials_office || [],
         storage: reminders?.materials_storage || [],
-        atMarket: reminders?.atMarket || [],
-        backAtOffice: reminders?.backAtOffice || [],
+        atMarket: Array.isArray(reminders?.atMarket)
+          ? reminders.atMarket
+          : (reminders?.atmarket || []),
+        backAtOffice: Array.isArray(reminders?.backAtOffice)
+          ? reminders.backAtOffice
+          : (reminders?.backatoffice || []),
       };
 
       console.log("Final materials data:", this._materialsData);
       this.renderMaterials();
     } catch (error) {
       console.error("Error loading materials:", error);
-
-      // Debug info
-      console.log("Available sheetsAPI:", window.sheetsAPI);
-      if (window.sheetsAPI) {
-        console.log("Debug tables:", window.sheetsAPI.debugTables?.());
-        console.log("Misc reminders:", window.sheetsAPI.miscReminders);
-      }
+      try {
+        const dbg = window.dataService?.getDebugInfo?.();
+        console.log("Debug info:", dbg);
+        const all = await (window.dataService?.getAllReminders?.() || []);
+        console.log("All reminders sample:", Array.isArray(all) ? all.slice(0,3) : all);
+      } catch {}
     }
   }
 

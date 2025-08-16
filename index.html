@@ -326,14 +326,12 @@
       // Function to update last modified date
       function updateLastModified() {
         const lastUpdatedEl = document.getElementById("lastUpdated");
-        if (
-          lastUpdatedEl &&
-          window.sheetsAPI &&
-          window.sheetsAPI.data.length > 0
-        ) {
-          // Use current date as fallback since we can't get sheet modification date via API
-          const now = new Date();
-          const dateStr = now.toLocaleDateString("en-US", {
+        if (!lastUpdatedEl) return;
+        try {
+          const info = window.dataService?.getDebugInfo?.();
+          const ts = info?.lastFetchTs;
+          const dt = ts ? new Date(ts) : new Date();
+          const dateStr = dt.toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
             day: "numeric",
@@ -341,7 +339,7 @@
             minute: "2-digit",
           });
           lastUpdatedEl.textContent = `Last updated: ${dateStr}`;
-        }
+        } catch {}
       }
 
       // Additional iPhone-specific setup

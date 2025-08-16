@@ -406,6 +406,20 @@ class SheetsAPIService extends EventTarget {
     try {
       await this.fetchMiscData();
     } catch {}
+
+    // Schema summary log for quick diagnostics (headers + sources)
+    try {
+      const hdr = (name) => (map.get(name)?.values || [])[0] || [];
+      console.info('[Schema] Tables loaded:', {
+        SPFM: { headers: hdr('SPFM'), rows: (this.data || []).length },
+        Routes: { headers: hdr('Routes'), rows: (this.routesData || []).length },
+        Recovery: { headers: hdr('Recovery'), rows: (this.recoveryData || []).length },
+        SPFM_Delivery: { headers: hdr('SPFM_Delivery'), rows: (this.deliveryData || []).length },
+        Status: { headers: hdr('Status'), rows: (this.inventoryData || []).length },
+        Contacts: { headers: hdr('Contacts'), rows: (this.contactsData || []).length },
+        Sources: { ...this._tableSources },
+      });
+    } catch {}
   }
 
   // ===== Declarative table helpers (maintainable) =====
@@ -873,6 +887,20 @@ class SheetsAPIService extends EventTarget {
       const idxBackAtOffice = matchCol([
         /^(back\s?at\s?office|back\s?office|backatoffice|backAtOffice)$/i,
       ]);
+      // Log detected columns once per parse to aid maintainers
+      try {
+        console.info('[Reminders] Detected columns:', {
+          key: idxKey >= 0,
+          dropoff: idxDrop >= 0,
+          atoffice: idxAtOffice >= 0,
+          backatoffice: idxBackOffice >= 0,
+          atmarket: idxAtMarket >= 0,
+          materials_office: idxMaterialsOffice >= 0,
+          materials_storage: idxMaterialsStorage >= 0,
+          backAtOfficeCompat: idxBackAtOffice >= 0,
+          headerSample: rawHeaders,
+        });
+      } catch {}
 
       const idxMarketKey = matchCol([/^(market|location)$/i]);
       const idxTypeKey = matchCol([/^(type|route\s?type|routetype)$/i]);
@@ -1467,13 +1495,6 @@ class SheetsAPIService extends EventTarget {
 }
 
 export const sheetsAPI = new SheetsAPIService();
-
-// Provide a global alias for components that reference window.sheetsAPI
-try {
-  if (typeof window !== "undefined") {
-    window.sheetsAPI = window.sheetsAPI || sheetsAPI;
-  }
-} catch {}
 
 export async function loadApiDataIfNeeded(force = false) {
   const SHEETS_TTL_MS = 120000;

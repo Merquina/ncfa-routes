@@ -461,6 +461,62 @@ class DataService extends EventTarget {
     catch (e) { console.error('getVansFromRoute failed:', e); return []; }
   }
 
+  // Vehicle emoji helper for components
+  getVehicleEmoji(name) {
+    try { return sheetsAPI.getVehicleEmoji?.(name) || '🚐'; }
+    catch { return '🚐'; }
+  }
+
+  // Address/contacts lookup for a given location name
+  getAddressForLocation(name) {
+    try { return sheetsAPI.getAddressFromContacts?.(name) || null; }
+    catch { return null; }
+  }
+
+  // ========================================
+  // REMINDERS METHODS
+  // ========================================
+
+  /**
+   * Return reminder buckets for a route context.
+   * Normalizes case variants so consumers can read either camelCase or lowercase keys.
+   * { dropoff:[], atoffice:[], backatoffice:[], atmarket:[], materials_office:[], materials_storage:[], backAtOffice:[], atMarket:[] }
+   */
+  async getRemindersForRoute(routeOrKey) {
+    try {
+      await this._ensureApiLoaded();
+      const res = (typeof sheetsAPI.getRemindersForRoute === 'function')
+        ? sheetsAPI.getRemindersForRoute(routeOrKey)
+        : null;
+      if (!res) return { dropoff:[], atoffice:[], backatoffice:[], atmarket:[], materials_office:[], materials_storage:[], backAtOffice:[], atMarket:[] };
+      const out = {
+        dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
+        atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
+        backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : (Array.isArray(res.backAtOffice) ? res.backAtOffice : []),
+        atmarket: Array.isArray(res.atmarket) ? res.atmarket : (Array.isArray(res.atMarket) ? res.atMarket : []),
+        materials_office: Array.isArray(res.materials_office) ? res.materials_office : [],
+        materials_storage: Array.isArray(res.materials_storage) ? res.materials_storage : [],
+      };
+      // Provide camelCase aliases for convenience
+      out.backAtOffice = out.backatoffice;
+      out.atMarket = out.atmarket;
+      return out;
+    } catch (e) {
+      console.warn('getRemindersForRoute failed:', e);
+      return { dropoff:[], atoffice:[], backatoffice:[], atmarket:[], materials_office:[], materials_storage:[], backAtOffice:[], atMarket:[] };
+    }
+  }
+
+  /**
+   * Return all parsed reminders rows for debugging or admin pages.
+   */
+  async getAllReminders() {
+    try {
+      await this._ensureApiLoaded();
+      return Array.isArray(sheetsAPI.miscReminders) ? [...sheetsAPI.miscReminders] : [];
+    } catch { return []; }
+  }
+
   // ========================================
   // NORMALIZATION HELPERS
   // ========================================
@@ -703,6 +759,36 @@ class DataService extends EventTarget {
       Boniat: "🌊",
       Volunteer: "👤"
     };
+  }
+
+  // ========================================
+  // DEBUG / DIAGNOSTICS
+  // ========================================
+  getDebugInfo() {
+    try {
+      const sig = this._makeSignature();
+      const s = sheetsAPI || {};
+      const counts = {
+        spfm: (s.data || []).length,
+        recovery: (s.recoveryData || []).length,
+        delivery: (s.deliveryData || []).length,
+        routes: (s.routesData || []).length,
+        status: (s.inventoryData || []).length,
+        contacts: (s.contactsData || []).length,
+        workers: (s.miscWorkers || []).length,
+        vehicles: (s.miscVehicles || []).length,
+        reminders: (s.miscReminders || []).length,
+      };
+      const sources = (s._tableSources) ? { ...s._tableSources } : {};
+      return {
+        lastFetchTs: s.lastFetchTs || 0,
+        signature: sig,
+        counts,
+        sources,
+      };
+    } catch {
+      return { lastFetchTs: 0, signature: '', counts: {}, sources: {} };
+    }
   }
 
   _generateNextOccurrences(dayName, count = 8) {

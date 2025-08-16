@@ -54,11 +54,11 @@ class RouteDetails extends HTMLElement {
 
   getVehicleEmoji(name) {
     try {
-      const emoji = window.sheetsAPI?.getVehicleEmoji?.(name);
-      return emoji || "🚐";
-    } catch {
-      return "🚐";
-    }
+      if (window.dataService && typeof window.dataService.getVehicleEmoji === 'function') {
+        return window.dataService.getVehicleEmoji(name) || '🚐';
+      }
+    } catch {}
+    return '🚐';
   }
 
   renderWorkers(workers = [], volunteers = [], required = 0) {
@@ -112,10 +112,9 @@ class RouteDetails extends HTMLElement {
       materials_storage: [],
     };
     try {
-      const res =
-        window.sheetsAPI && window.sheetsAPI.getRemindersForRoute
-          ? window.sheetsAPI.getRemindersForRoute(route)
-          : null;
+      const res = (window.dataService && typeof window.dataService.getRemindersForRoute === 'function')
+        ? await window.dataService.getRemindersForRoute(route)
+        : null;
       if (Array.isArray(res)) {
         // Backward-compat: older API returned a flat array; treat as dropoff list
         reminderBuckets.dropoff = res;
@@ -123,8 +122,8 @@ class RouteDetails extends HTMLElement {
         reminderBuckets = {
           dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
           atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : [],
-          atmarket: Array.isArray(res.atmarket) ? res.atmarket : [],
+          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : (Array.isArray(res.backAtOffice) ? res.backAtOffice : []),
+          atmarket: Array.isArray(res.atmarket) ? res.atmarket : (Array.isArray(res.atMarket) ? res.atMarket : []),
           materials_office: Array.isArray(res.materials_office)
             ? res.materials_office
             : [],
@@ -233,24 +232,69 @@ class RouteDetails extends HTMLElement {
   }
 
   renderStandardLayout(materials, reminderBuckets, route, stops) {
+    const dropoff = Array.isArray(reminderBuckets.dropoff)
+      ? reminderBuckets.dropoff
+      : [];
+    const atOffice = Array.isArray(reminderBuckets.atoffice)
+      ? reminderBuckets.atoffice
+      : [];
+    // Support both camelCase and snake/lowercase variants
+    const backAtOffice = Array.isArray(reminderBuckets.backAtOffice)
+      ? reminderBuckets.backAtOffice
+      : (Array.isArray(reminderBuckets.backatoffice)
+        ? reminderBuckets.backatoffice
+        : []);
+    const atMarket = Array.isArray(reminderBuckets.atMarket)
+      ? reminderBuckets.atMarket
+      : (Array.isArray(reminderBuckets.atmarket)
+        ? reminderBuckets.atmarket
+        : []);
+    const materialsOffice = Array.isArray(reminderBuckets.materials_office)
+      ? reminderBuckets.materials_office
+      : [];
+    const materialsStorage = Array.isArray(reminderBuckets.materials_storage)
+      ? reminderBuckets.materials_storage
+      : [];
+
+    const list = (items) =>
+      items && items.length
+        ? `<ul style="margin:6px 0 0 18px; padding:0;">${items
+            .map((t) => `<li>${String(t)}</li>`) 
+            .join("")}</ul>`
+        : '<div class="subtle">No items</div>';
+
+    const section = (label, items) => {
+      if (!items || items.length === 0) return '';
+      return `
+        <div class="section">
+          <div class="label">${label}</div>
+          ${list(items)}
+        </div>
+      `;
+    };
+
+    // Render sections when there is content; keep the page compact otherwise
     return `
-      <!-- Only stops will be shown, no Market/Dropoff sections -->
+      ${section('Drop-off Reminders', dropoff)}
+      ${section('At Office – Tasks', atOffice)}
+      ${section('Back at Office – Tasks', backAtOffice)}
+      ${section('At Market – Tasks', atMarket)}
+      ${section('Materials – Office', materialsOffice)}
+      ${section('Materials – Storage', materialsStorage)}
     `;
   }
 
   renderAddressButton(location) {
     if (!location) return "";
     try {
-      const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      const contact = (window.dataService && typeof window.dataService.getAddressForLocation === 'function')
+        ? window.dataService.getAddressForLocation(location)
+        : null;
       const address = contact && contact.address ? contact.address : location;
-      const link = `https://maps.google.com/maps?q=${encodeURIComponent(
-        address
-      )}`;
+      const link = `https://maps.google.com/maps?q=${encodeURIComponent(address)}`;
       return `<button class="btn" onclick="window.open('${link}', '_blank')">📍 ${address}</button>`;
     } catch {
-      const link = `https://maps.google.com/maps?q=${encodeURIComponent(
-        location
-      )}`;
+      const link = `https://maps.google.com/maps?q=${encodeURIComponent(location)}`;
       return `<button class="btn" onclick="window.open('${link}', '_blank')">📍 ${location}</button>`;
     }
   }
@@ -258,7 +302,9 @@ class RouteDetails extends HTMLElement {
   renderPhoneButtons(location) {
     if (!location) return "";
     try {
-      const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      const contact = (window.dataService && typeof window.dataService.getAddressForLocation === 'function')
+        ? window.dataService.getAddressForLocation(location)
+        : null;
       if (contact && contact.phones && contact.phones.length) {
         return contact.phones
           .map(
