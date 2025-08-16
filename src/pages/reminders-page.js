@@ -257,25 +257,25 @@ class RemindersPage extends HTMLElement {
 
         .welcome-section {
           text-align: center;
-          margin-bottom: 30px;
+          margin-bottom: 20px;
           background: white;
-          padding: 30px;
-          border-radius: 20px;
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-          border: 3px solid #28a745;
+          padding: 20px;
+          border-radius: 15px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+          border: 2px solid #28a745;
         }
 
         .welcome-section h2 {
-          margin: 0 0 10px 0;
+          margin: 0 0 8px 0;
           color: #28a745;
-          font-size: 2.2rem;
+          font-size: 1.4rem;
           font-weight: 600;
         }
 
         .welcome-section p {
           margin: 0;
           color: #666;
-          font-size: 1.1rem;
+          font-size: 0.9rem;
         }
 
         .materials-grid {
@@ -325,20 +325,20 @@ class RemindersPage extends HTMLElement {
 
         .card-header h3 {
           margin: 0;
-          font-size: 1.3rem;
+          font-size: 1.0rem;
           font-weight: 600;
         }
 
         .count {
           background: rgba(255, 255, 255, 0.2);
-          padding: 5px 12px;
+          padding: 4px 10px;
           border-radius: 20px;
-          font-size: 0.9rem;
+          font-size: 0.75rem;
           font-weight: 500;
         }
 
         .checklist {
-          padding: 25px;
+          padding: 18px;
         }
 
         .checkbox-item {
@@ -392,9 +392,9 @@ class RemindersPage extends HTMLElement {
         }
 
         .item-text {
-          font-size: 1rem;
+          font-size: 0.75rem;
           color: #333;
-          line-height: 1.4;
+          line-height: 1.3;
         }
 
         .no-items {
@@ -412,10 +412,10 @@ class RemindersPage extends HTMLElement {
         }
 
         .action-btn {
-          padding: 15px 30px;
+          padding: 12px 24px;
           border: none;
-          border-radius: 10px;
-          font-size: 1rem;
+          border-radius: 8px;
+          font-size: 0.85rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.3s ease;
@@ -460,11 +460,11 @@ class RemindersPage extends HTMLElement {
           }
 
           .welcome-section h2 {
-            font-size: 1.8rem;
+            font-size: 1.2rem;
           }
 
           .card-header h3 {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
           }
 
           .quick-actions {

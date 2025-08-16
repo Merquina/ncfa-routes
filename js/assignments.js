@@ -669,83 +669,6 @@ class AssignmentsManager {
         </div>
 
         <div style="display: grid; gap: 20px;">
-          <!-- At the Office Section -->
-          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
-            <h3 style="color: #17a2b8; margin: 0 0 15px 0;">🏢 At the Office</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-              <div>
-                <h4 style="margin: 0 0 10px 0; color: #666;">📁 Office Materials</h4>
-                ${materialsOffice
-                  .map(
-                    (item) => `
-                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                    <input type="checkbox" style="margin-right: 8px;"> ${item}
-                  </label>
-                `
-                  )
-                  .join("")}
-                ${
-                  materialsOffice.length === 0
-                    ? "<p style=\"color: #999; font-style: italic;\">No office materials listed (add to Misc sheet 'materials_office' column)</p>"
-                    : ""
-                }
-              </div>
-              <div>
-                <h4 style="margin: 0 0 10px 0; color: #666;">📦 Storage Materials</h4>
-                ${materialsStorage
-                  .map(
-                    (item) => `
-                  <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                    <input type="checkbox" style="margin-right: 8px;"> ${item}
-                  </label>
-                `
-                  )
-                  .join("")}
-                ${
-                  materialsStorage.length === 0
-                    ? "<p style=\"color: #999; font-style: italic;\">No storage materials listed (add to Misc sheet 'materials_storage' column)</p>"
-                    : ""
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- At Market Section -->
-          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
-            <h3 style="color: #ff8c00; margin: 0 0 15px 0;">🏪 At Market</h3>
-            ${
-              route.market
-                ? `
-              <div style="margin-bottom: 15px;">
-                ${(() => {
-                  const contact = sheetsAPI.getAddressFromContacts(
-                    route.market
-                  );
-                  const addressToUse =
-                    contact && contact.address ? contact.address : route.market;
-                  return `<button onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
-                    addressToUse
-                  )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📍 ${addressToUse}</button>`;
-                })()}
-              </div>
-              `
-                : ""
-            }
-            ${atMarket
-              .map(
-                (item) => `
-              <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
-              </label>
-            `
-              )
-              .join("")}
-            ${
-              atMarket.length === 0
-                ? '<p style="color: #999; font-style: italic;">No items listed</p>'
-                : ""
-            }
-          </div>
 
 
 
@@ -771,8 +694,15 @@ class AssignmentsManager {
                 contact && (contact.Type || contact.type || contact.TYPE)
                   ? (contact.Type || contact.type || contact.TYPE).trim()
                   : "";
+              const job =
+                contact && (contact.Job || contact.job || contact.JOB)
+                  ? (contact.Job || contact.job || contact.JOB).trim()
+                  : "";
               console.debug(`🔍 DEBUG Dropoff final type: "${type}"`);
-              return type ? `${locationName} - ${type}` : locationName;
+              const title = type ? `${locationName} - ${type}` : locationName;
+              return job
+                ? `${title}<br><span style="font-size: 0.8em; color: #666; font-weight: normal;">${job}</span>`
+                : title;
             })()}</h3>
             <div style="margin-bottom: 10px;">
               ${
@@ -790,36 +720,27 @@ class AssignmentsManager {
                     addressToUse
                   )}', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📍 ${addressToUse}</button>`;
                 })()}
+                ${this.renderPhoneButtons(route.dropOff)}
               `
                   : '<p style="color: #999; font-style: italic;">No dropoff location specified</p>'
               }
-              ${(() => {
-                const contacts = sheetsAPI.getAllRouteContacts(route);
-                return contacts.length > 0
-                  ? `<button onclick="window.open('tel:${contacts[0]}', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">📞 ${contacts[0]}</button>`
-                  : "";
-              })()}
             </div>
+            ${(() => {
+              const notesContent = this.renderStopNotes(route, route.dropOff);
+              return notesContent
+                ? `
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 3px solid #17a2b8; margin-top: 10px;">
+                  <h4 style="margin: 0 0 8px 0; color: #17a2b8; font-size: 0.9rem;">📝 Notes</h4>
+                  <div style="font-size: 0.85rem; line-height: 1.4; color: #495057;">
+                    ${notesContent}
+                  </div>
+                </div>
+              `
+                : "";
+            })()}
           </div>
 
-          <!-- Back at Office Section -->
-          <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #6c757d;">
-            <h3 style="color: #6c757d; margin: 0 0 15px 0;">🏢 Back at Office</h3>
-            ${backAtOffice
-              .map(
-                (item) => `
-              <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
-              </label>
-            `
-              )
-              .join("")}
-            ${
-              backAtOffice.length === 0
-                ? '<p style="color: #999; font-style: italic;">No items listed</p>'
-                : ""
-            }
-          </div>
+
         </div>
 
         </div>
@@ -887,9 +808,7 @@ class AssignmentsManager {
             .map(
               (stop, index) => `
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #333;">
-              <h3 style="color: #333; margin: 0 0 15px 0;">${
-                index + 1
-              } - ${this.getStopDisplayName(stop.location)}</h3>
+              ${this.renderStopTitle(stop.location, index)}
               <div style="margin-bottom: 10px;">
                 ${this.renderAddressButton(stop.location)}
                 ${this.renderPhoneButtons(stop.location)}
@@ -1041,85 +960,8 @@ class AssignmentsManager {
     const backAtOffice = reminderBuckets.backatoffice;
 
     return `
-      <div style="display: grid; gap: 20px; margin-bottom: 20px;">
-        <!-- At the Office Section -->
-        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
-          <h3 style="color: #17a2b8; margin: 0 0 15px 0;">🏢 At the Office</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div>
-              <h4 style="margin: 0 0 10px 0; color: #666;">📁 Office Materials</h4>
-              ${materialsOffice
-                .map(
-                  (item) => `
-                <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                  <input type="checkbox" style="margin-right: 8px;"> ${item}
-                </label>
-              `
-                )
-                .join("")}
-              ${
-                materialsOffice.length === 0
-                  ? "<p style=\"color: #999; font-style: italic;\">No office materials listed (add to Misc sheet 'materials_office' column)</p>"
-                  : ""
-              }
-            </div>
-            <div>
-              <h4 style="margin: 0 0 10px 0; color: #666;">📦 Storage Materials</h4>
-              ${materialsStorage
-                .map(
-                  (item) => `
-                <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-                  <input type="checkbox" style="margin-right: 8px;"> ${item}
-                </label>
-              `
-                )
-                .join("")}
-              ${
-                materialsStorage.length === 0
-                  ? "<p style=\"color: #999; font-style: italic;\">No storage materials listed (add to Misc sheet 'materials_storage' column)</p>"
-                  : ""
-              }
-            </div>
-          </div>
-        </div>
-
-        <!-- At Market Section -->
-        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
-          <h3 style="color: #28a745; margin: 0 0 15px 0;">🛒 At Market</h3>
-          ${atMarket
-            .map(
-              (item) => `
-            <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-              <input type="checkbox" style="margin-right: 8px;"> ${item.trim()}
-            </label>
-          `
-            )
-            .join("")}
-          ${
-            atMarket.length === 0
-              ? '<p style="color: #999; font-style: italic;">No items listed</p>'
-              : ""
-          }
-        </div>
-
-        <!-- Back at Office Section -->
-        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545;">
-          <h3 style="color: #dc3545; margin: 0 0 15px 0;">🏢 Back at Office</h3>
-          ${backAtOffice
-            .map(
-              (item) => `
-            <label style="display: block; margin-bottom: 5px; cursor: pointer; font-size: 0.85rem;">
-              <input type="checkbox" style="margin-right: 8px;"> ${item}
-            </label>
-          `
-            )
-            .join("")}
-          ${
-            backAtOffice.length === 0
-              ? "<p style=\"color: #999; font-style: italic;\">No items listed (add to Misc sheet 'backatoffice' column)</p>"
-              : ""
-          }
-        </div>
+      <div style="margin-bottom: 20px;">
+        <!-- Sections removed per request -->
       </div>
     `;
   }
@@ -1131,6 +973,32 @@ class AssignmentsManager {
         ? (contact.Type || contact.type || contact.TYPE).trim()
         : "";
     return type ? `${location} - ${type}` : location;
+  }
+
+  renderStopTitle(location, index = null) {
+    const contact = sheetsAPI.getAddressFromContacts(location);
+    const type =
+      contact && (contact.Type || contact.type || contact.TYPE)
+        ? (contact.Type || contact.type || contact.TYPE).trim()
+        : "";
+    const job =
+      contact && (contact.Job || contact.job || contact.JOB)
+        ? (contact.Job || contact.job || contact.JOB).trim()
+        : "";
+
+    const title = type ? `${location} - ${type}` : location;
+    const prefix = index !== null ? `${index + 1} - ` : "";
+
+    return `
+      <h3 style="color: #333; margin: 0 0 15px 0;">
+        ${prefix}${title}
+        ${
+          job
+            ? `<br><span style="font-size: 0.8em; color: #666; font-weight: normal;">${job}</span>`
+            : ""
+        }
+      </h3>
+    `;
   }
 
   renderAddressButton(location) {
@@ -1217,6 +1085,16 @@ class AssignmentsManager {
 
     let notesContent = "";
 
+    // Add contact persons from Contacts sheet (Contact1, Contact2, etc.)
+    if (contact && contact.contacts && contact.contacts.length > 0) {
+      contact.contacts.forEach((contactPerson, index) => {
+        if (contactPerson && contactPerson.trim()) {
+          if (notesContent) notesContent += "<br>";
+          notesContent += `• Contact: ${contactPerson.trim()}`;
+        }
+      });
+    }
+
     // Add contact persons from route data only if corresponding phone is available
     if (routeContacts.length > 0) {
       routeContacts.forEach((contactPerson, index) => {
@@ -1227,7 +1105,7 @@ class AssignmentsManager {
           routePhones[index].trim()
         ) {
           if (notesContent) notesContent += "<br>";
-          notesContent += `• Contact person: ${contactPerson.trim()}`;
+          notesContent += `• Route contact: ${contactPerson.trim()}`;
         }
       });
     }
@@ -1239,7 +1117,12 @@ class AssignmentsManager {
     }
 
     return notesContent
-      ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong><br>${notesContent}</p>`
+      ? `<div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 3px solid #17a2b8; margin-top: 10px;">
+          <h4 style="margin: 0 0 8px 0; color: #17a2b8; font-size: 0.9rem;">📝 Notes</h4>
+          <div style="font-size: 0.85rem; line-height: 1.4; color: #495057;">
+            ${notesContent}
+          </div>
+        </div>`
       : "";
   }
 
@@ -1399,29 +1282,10 @@ class AssignmentsManager {
             .map(
               (stop, index) => `
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff8c00;">
-              <h3 style="color: #333; margin: 0 0 15px 0;">${
-                stops.length > 1 ? `${index + 1} - ` : ""
-              }${(() => {
-                const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                console.debug(
-                  `🔍 DEBUG Delivery contact data for "${stop.location}":`,
-                  contact
-                );
-                console.debug(
-                  `🔍 DEBUG Delivery object keys:`,
-                  contact ? Object.keys(contact) : "null"
-                );
-                console.debug(
-                  `🔍 DEBUG Delivery Type value:`,
-                  contact ? contact.Type : "no contact"
-                );
-                const type =
-                  contact && (contact.Type || contact.type || contact.TYPE)
-                    ? (contact.Type || contact.type || contact.TYPE).trim()
-                    : "";
-                console.debug(`🔍 DEBUG Delivery final type: "${type}"`);
-                return type ? `${stop.location} - ${type}` : stop.location;
-              })()}</h3>
+              ${this.renderStopTitle(
+                stop.location,
+                stops.length > 1 ? index : null
+              )}
               <div style="margin-bottom: 10px;">
                 ${(() => {
                   const contact = sheetsAPI.getAddressFromContacts(
@@ -1508,27 +1372,7 @@ class AssignmentsManager {
                 }
                 return "";
               })()}
-              ${(() => {
-                const contact = sheetsAPI.getAddressFromContacts(stop.location);
-                const notes = contact && contact.notes ? contact.notes : "";
-
-                let notesContent = "";
-                // Add contact person from stop-specific contact only if there's a corresponding phone
-                if (stop.contact && stop.contact.trim()) {
-                  // For delivery routes, we need to check stop-specific phones, but they're not implemented yet
-                  // For now, just show the contact person if it exists
-                  notesContent += `• Contact person: ${stop.contact.trim()}`;
-                }
-                // Add notes from contacts sheet
-                if (notes.trim()) {
-                  if (notesContent) notesContent += "<br>";
-                  notesContent += `• ${notes}`;
-                }
-
-                return notesContent
-                  ? `<p style="margin: 10px 0 0 0; color: #333; font-size: 0.9rem;"><strong>Notes:</strong><br>${notesContent}</p>`
-                  : "";
-              })()}
+              ${this.renderStopNotes(route, stop.location)}
             </div>
           `
             )

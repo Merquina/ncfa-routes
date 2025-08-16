@@ -2,8 +2,11 @@
  * Data Service - Abstracts all external data sources (Google Sheets, localStorage, etc.)
  * Provides clean APIs for components without exposing implementation details
  */
-import localStore from './local-store.js';
-import sheetsAPI, { loadApiDataIfNeeded, getDataSignature } from './sheets-api.js';
+import localStore from "./local-store.js";
+import sheetsAPI, {
+  loadApiDataIfNeeded,
+  getDataSignature,
+} from "./sheets-api.js";
 
 class DataService extends EventTarget {
   constructor() {
@@ -12,7 +15,7 @@ class DataService extends EventTarget {
       smallBoxes: 0,
       largeBoxes: 0,
       lastUpdated: null,
-      updatedBy: null
+      updatedBy: null,
     };
     this.workers = [];
     this.routes = [];
@@ -24,17 +27,22 @@ class DataService extends EventTarget {
 
     try {
       // When sheets data updates (via polling), refresh normalized caches
-      if (sheetsAPI && typeof sheetsAPI.addEventListener === 'function') {
-        sheetsAPI.addEventListener('updated', async () => {
-          console.info('Auto-refresh: Sheets updated, recomputing normalized routes');
+      if (sheetsAPI && typeof sheetsAPI.addEventListener === "function") {
+        sheetsAPI.addEventListener("updated", async () => {
+          console.info(
+            "Auto-refresh: Sheets updated, recomputing normalized routes"
+          );
           try {
             const normalized = await this.getRoutes();
-            await localStore.putCache('normalizedRoutes', normalized);
-            await localStore.setMeta('dataSignature', this._makeSignature());
-            console.info('Auto-refresh: normalized routes =', normalized.length);
-            this.dispatchEvent(new CustomEvent('data-loaded'));
+            await localStore.putCache("normalizedRoutes", normalized);
+            await localStore.setMeta("dataSignature", this._makeSignature());
+            console.info(
+              "Auto-refresh: normalized routes =",
+              normalized.length
+            );
+            this.dispatchEvent(new CustomEvent("data-loaded"));
           } catch (e) {
-            this.dispatchEvent(new CustomEvent('data-error', { detail: e }));
+            this.dispatchEvent(new CustomEvent("data-error", { detail: e }));
           }
         });
       }
@@ -45,7 +53,7 @@ class DataService extends EventTarget {
     try {
       await loadApiDataIfNeeded(force);
     } catch (e) {
-      console.error('Failed to ensure API loaded:', e);
+      console.error("Failed to ensure API loaded:", e);
       throw e;
     }
   }
@@ -53,27 +61,32 @@ class DataService extends EventTarget {
   _makeSignature() {
     try {
       return getDataSignature();
-    } catch { return ''; }
+    } catch {
+      return "";
+    }
   }
 
   // ========================================
   // INVENTORY METHODS
   // ========================================
-  
+
   async getInventory() {
     await localStore.init();
     // Try to load from localStorage first (fast)
     try {
-      const stored = localStorage.getItem('spfm_inventory');
+      const stored = localStorage.getItem("spfm_inventory");
       if (stored) {
         this.inventory = { ...this.inventory, ...JSON.parse(stored) };
       }
     } catch (error) {
-      console.error('Error loading inventory from localStorage:', error);
+      console.error("Error loading inventory from localStorage:", error);
     }
 
     // Try to sync with Google Sheets (slower)
-    if (window.inventoryManager && typeof window.inventoryManager.loadInventoryFromSheets === 'function') {
+    if (
+      window.inventoryManager &&
+      typeof window.inventoryManager.loadInventoryFromSheets === "function"
+    ) {
       try {
         await window.inventoryManager.loadInventoryFromSheets();
         const freshInventory = window.inventoryManager.getLocalInventory();
@@ -81,7 +94,7 @@ class DataService extends EventTarget {
           this.inventory = { ...this.inventory, ...freshInventory };
         }
       } catch (error) {
-        console.error('Error syncing inventory with sheets:', error);
+        console.error("Error syncing inventory with sheets:", error);
       }
     }
 
@@ -93,7 +106,7 @@ class DataService extends EventTarget {
       smallBoxes: parseInt(smallBoxes) || 0,
       largeBoxes: parseInt(largeBoxes) || 0,
       lastUpdated: new Date().toLocaleString(),
-      updatedBy: updatedBy || 'Anonymous'
+      updatedBy: updatedBy || "Anonymous",
     };
 
     // Update local state
@@ -101,26 +114,31 @@ class DataService extends EventTarget {
 
     // Save to localStorage
     try {
-      localStorage.setItem('spfm_inventory', JSON.stringify(newInventory));
+      localStorage.setItem("spfm_inventory", JSON.stringify(newInventory));
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      console.error("Error saving to localStorage:", error);
     }
 
     // Sync to Google Sheets
     let synced = false;
-    if (window.inventoryManager && typeof window.inventoryManager.tryUploadInventoryToSheets === 'function') {
+    if (
+      window.inventoryManager &&
+      typeof window.inventoryManager.tryUploadInventoryToSheets === "function"
+    ) {
       try {
         await window.inventoryManager.tryUploadInventoryToSheets(newInventory);
         synced = true;
       } catch (error) {
-        console.error('Error syncing to sheets:', error);
+        console.error("Error syncing to sheets:", error);
       }
     }
 
     // Emit update event
-    this.dispatchEvent(new CustomEvent('inventory-updated', {
-      detail: { ...newInventory, synced }
-    }));
+    this.dispatchEvent(
+      new CustomEvent("inventory-updated", {
+        detail: { ...newInventory, synced },
+      })
+    );
 
     // Return sync status to callers so UI can confirm
     return { ...newInventory, synced };
@@ -134,9 +152,9 @@ class DataService extends EventTarget {
     await localStore.init();
     // Try fast path from cache in IndexedDB if signature matches
     const signature = this._makeSignature();
-    const storedSig = await localStore.getMeta('dataSignature');
+    const storedSig = await localStore.getMeta("dataSignature");
     if (storedSig && storedSig === signature) {
-      const cache = await localStore.getCache('workersList');
+      const cache = await localStore.getCache("workersList");
       if (cache && Array.isArray(cache.data)) {
         this.workers = cache.data;
         return [...this.workers];
@@ -147,14 +165,14 @@ class DataService extends EventTarget {
       await this._ensureApiLoaded();
       this.workers = sheetsAPI.getAllWorkers() || [];
     } catch (error) {
-      console.error('Error loading workers:', error);
+      console.error("Error loading workers:", error);
       this.workers = [];
     }
 
     // Persist to local store for quicker subsequent loads
     try {
-      await localStore.putCache('workersList', this.workers);
-      await localStore.setMeta('dataSignature', signature);
+      await localStore.putCache("workersList", this.workers);
+      await localStore.setMeta("dataSignature", signature);
     } catch {}
     return [...this.workers];
   }
@@ -168,7 +186,7 @@ class DataService extends EventTarget {
         await this._ensureApiLoaded();
         return [];
       } catch (error) {
-        console.error('Error loading worker assignments:', error);
+        console.error("Error loading worker assignments:", error);
         return [];
       }
     }
@@ -193,14 +211,18 @@ class DataService extends EventTarget {
     const cacheKey = this._makeSignature();
 
     // Return cached normalization when the source signature hasn't changed
-    if (cacheKey && cacheKey === this._routesCacheKey && this._routesCache.length) {
+    if (
+      cacheKey &&
+      cacheKey === this._routesCacheKey &&
+      this._routesCache.length
+    ) {
       return [...this._routesCache];
     }
 
     // Try IndexedDB cache if signature matches
-    const storedSig = await localStore.getMeta('dataSignature');
+    const storedSig = await localStore.getMeta("dataSignature");
     if (storedSig && storedSig === cacheKey) {
-      const cache = await localStore.getCache('normalizedRoutes');
+      const cache = await localStore.getCache("normalizedRoutes");
       if (cache && Array.isArray(cache.data)) {
         this.routes = cache.data;
         this._routesCacheKey = cacheKey;
@@ -213,98 +235,165 @@ class DataService extends EventTarget {
 
     // SPFM routes
     if (Array.isArray(sheetsAPI.data)) {
-      console.debug('[DataService] SPFM data count:', sheetsAPI.data.length);
+      console.debug("[DataService] SPFM data count:", sheetsAPI.data.length);
       sheetsAPI.data.forEach((r) => {
         // Skip routes if routeID is empty (same filter as Routes sheet)
-        const routeId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
-        if (!routeId || routeId.toString().trim() === '') {
+        const routeId = this._getField(r, [
+          "routeID",
+          "routeId",
+          "RouteID",
+          "route_id",
+          "id",
+          "ID",
+        ]);
+        if (!routeId || routeId.toString().trim() === "") {
           // Debug: Show which SPFM routes are being filtered out
-          const market = this._getField(r, ['market','Market','location','Location']);
-          const date = this._getField(r, ['date', 'Date', 'DATE']);
-          console.log('[DEBUG] Skipping SPFM route with empty routeID:', { market, date });
+          const market = this._getField(r, [
+            "market",
+            "Market",
+            "location",
+            "Location",
+          ]);
+          const date = this._getField(r, ["date", "Date", "DATE"]);
+          console.log("[DEBUG] Skipping SPFM route with empty routeID:", {
+            market,
+            date,
+          });
           return; // Skip this route if no routeID
         }
-        
+
         // Debug: Check for Woodbury in SPFM data
-        const market = this._getField(r, ['market','Market','location','Location']);
-        const date = this._getField(r, ['date', 'Date', 'DATE']);
-        
+        const market = this._getField(r, [
+          "market",
+          "Market",
+          "location",
+          "Location",
+        ]);
+        const date = this._getField(r, ["date", "Date", "DATE"]);
+
         // Debug: Check for any Thursday routes (Aug 14, 2025) or upcoming routes
-        if (date && (date.includes('August 14') || date.includes('Thursday') || date.includes('Aug 14'))) {
-          console.log('[DEBUG] Found Thursday/Aug 14 route in SPFM:', {
+        if (
+          date &&
+          (date.includes("August 14") ||
+            date.includes("Thursday") ||
+            date.includes("Aug 14"))
+        ) {
+          console.log("[DEBUG] Found Thursday/Aug 14 route in SPFM:", {
             date: date,
             market: market,
             routeId: routeId,
             hasRouteId: !!(routeId && routeId.toString().trim()),
-            rawRow: r
+            rawRow: r,
           });
         }
-        
+
         // Debug: Log ALL routes with dates to see what's available (first 10 only)
         if (date && routeId) {
-          console.log('[DEBUG] SPFM route:', {
+          console.log("[DEBUG] SPFM route:", {
             date: date,
-            market: market || 'No market',
+            market: market || "No market",
             routeId: routeId,
-            dateContainsAug14: date.includes('14')
+            dateContainsAug14: date.includes("14"),
           });
         }
-        
-        if (market && market.toLowerCase().includes('woodbury')) {
-          const isAug17Date = date && (date.includes('August 17') || date.includes('8/17') || date.includes('17/8'));
-          console.log('[DEBUG] Found Woodbury in SPFM data:', {
+
+        if (market && market.toLowerCase().includes("woodbury")) {
+          const isAug17Date =
+            date &&
+            (date.includes("August 17") ||
+              date.includes("8/17") ||
+              date.includes("17/8"));
+          console.log("[DEBUG] Found Woodbury in SPFM data:", {
             date: date,
             market: market,
             routeId: routeId,
             isAug17: isAug17Date,
-            allFields: Object.keys(r).map(key => `${key}: ${r[key]}`),
-            rawRow: r
+            allFields: Object.keys(r).map((key) => `${key}: ${r[key]}`),
+            rawRow: r,
           });
-          
+
           if (isAug17Date) {
-            console.warn('[ISSUE] This might be the problematic Aug 17 route from SPFM sheet');
+            console.warn(
+              "[ISSUE] This might be the problematic Aug 17 route from SPFM sheet"
+            );
           }
         }
-        const normalizedRoute = this._normalizeRoute(r, 'spfm');
-        
+        const normalizedRoute = this._normalizeRoute(r, "spfm");
+
         // Debug: Check what the normalized route looks like for Aug 17 Woodbury
-        if (market && market.toLowerCase().includes('woodbury') && date && date.includes('August 17')) {
-          console.log('[DEBUG] Normalized Aug 17 Woodbury route:', {
+        if (
+          market &&
+          market.toLowerCase().includes("woodbury") &&
+          date &&
+          date.includes("August 17")
+        ) {
+          console.log("[DEBUG] Normalized Aug 17 Woodbury route:", {
             originalMarket: market,
             normalizedMarket: normalizedRoute.market,
             originalDate: date,
             normalizedDate: normalizedRoute.date || normalizedRoute.displayDate,
-            fullNormalized: normalizedRoute
+            fullNormalized: normalizedRoute,
           });
         }
-        
+
         routes.push(normalizedRoute);
       });
     }
 
     // Recovery routes (skip if consolidated Routes is available to avoid duplicates)
-    if ((!Array.isArray(sheetsAPI.routesData) || sheetsAPI.routesData.length === 0) && Array.isArray(sheetsAPI.recoveryData)) {
-      console.debug('[DataService] Recovery data count:', sheetsAPI.recoveryData.length);
-      sheetsAPI.recoveryData.forEach((r) => routes.push(this._normalizeRoute(r, 'recovery')));
+    if (
+      (!Array.isArray(sheetsAPI.routesData) ||
+        sheetsAPI.routesData.length === 0) &&
+      Array.isArray(sheetsAPI.recoveryData)
+    ) {
+      console.debug(
+        "[DataService] Recovery data count:",
+        sheetsAPI.recoveryData.length
+      );
+      sheetsAPI.recoveryData.forEach((r) =>
+        routes.push(this._normalizeRoute(r, "recovery"))
+      );
     }
 
     // SPFM Delivery routes (if present)
-    if ((!Array.isArray(sheetsAPI.routesData) || sheetsAPI.routesData.length === 0) && Array.isArray(sheetsAPI.deliveryData)) {
-      console.debug('[DataService] Delivery data count:', sheetsAPI.deliveryData.length);
-      sheetsAPI.deliveryData.forEach((r) => routes.push(this._normalizeRoute(r, 'spfm-delivery')));
+    if (
+      (!Array.isArray(sheetsAPI.routesData) ||
+        sheetsAPI.routesData.length === 0) &&
+      Array.isArray(sheetsAPI.deliveryData)
+    ) {
+      console.debug(
+        "[DataService] Delivery data count:",
+        sheetsAPI.deliveryData.length
+      );
+      sheetsAPI.deliveryData.forEach((r) =>
+        routes.push(this._normalizeRoute(r, "spfm-delivery"))
+      );
     }
 
     // Consolidated Routes sheet (if present) - expand periodic definitions into dated routes
-    if (Array.isArray(sheetsAPI.routesData) && sheetsAPI.routesData.length > 0) {
-      console.debug('[DataService] Routes sheet count:', sheetsAPI.routesData.length);
+    if (
+      Array.isArray(sheetsAPI.routesData) &&
+      sheetsAPI.routesData.length > 0
+    ) {
+      console.debug(
+        "[DataService] Routes sheet count:",
+        sheetsAPI.routesData.length
+      );
 
       // 1) Split rows into explicitly dated and periodic
       const datedRows = [];
       const periodicRows = [];
       const otherRows = [];
       sheetsAPI.routesData.forEach((r) => {
-        const hasDate = !!(this._getField(r, ['date', 'Date', 'DATE']));
-        const weekday = this._getField(r, ['Weekday', 'weekday', 'DAY', 'dayName', 'Day', 'day']);
+        const hasDate = !!this._getField(r, ["date", "Date", "DATE"]);
+        const weekday = this._getField(r, [
+          "Weekday",
+          "weekday",
+          "DAY",
+          "dayName",
+          "Day",
+          "day",
+        ]);
         if (hasDate) datedRows.push(r);
         else if (weekday) periodicRows.push(r);
         else otherRows.push(r);
@@ -314,13 +403,30 @@ class DataService extends EventTarget {
       //    Each date maps to a list of override matchers: { type, marketNorm, marketEmpty }
       const overridesByDate = new Map();
       datedRows.forEach((r) => {
-        const dv = this._getField(r, ['date', 'Date', 'DATE']);
-        const d = (dv instanceof Date) ? dv : new Date(dv);
-        const iso = isNaN(d) ? String(dv || '') : d.toISOString().slice(0,10);
+        const dv = this._getField(r, ["date", "Date", "DATE"]);
+        const d = dv instanceof Date ? dv : new Date(dv);
+        const iso = isNaN(d) ? String(dv || "") : d.toISOString().slice(0, 10);
         if (!iso) return;
-        const rt = (this._getField(r, ['routeType', 'RouteType', 'type', 'route type', 'Route Type']) || '').toString();
-        const fType = /recovery/i.test(rt) ? 'recovery' : (/delivery/i.test(rt) ? 'spfm-delivery' : 'spfm');
-        const mktRaw = this._getField(r, ['market','Market','location','Location']);
+        const rt = (
+          this._getField(r, [
+            "routeType",
+            "RouteType",
+            "type",
+            "route type",
+            "Route Type",
+          ]) || ""
+        ).toString();
+        const fType = /recovery/i.test(rt)
+          ? "recovery"
+          : /delivery/i.test(rt)
+          ? "spfm-delivery"
+          : "spfm";
+        const mktRaw = this._getField(r, [
+          "market",
+          "Market",
+          "location",
+          "Location",
+        ]);
         const marketNorm = this._normStr(mktRaw);
         const marketEmpty = !marketNorm;
         const list = overridesByDate.get(iso) || [];
@@ -331,74 +437,222 @@ class DataService extends EventTarget {
       // 3) Push dated rows as-is (custom overrides)
       datedRows.forEach((r) => {
         // Skip routes if routeID is empty
-        const routeId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
-        if (!routeId || routeId.toString().trim() === '') {
+        const routeId = this._getField(r, [
+          "routeID",
+          "routeId",
+          "RouteID",
+          "route_id",
+          "id",
+          "ID",
+        ]);
+        if (!routeId || routeId.toString().trim() === "") {
           return; // Skip this route if no routeID
         }
-        
+
         // Debug: Check for Woodbury in dated rows
-        const market = this._getField(r, ['market','Market','location','Location']);
-        const date = this._getField(r, ['date', 'Date', 'DATE']);
-        if (market && market.toLowerCase().includes('woodbury')) {
-          console.log('[DEBUG] Found Woodbury in DATED row:', {
+        const market = this._getField(r, [
+          "market",
+          "Market",
+          "location",
+          "Location",
+        ]);
+        const date = this._getField(r, ["date", "Date", "DATE"]);
+        if (market && market.toLowerCase().includes("woodbury")) {
+          console.log("[DEBUG] Found Woodbury in DATED row:", {
             date: date,
             market: market,
             routeId: routeId,
-            isAug17: date === '2025-08-17' || date === '8/17/2025' || date === '17/8/2025',
-            rawRow: r
+            isAug17:
+              date === "2025-08-17" ||
+              date === "8/17/2025" ||
+              date === "17/8/2025",
+            rawRow: r,
           });
         }
-        
-        const rt = (this._getField(r, ['routeType', 'RouteType', 'type', 'route type', 'Route Type']) || '').toString();
-        const fType = /recovery/i.test(rt) ? 'recovery' : (/delivery/i.test(rt) ? 'spfm-delivery' : 'spfm');
+
+        const rt = (
+          this._getField(r, [
+            "routeType",
+            "RouteType",
+            "type",
+            "route type",
+            "Route Type",
+          ]) || ""
+        ).toString();
+        const fType = /recovery/i.test(rt)
+          ? "recovery"
+          : /delivery/i.test(rt)
+          ? "spfm-delivery"
+          : "spfm";
         routes.push(this._normalizeRoute(r, fType));
       });
 
       // 4) Expand periodic rows into occurrences, skipping those that match overrides by (date,type,market)
       periodicRows.forEach((r) => {
         // Skip routes if routeID is empty
-        const routeId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
-        if (!routeId || routeId.toString().trim() === '') {
+        const routeId = this._getField(r, [
+          "routeID",
+          "routeId",
+          "RouteID",
+          "route_id",
+          "id",
+          "ID",
+        ]);
+        if (!routeId || routeId.toString().trim() === "") {
           return; // Skip this route if no routeID
         }
-        
-        const rt = (this._getField(r, ['routeType', 'RouteType', 'type', 'route type', 'Route Type']) || '').toString();
-        const fType = /recovery/i.test(rt) ? 'recovery' : (/delivery/i.test(rt) ? 'spfm-delivery' : 'spfm');
-        const weekday = this._getField(r, ['Weekday', 'weekday', 'DAY', 'dayName', 'Day', 'day']);
-        const market = this._getField(r, ['market','Market','location','Location']);
+
+        const rt = (
+          this._getField(r, [
+            "routeType",
+            "RouteType",
+            "type",
+            "route type",
+            "Route Type",
+          ]) || ""
+        ).toString();
+        const fType = /recovery/i.test(rt)
+          ? "recovery"
+          : /delivery/i.test(rt)
+          ? "spfm-delivery"
+          : "spfm";
+        const weekday = this._getField(r, [
+          "Weekday",
+          "weekday",
+          "DAY",
+          "dayName",
+          "Day",
+          "day",
+        ]);
+        const market = this._getField(r, [
+          "market",
+          "Market",
+          "location",
+          "Location",
+        ]);
         if (!weekday) return;
-        
-        // Debug: Filter out any dates that fall on Sunday (day 0) 
-        if (market && market.toLowerCase().includes('woodbury')) {
-          console.log('[DEBUG] Processing Woodbury route for weekday:', weekday);
+
+        // Debug: Filter out any dates that fall on Sunday (day 0)
+        if (market && market.toLowerCase().includes("woodbury")) {
+          console.log(
+            "[DEBUG] Processing Woodbury route for weekday:",
+            weekday
+          );
         }
-        
+
         const occurrences = this._generateNextOccurrences(String(weekday), 8);
         occurrences.forEach((d) => {
+          // For Monday routes, check if there's a linked Sunday SPFM route based on routeId mapping
+          let routeToNormalize = r;
+          if (weekday.toLowerCase() === "monday" && d.getDay() === 1) {
+            const sundayDate = new Date(d);
+            sundayDate.setDate(d.getDate() - 1); // Previous day (Sunday)
+            const sundayIso = sundayDate.toISOString().slice(0, 10);
+
+            // RouteId mapping: Sunday routeId → Monday routeId
+            const sundayToMondayMapping = {
+              '1': '6',
+              '2': '5', 
+              '3': '7'
+            };
+
+            // Get the current Monday route's routeId
+            const mondayRouteId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
+            
+            // Find the corresponding Sunday routeId for this Monday route
+            let correspondingSundayRouteId = null;
+            for (const [sundayId, mondayId] of Object.entries(sundayToMondayMapping)) {
+              if (mondayId === String(mondayRouteId)) {
+                correspondingSundayRouteId = sundayId;
+                break;
+              }
+            }
+
+            if (correspondingSundayRouteId) {
+              console.log(`[RouteId Link] Monday routeId=${mondayRouteId} should link to Sunday routeId=${correspondingSundayRouteId}`);
+              
+              // Look for Sunday SPFM route with the corresponding routeId
+              let sundayRoute = null;
+              if (Array.isArray(sheetsAPI.data)) {
+                for (const spfmRow of sheetsAPI.data) {
+                  const spfmDate = this._getField(spfmRow, ['date', 'Date', 'DATE']);
+                  const spfmRouteId = this._getField(spfmRow, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
+                  
+                  // Skip if no routeID
+                  if (!spfmRouteId || spfmRouteId.toString().trim() === '') continue;
+                  
+                  // Check if this SPFM row matches Sunday date and routeId
+                  let spfmDateObj;
+                  if (spfmDate instanceof Date) {
+                    spfmDateObj = spfmDate;
+                  } else {
+                    spfmDateObj = new Date(spfmDate);
+                  }
+                  
+                  if (!isNaN(spfmDateObj) && 
+                      spfmDateObj.toISOString().slice(0, 10) === sundayIso &&
+                      String(spfmRouteId) === correspondingSundayRouteId) {
+                    sundayRoute = spfmRow;
+                    console.log(
+                      `[RouteId Link] Found Sunday ${sundayIso} routeId=${spfmRouteId} for Monday ${d.toDateString()} routeId=${mondayRouteId}`
+                    );
+                    break;
+                  }
+                }
+              }
+
+              if (sundayRoute) {
+                const sundayMarket = this._getField(sundayRoute, ['market', 'Market', 'location', 'Location']);
+                
+                // Create a copy of the route template with the Sunday route data
+                routeToNormalize = { ...r };
+                if (sundayMarket) {
+                  routeToNormalize.market = sundayMarket;
+                  routeToNormalize.Market = sundayMarket;
+                }
+                // Mark as SPFM Delivery route
+                routeToNormalize.routeType = 'SPFM Delivery';
+                routeToNormalize.type = 'spfm-delivery';
+                console.log(
+                  `[RouteId Link] Linking Monday ${d.toDateString()} routeId=${mondayRouteId} to Sunday routeId=${correspondingSundayRouteId} market="${sundayMarket}" as SPFM Delivery`
+                );
+              }
+            }
+          }
+
           // Debug: Log all generated dates for Woodbury route
-          if (market && market.toLowerCase().includes('woodbury')) {
-            console.log('[DEBUG] Generated date for Woodbury Monday route:', {
-              iso: d.toISOString().slice(0,10),
+          if (market && market.toLowerCase().includes("woodbury")) {
+            console.log("[DEBUG] Generated date for Woodbury Monday route:", {
+              iso: d.toISOString().slice(0, 10),
               dayOfWeek: d.getDay(),
               dateString: d.toDateString(),
-              isAug17: d.toISOString().slice(0,10) === '2025-08-17'
+              isAug17: d.toISOString().slice(0, 10) === "2025-08-17",
             });
           }
-          
+
           // Safety check: Skip any Sunday dates (day 0) that shouldn't be generated
-          if (d.getDay() === 0 && weekday.toLowerCase() !== 'sunday') {
-            console.warn('[FILTER] Skipping Sunday date generated from', weekday, 'template:', d.toDateString(), 'Market:', market);
+          if (d.getDay() === 0 && weekday.toLowerCase() !== "sunday") {
+            console.warn(
+              "[FILTER] Skipping Sunday date generated from",
+              weekday,
+              "template:",
+              d.toDateString(),
+              "Market:",
+              market
+            );
             return;
           }
-          
-          const iso = d.toISOString().slice(0,10);
+
+          const iso = d.toISOString().slice(0, 10);
           const overrides = overridesByDate.get(iso) || [];
           if (overrides.length) {
-            const pMarketNorm = this._normStr(this._getField(r, ['market','Market','location','Location']));
+            const pMarketNorm = this._normStr(
+              this._getField(r, ["market", "Market", "location", "Location"])
+            );
             const skip = overrides.some((o) => {
               if (o.type !== fType) return false;
               // Recovery special-case: blank market overrides all recovery routes that day
-              if (o.type === 'recovery' && o.marketEmpty) return true;
+              if (o.type === "recovery" && o.marketEmpty) return true;
               // Otherwise require market match
               return o.marketNorm === pMarketNorm;
             });
@@ -411,20 +665,32 @@ class DataService extends EventTarget {
 
       // 5) Any other rows, include normalized (rare)
       otherRows.forEach((r) => {
-        const rt = (this._getField(r, ['routeType', 'RouteType', 'type', 'route type', 'Route Type']) || '').toString();
-        const fType = /recovery/i.test(rt) ? 'recovery' : (/delivery/i.test(rt) ? 'spfm-delivery' : 'spfm');
+        const rt = (
+          this._getField(r, [
+            "routeType",
+            "RouteType",
+            "type",
+            "route type",
+            "Route Type",
+          ]) || ""
+        ).toString();
+        const fType = /recovery/i.test(rt)
+          ? "recovery"
+          : /delivery/i.test(rt)
+          ? "spfm-delivery"
+          : "spfm";
         routes.push(this._normalizeRoute(r, fType));
       });
     }
 
-    console.debug('[DataService] Normalized routes:', routes.length);
+    console.debug("[DataService] Normalized routes:", routes.length);
     this.routes = routes;
     this._routesCacheKey = cacheKey;
     this._routesCache = [...routes];
     // Persist normalized result for fast subsequent queries
     try {
-      await localStore.putCache('normalizedRoutes', routes);
-      await localStore.setMeta('dataSignature', cacheKey);
+      await localStore.putCache("normalizedRoutes", routes);
+      await localStore.setMeta("dataSignature", cacheKey);
     } catch {}
     return [...routes];
   }
@@ -439,8 +705,12 @@ class DataService extends EventTarget {
    */
   getWorkersFromRoute(route) {
     if (!route) return [];
-    try { return sheetsAPI.getAllWorkersFromRoute(route) || []; }
-    catch (e) { console.error('getWorkersFromRoute failed:', e); return []; }
+    try {
+      return sheetsAPI.getAllWorkersFromRoute(route) || [];
+    } catch (e) {
+      console.error("getWorkersFromRoute failed:", e);
+      return [];
+    }
   }
 
   /**
@@ -448,8 +718,12 @@ class DataService extends EventTarget {
    */
   getVolunteersFromRoute(route) {
     if (!route) return [];
-    try { return sheetsAPI.getAllVolunteers(route) || []; }
-    catch (e) { console.error('getVolunteersFromRoute failed:', e); return []; }
+    try {
+      return sheetsAPI.getAllVolunteers(route) || [];
+    } catch (e) {
+      console.error("getVolunteersFromRoute failed:", e);
+      return [];
+    }
   }
 
   /**
@@ -457,8 +731,12 @@ class DataService extends EventTarget {
    */
   getVansFromRoute(route) {
     if (!route) return [];
-    try { return sheetsAPI.getAllVans(route) || []; }
-    catch (e) { console.error('getVansFromRoute failed:', e); return []; }
+    try {
+      return sheetsAPI.getAllVans(route) || [];
+    } catch (e) {
+      console.error("getVansFromRoute failed:", e);
+      return [];
+    }
   }
 
   // Vehicle emoji helper for components
@@ -521,29 +799,67 @@ class DataService extends EventTarget {
   // NORMALIZATION HELPERS
   // ========================================
 
-  _normalizeRoute(raw, fallbackType = 'spfm') {
-    const rawType = this._getField(raw, ['type','routeType','route type','RouteType','Route Type']) || fallbackType || 'spfm';
+  _normalizeRoute(raw, fallbackType = "spfm") {
+    const rawType =
+      this._getField(raw, [
+        "type",
+        "routeType",
+        "route type",
+        "RouteType",
+        "Route Type",
+      ]) ||
+      fallbackType ||
+      "spfm";
     let type = rawType;
     try {
-      const t = (rawType || '').toString();
-      if (/recovery/i.test(t)) type = 'recovery';
-      else if (/delivery/i.test(t)) type = 'spfm-delivery';
-      else type = 'spfm';
+      const t = (rawType || "").toString();
+      if (/recovery/i.test(t)) type = "recovery";
+      else if (/delivery/i.test(t)) type = "spfm-delivery";
+      else type = "spfm";
     } catch {}
-    const dateVal = this._getField(raw, ['date','Date','DATE']) || raw.sortDate || raw.parsed || '';
-    const dateObj = (dateVal instanceof Date) ? dateVal : new Date(dateVal);
-    const dateStr = (dateObj && !isNaN(dateObj)) ? dateObj.toISOString().slice(0,10) : (typeof dateVal === 'string' ? dateVal : '');
-    const startTime = this._getField(raw, ['startTime','Time','time']) || '';
+    const dateVal =
+      this._getField(raw, ["date", "Date", "DATE"]) ||
+      raw.sortDate ||
+      raw.parsed ||
+      "";
+    const dateObj = dateVal instanceof Date ? dateVal : new Date(dateVal);
+    const dateStr =
+      dateObj && !isNaN(dateObj)
+        ? dateObj.toISOString().slice(0, 10)
+        : typeof dateVal === "string"
+        ? dateVal
+        : "";
+    const startTime = this._getField(raw, ["startTime", "Time", "time"]) || "";
     // Do not default market to 'Recovery'—keep empty if absent to avoid UI confusion
-    const market = this._getField(raw, ['market','Market','location','Location']) || '';
-    const dropOff = this._getField(raw, ['dropOff','dropoff','drop off','Drop Off','Drop off']) || '';
+    const market =
+      this._getField(raw, ["market", "Market", "location", "Location"]) || "";
+    const dropOff =
+      this._getField(raw, [
+        "dropOff",
+        "dropoff",
+        "drop off",
+        "Drop Off",
+        "Drop off",
+      ]) || "";
     const workers = this.getWorkersFromRoute(raw) || [];
     const volunteers = this.getVolunteersFromRoute(raw) || [];
     const vans = this.getVansFromRoute(raw) || [];
-    const officeMaterials = (raw.materials_office || '').split(',').map(s=>s.trim()).filter(Boolean);
-    const storageMaterials = (raw.materials_storage || '').split(',').map(s=>s.trim()).filter(Boolean);
-    const atMarket = (raw.atMarket || '').split(',').map(s=>s.trim()).filter(Boolean);
-    const backAtOffice = (raw.backAtOffice || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const officeMaterials = (raw.materials_office || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const storageMaterials = (raw.materials_storage || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const atMarket = (raw.atMarket || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const backAtOffice = (raw.backAtOffice || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     // Build stops list similar to legacy logic
     const stops = this._extractStops(raw, type, market, dropOff);
@@ -552,14 +868,19 @@ class DataService extends EventTarget {
     const displayDate = this._formatDisplayDate(dateVal);
 
     // id - create a more robust ID by filtering out empty values
-    const idParts = [type, dateStr, startTime, market, dropOff].filter(p => p && p.toString().trim());
-    const id = raw._routeId || idParts.join('|');
-    
+    const idParts = [type, dateStr, startTime, market, dropOff].filter(
+      (p) => p && p.toString().trim()
+    );
+    const id = raw._routeId || idParts.join("|");
 
     // Contacts for convenience
     const contactFor = (name) => {
       if (!name) return null;
-      try { return sheetsAPI.getAddressFromContacts(name) || null; } catch { return null; }
+      try {
+        return sheetsAPI.getAddressFromContacts(name) || null;
+      } catch {
+        return null;
+      }
     };
 
     return {
@@ -568,7 +889,7 @@ class DataService extends EventTarget {
       type,
       date: dateStr,
       displayDate,
-      sortDate: (dateObj && !isNaN(dateObj)) ? dateObj : null,
+      sortDate: dateObj && !isNaN(dateObj) ? dateObj : null,
       startTime,
       market,
       dropOff,
@@ -592,7 +913,7 @@ class DataService extends EventTarget {
 
   _extractStops(route, type, market, dropOff) {
     const stops = [];
-    if (type === 'recovery' || type === 'spfm-delivery') {
+    if (type === "recovery" || type === "spfm-delivery") {
       let i = 1;
       for (;;) {
         const s = route[`stop${i}`] || route[`Stop ${i}`] || route[`stop ${i}`];
@@ -611,15 +932,20 @@ class DataService extends EventTarget {
     return stops;
   }
 
-
   // ========================================
   // PERIODIC DATES HELPERS
   // ========================================
 
   _weekdayIndex(name) {
-    const n = (name || '').toString().trim().toLowerCase();
+    const n = (name || "").toString().trim().toLowerCase();
     const map = {
-      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
     };
     return map[n] ?? -1;
   }
@@ -629,11 +955,15 @@ class DataService extends EventTarget {
     if (true) {
       try {
         await this._ensureApiLoaded();
-        if (window.assignmentsManager && typeof window.assignmentsManager.getUpcomingRoutes === 'function') {
-          this.routes = window.assignmentsManager.getUpcomingRoutes(limit) || [];
+        if (
+          window.assignmentsManager &&
+          typeof window.assignmentsManager.getUpcomingRoutes === "function"
+        ) {
+          this.routes =
+            window.assignmentsManager.getUpcomingRoutes(limit) || [];
         }
       } catch (error) {
-        console.error('Error loading routes:', error);
+        console.error("Error loading routes:", error);
         this.routes = [];
       }
     }
@@ -647,7 +977,7 @@ class DataService extends EventTarget {
         await this._ensureApiLoaded();
         return [];
       } catch (error) {
-        console.error('Error loading dates:', error);
+        console.error("Error loading dates:", error);
         return [];
       }
     }
@@ -660,33 +990,39 @@ class DataService extends EventTarget {
 
   // Retrieve a value from an object by trying multiple aliases and tolerant key matching
   _getField(obj, aliases = []) {
-    if (!obj || typeof obj !== 'object') return undefined;
+    if (!obj || typeof obj !== "object") return undefined;
     // Direct exact match first
     for (const a of aliases) {
-      if (a in obj && obj[a] !== undefined && obj[a] !== '') return obj[a];
+      if (a in obj && obj[a] !== undefined && obj[a] !== "") return obj[a];
     }
     // Case-insensitive, space/underscore-insensitive matching
-    const norm = (s) => (s || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const norm = (s) =>
+      (s || "")
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
     const keyMap = {};
-    Object.keys(obj).forEach((k) => { keyMap[norm(k)] = k; });
+    Object.keys(obj).forEach((k) => {
+      keyMap[norm(k)] = k;
+    });
     for (const a of aliases) {
       const nk = keyMap[norm(a)];
-      if (nk && obj[nk] !== undefined && obj[nk] !== '') return obj[nk];
+      if (nk && obj[nk] !== undefined && obj[nk] !== "") return obj[nk];
     }
     return undefined;
   }
 
   // Normalize strings for comparison (case-insensitive, trimmed)
   _normStr(s) {
-    return (s == null ? '' : String(s)).trim().toLowerCase();
+    return (s == null ? "" : String(s)).trim().toLowerCase();
   }
 
   async loadApiData(force = false) {
     await localStore.init();
     if (this.isLoading) return;
-    
+
     this.isLoading = true;
-    this.dispatchEvent(new CustomEvent('loading-started'));
+    this.dispatchEvent(new CustomEvent("loading-started"));
 
     try {
       if (true) {
@@ -695,34 +1031,37 @@ class DataService extends EventTarget {
         try {
           const s = sheetsAPI || {};
           const sig = this._makeSignature();
-          await localStore.putTable('SPFM', s.data || []);
-          await localStore.putTable('Routes', s.routesData || []);
-          await localStore.putTable('Recovery', s.recoveryData || []);
-          await localStore.putTable('SPFM_Delivery', s.deliveryData || []);
-          await localStore.putTable('Status', s.inventoryData || []);
-          await localStore.putTable('Contacts', s.contactsData || []);
-          await localStore.putTable('Misc_Workers', s.miscWorkers || []);
-          await localStore.putTable('Misc_Vehicles', s.miscVehicles || []);
+          await localStore.putTable("SPFM", s.data || []);
+          await localStore.putTable("Routes", s.routesData || []);
+          await localStore.putTable("Recovery", s.recoveryData || []);
+          await localStore.putTable("SPFM_Delivery", s.deliveryData || []);
+          await localStore.putTable("Status", s.inventoryData || []);
+          await localStore.putTable("Contacts", s.contactsData || []);
+          await localStore.putTable("Misc_Workers", s.miscWorkers || []);
+          await localStore.putTable("Misc_Vehicles", s.miscVehicles || []);
           // Precompute workers list and normalized routes for quick lookups
-          const workers = (typeof s.getAllWorkers === 'function') ? s.getAllWorkers() : [];
-          await localStore.putCache('workersList', workers);
+          const workers =
+            typeof s.getAllWorkers === "function" ? s.getAllWorkers() : [];
+          await localStore.putCache("workersList", workers);
           // Normalize routes via existing method to keep logic centralized
           const normalized = await this.getRoutes();
-          await localStore.putCache('normalizedRoutes', normalized);
-          await localStore.setMeta('dataSignature', sig);
+          await localStore.putCache("normalizedRoutes", normalized);
+          await localStore.setMeta("dataSignature", sig);
         } catch (e) {
-          console.warn('LocalStore population skipped:', e);
+          console.warn("LocalStore population skipped:", e);
         }
-        this.dispatchEvent(new CustomEvent('data-loaded'));
+        this.dispatchEvent(new CustomEvent("data-loaded"));
         // Begin version polling to auto-refresh when Sheets change (faster during dev)
-        try { sheetsAPI.startVersionPolling(20000); } catch {}
+        try {
+          sheetsAPI.startVersionPolling(20000);
+        } catch {}
       }
     } catch (error) {
-      console.error('Error loading API data:', error);
-      this.dispatchEvent(new CustomEvent('data-error', { detail: error }));
+      console.error("Error loading API data:", error);
+      this.dispatchEvent(new CustomEvent("data-error", { detail: error }));
     } finally {
       this.isLoading = false;
-      this.dispatchEvent(new CustomEvent('loading-finished'));
+      this.dispatchEvent(new CustomEvent("loading-finished"));
     }
   }
 
@@ -737,14 +1076,18 @@ class DataService extends EventTarget {
   getWorkerIcons() {
     try {
       // Build from Misc workers if available
-      if (sheetsAPI && Array.isArray(sheetsAPI.miscWorkers) && sheetsAPI.miscWorkers.length > 0) {
+      if (
+        sheetsAPI &&
+        Array.isArray(sheetsAPI.miscWorkers) &&
+        sheetsAPI.miscWorkers.length > 0
+      ) {
         const map = {};
         sheetsAPI.miscWorkers.forEach((w) => {
           if (!w || !w.worker) return;
           if (w.emoji) map[w.worker] = w.emoji;
         });
         // Provide default for Volunteer if not specified
-        if (!map.Volunteer) map.Volunteer = '👤';
+        if (!map.Volunteer) map.Volunteer = "👤";
         return map;
       }
     } catch {}
@@ -752,12 +1095,12 @@ class DataService extends EventTarget {
     return {
       Samuel: "🐋",
       Emmanuel: "🦁",
-      Irmydel: "🐸", 
+      Irmydel: "🐸",
       Tess: "🌟",
       Ayoyo: "⚡",
       Rosey: "🌹",
       Boniat: "🌊",
-      Volunteer: "👤"
+      Volunteer: "👤",
     };
   }
 
@@ -793,50 +1136,69 @@ class DataService extends EventTarget {
 
   _generateNextOccurrences(dayName, count = 8) {
     const dayMap = {
-      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
-      sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+      sun: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6,
     };
-    
+
     const targetDay = dayMap[dayName.toLowerCase().trim()];
-    if (typeof targetDay !== 'number') return [];
-    
+    if (typeof targetDay !== "number") return [];
+
     // Use local midnight to avoid timezone issues
     const today = new Date();
     const results = [];
-    let current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    
+    let current = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
     // Find the next occurrence of the target day (including today if it matches)
     let daysToAdd = (targetDay - current.getDay() + 7) % 7;
     if (daysToAdd === 0 && current.getTime() <= today.getTime()) {
       daysToAdd = 7; // If it's today but we want future occurrences, go to next week
     }
     current.setDate(current.getDate() + daysToAdd);
-    
+
     // Generate the specified count of occurrences
     for (let i = 0; i < count; i++) {
       results.push(new Date(current));
       current.setDate(current.getDate() + 7); // Next week
     }
-    
+
     return results;
   }
 
-
   _formatDisplayDate(dateStr) {
-    if (!dateStr) return '';
+    if (!dateStr) return "";
     try {
       // Handle ISO date strings by parsing them as local dates to avoid timezone issues
       let d;
       if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
         // ISO date format - parse as local date
-        const [year, month, day] = dateStr.split('-');
+        const [year, month, day] = dateStr.split("-");
         d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       } else {
         d = new Date(dateStr);
       }
-      
+
       if (isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      return d.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
     } catch {
       return dateStr;
     }
@@ -845,15 +1207,15 @@ class DataService extends EventTarget {
   getBoxConfig() {
     return {
       small: {
-        label: 'small',
-        description: '5/9 bushel',
-        farmersRatio: 2
+        label: "small",
+        description: "5/9 bushel",
+        farmersRatio: 2,
       },
       large: {
-        label: 'LARGE',
-        description: '1 1/9 bushel', 
-        farmersRatio: 1
-      }
+        label: "LARGE",
+        description: "1 1/9 bushel",
+        farmersRatio: 1,
+      },
     };
   }
 }

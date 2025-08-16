@@ -31,6 +31,7 @@ class AppLayout extends HTMLElement {
       router.registerRoute("/boxes", "boxes-page", "Box Inventory");
       router.registerRoute("/dates", "dates-page", "Upcoming Routes");
       router.registerRoute("/workers", "workers-page", "Routes by Worker");
+      router.registerRoute("/materials", "materials-page", "Materials Checklist");
       router.registerRoute("/route", "route-details-page", "Route Details");
     } catch {}
   }
@@ -282,6 +283,10 @@ class AppLayout extends HTMLElement {
         <a href="/workers" class="tab-btn" data-route="/workers">
           <div class="tab-icon">👥</div>
           <div class="tab-label">By Worker</div>
+        </a>
+        <a href="/materials" class="tab-btn" data-route="/materials">
+          <div class="tab-icon">🧰</div>
+          <div class="tab-label">Materials</div>
         </a>
       </div>
     `;

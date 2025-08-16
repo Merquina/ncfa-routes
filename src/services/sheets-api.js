@@ -876,12 +876,27 @@ class SheetsAPIService extends EventTarget {
       const idxAtMarket = matchCol([
         /^(at\s?market|market|atmarket|atMarket)$/i,
       ]);
-      const idxMaterialsOffice = matchCol([
-        /^(materials_office|materialsoffice|materials\s?office)$/i,
-      ]);
-      const idxMaterialsStorage = matchCol([
-        /^(materials_storage|materialsstorage|materials\s?storage)$/i,
-      ]);
+      // For transposed format, look for materials_office and materials_storage rows,
+      // then collect all step columns (step1, step2, step3, step4, step5)
+      const findRowIndex = (pattern) => {
+        for (let i = 1; i < values.length; i++) {
+          const row = values[i] || [];
+          const firstCell = (row[0] || "").toString().trim().toLowerCase();
+          if (pattern.test(firstCell)) return i;
+        }
+        return -1;
+      };
+      
+      const materialsOfficeRowIdx = findRowIndex(/^(materials_office|materialsoffice|materials\s?office)$/i);
+      const materialsStorageRowIdx = findRowIndex(/^(materials_storage|materialsstorage|materials\s?storage)$/i);
+      
+      // Find step columns (step1, step2, step3, step4, step5)
+      const stepColumns = [];
+      for (let i = 0; i < headers.length; i++) {
+        if (/^step\d+$/i.test(headers[i])) {
+          stepColumns.push(i);
+        }
+      }
 
       const idxBackAtOffice = matchCol([
         /^(back\s?at\s?office|back\s?office|backatoffice|backAtOffice)$/i,
@@ -911,13 +926,28 @@ class SheetsAPIService extends EventTarget {
           .map((t) => t.trim())
           .filter(Boolean);
       const out = [];
+      // Extract global materials from transposed format (once for all routes)
+      const extractMaterialsFromRow = (rowIdx) => {
+        if (rowIdx < 0 || rowIdx >= values.length) return [];
+        const materialsRow = values[rowIdx] || [];
+        const materials = [];
+        for (const colIdx of stepColumns) {
+          const item = (materialsRow[colIdx] || "").toString().trim();
+          if (item) materials.push(item);
+        }
+        return materials;
+      };
+      
+      const globalMaterialsOffice = extractMaterialsFromRow(materialsOfficeRowIdx);
+      const globalMaterialsStorage = extractMaterialsFromRow(materialsStorageRowIdx);
+      
       const hasAnyReminderCols =
         idxDrop >= 0 ||
         idxAtOffice >= 0 ||
         idxBackOffice >= 0 ||
         idxAtMarket >= 0 ||
-        idxMaterialsOffice >= 0 ||
-        idxMaterialsStorage >= 0 ||
+        materialsOfficeRowIdx >= 0 ||
+        materialsStorageRowIdx >= 0 ||
         idxBackAtOffice >= 0;
       if (hasAnyReminderCols) {
         for (let i = 1; i < values.length; i++) {
@@ -936,12 +966,12 @@ class SheetsAPIService extends EventTarget {
           const a = idxAtOffice >= 0 ? splitItems(row[idxAtOffice]) : [];
           const b = idxBackOffice >= 0 ? splitItems(row[idxBackOffice]) : [];
           const m = idxAtMarket >= 0 ? splitItems(row[idxAtMarket]) : [];
-          const mo =
-            idxMaterialsOffice >= 0 ? splitItems(row[idxMaterialsOffice]) : [];
-          const ms =
-            idxMaterialsStorage >= 0
-              ? splitItems(row[idxMaterialsStorage])
-              : [];
+          // Skip processing rows that are materials definition rows themselves
+          if (i === materialsOfficeRowIdx || i === materialsStorageRowIdx) continue;
+          
+          // Use global materials for all routes
+          const mo = globalMaterialsOffice;
+          const ms = globalMaterialsStorage;
           const bao =
             idxBackAtOffice >= 0 ? splitItems(row[idxBackAtOffice]) : [];
           const emptyRow =
@@ -1293,6 +1323,7 @@ class SheetsAPIService extends EventTarget {
         contact.notes ||
         "",
       type: contact.Type || contact.type || contact.TYPE || "",
+      job: contact.Job || contact.job || contact.JOB || "",
     };
   }
 

@@ -54,11 +54,14 @@ class RouteDetails extends HTMLElement {
 
   getVehicleEmoji(name) {
     try {
-      if (window.dataService && typeof window.dataService.getVehicleEmoji === 'function') {
-        return window.dataService.getVehicleEmoji(name) || '🚐';
+      if (
+        window.dataService &&
+        typeof window.dataService.getVehicleEmoji === "function"
+      ) {
+        return window.dataService.getVehicleEmoji(name) || "🚐";
       }
     } catch {}
-    return '🚐';
+    return "🚐";
   }
 
   renderWorkers(workers = [], volunteers = [], required = 0) {
@@ -112,9 +115,11 @@ class RouteDetails extends HTMLElement {
       materials_storage: [],
     };
     try {
-      const res = (window.dataService && typeof window.dataService.getRemindersForRoute === 'function')
-        ? await window.dataService.getRemindersForRoute(route)
-        : null;
+      const res =
+        window.dataService &&
+        typeof window.dataService.getRemindersForRoute === "function"
+          ? await window.dataService.getRemindersForRoute(route)
+          : null;
       if (Array.isArray(res)) {
         // Backward-compat: older API returned a flat array; treat as dropoff list
         reminderBuckets.dropoff = res;
@@ -122,8 +127,16 @@ class RouteDetails extends HTMLElement {
         reminderBuckets = {
           dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
           atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : (Array.isArray(res.backAtOffice) ? res.backAtOffice : []),
-          atmarket: Array.isArray(res.atmarket) ? res.atmarket : (Array.isArray(res.atMarket) ? res.atMarket : []),
+          backatoffice: Array.isArray(res.backatoffice)
+            ? res.backatoffice
+            : Array.isArray(res.backAtOffice)
+            ? res.backAtOffice
+            : [],
+          atmarket: Array.isArray(res.atmarket)
+            ? res.atmarket
+            : Array.isArray(res.atMarket)
+            ? res.atMarket
+            : [],
           materials_office: Array.isArray(res.materials_office)
             ? res.materials_office
             : [],
@@ -134,13 +147,7 @@ class RouteDetails extends HTMLElement {
       }
     } catch {}
 
-    // All routes use standard layout (no special SPFM materials sections)
-    const standardLayout = this.renderStandardLayout(
-      materials,
-      reminderBuckets,
-      route,
-      stops
-    );
+    // No special layout sections needed anymore
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -156,7 +163,6 @@ class RouteDetails extends HTMLElement {
         .stop { padding:10px; border:1px solid #eee; border-radius:6px; margin:8px 0; }
         .btn { background:#28a745; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
         .btn:disabled { opacity:0.6; cursor:default; }
-        .subtle { color:#999; font-style: italic; }
       </style>
       <div class="container">
         <div class="header">
@@ -200,8 +206,6 @@ class RouteDetails extends HTMLElement {
         `
             : ""
         }
-
-        ${standardLayout}
         ${
           stops && stops.length
             ? `
@@ -215,10 +219,12 @@ class RouteDetails extends HTMLElement {
                   s.location || s.name || "Stop"
                 }</strong></div>
                 ${s.address ? `<div>${s.address}</div>` : ""}
-                <div style="margin-top:6px;">
+                ${this.renderContactInfo(s.location)}
+                <div style="margin-top:8px;">
                   ${this.renderAddressButton(s.location)}
                   ${this.renderPhoneButtons(s.location)}
                 </div>
+                ${this.renderJobInfo(s.location)}
               </div>
             `
               )
@@ -241,14 +247,14 @@ class RouteDetails extends HTMLElement {
     // Support both camelCase and snake/lowercase variants
     const backAtOffice = Array.isArray(reminderBuckets.backAtOffice)
       ? reminderBuckets.backAtOffice
-      : (Array.isArray(reminderBuckets.backatoffice)
-        ? reminderBuckets.backatoffice
-        : []);
+      : Array.isArray(reminderBuckets.backatoffice)
+      ? reminderBuckets.backatoffice
+      : [];
     const atMarket = Array.isArray(reminderBuckets.atMarket)
       ? reminderBuckets.atMarket
-      : (Array.isArray(reminderBuckets.atmarket)
-        ? reminderBuckets.atmarket
-        : []);
+      : Array.isArray(reminderBuckets.atmarket)
+      ? reminderBuckets.atmarket
+      : [];
     const materialsOffice = Array.isArray(reminderBuckets.materials_office)
       ? reminderBuckets.materials_office
       : [];
@@ -259,12 +265,12 @@ class RouteDetails extends HTMLElement {
     const list = (items) =>
       items && items.length
         ? `<ul style="margin:6px 0 0 18px; padding:0;">${items
-            .map((t) => `<li>${String(t)}</li>`) 
+            .map((t) => `<li>${String(t)}</li>`)
             .join("")}</ul>`
         : '<div class="subtle">No items</div>';
 
     const section = (label, items) => {
-      if (!items || items.length === 0) return '';
+      if (!items || items.length === 0) return "";
       return `
         <div class="section">
           <div class="label">${label}</div>
@@ -275,26 +281,32 @@ class RouteDetails extends HTMLElement {
 
     // Render sections when there is content; keep the page compact otherwise
     return `
-      ${section('Drop-off Reminders', dropoff)}
-      ${section('At Office – Tasks', atOffice)}
-      ${section('Back at Office – Tasks', backAtOffice)}
-      ${section('At Market – Tasks', atMarket)}
-      ${section('Materials – Office', materialsOffice)}
-      ${section('Materials – Storage', materialsStorage)}
+      ${section("Drop-off Reminders", dropoff)}
+      ${section("At Office – Tasks", atOffice)}
+      ${section("Back at Office – Tasks", backAtOffice)}
+      ${section("At Market – Tasks", atMarket)}
+      ${section("Materials – Office", materialsOffice)}
+      ${section("Materials – Storage", materialsStorage)}
     `;
   }
 
   renderAddressButton(location) {
     if (!location) return "";
     try {
-      const contact = (window.dataService && typeof window.dataService.getAddressForLocation === 'function')
-        ? window.dataService.getAddressForLocation(location)
-        : null;
+      const contact =
+        window.dataService &&
+        typeof window.dataService.getAddressForLocation === "function"
+          ? window.dataService.getAddressForLocation(location)
+          : null;
       const address = contact && contact.address ? contact.address : location;
-      const link = `https://maps.google.com/maps?q=${encodeURIComponent(address)}`;
+      const link = `https://maps.google.com/maps?q=${encodeURIComponent(
+        address
+      )}`;
       return `<button class="btn" onclick="window.open('${link}', '_blank')">📍 ${address}</button>`;
     } catch {
-      const link = `https://maps.google.com/maps?q=${encodeURIComponent(location)}`;
+      const link = `https://maps.google.com/maps?q=${encodeURIComponent(
+        location
+      )}`;
       return `<button class="btn" onclick="window.open('${link}', '_blank')">📍 ${location}</button>`;
     }
   }
@@ -302,9 +314,11 @@ class RouteDetails extends HTMLElement {
   renderPhoneButtons(location) {
     if (!location) return "";
     try {
-      const contact = (window.dataService && typeof window.dataService.getAddressForLocation === 'function')
-        ? window.dataService.getAddressForLocation(location)
-        : null;
+      const contact =
+        window.dataService &&
+        typeof window.dataService.getAddressForLocation === "function"
+          ? window.dataService.getAddressForLocation(location)
+          : null;
       if (contact && contact.phones && contact.phones.length) {
         return contact.phones
           .map(
@@ -312,6 +326,46 @@ class RouteDetails extends HTMLElement {
               `<button class="btn" style="background:#007bff;margin-left:6px;" onclick="window.open('tel:${p}','_blank')">📞 ${p}</button>`
           )
           .join("");
+      }
+    } catch {}
+    return "";
+  }
+
+  renderContactInfo(location) {
+    if (!location) return "";
+    try {
+      const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      if (contact) {
+        const contactsDisplay = [];
+
+        // Add all contacts (Contact1, Contact2, etc.)
+        if (contact.contacts && contact.contacts.length) {
+          contactsDisplay.push(...contact.contacts);
+        }
+
+        // Add notes if available
+        if (contact.notes && contact.notes.trim()) {
+          contactsDisplay.push(contact.notes.trim());
+        }
+
+        if (contactsDisplay.length > 0) {
+          return `<div class="contact-notes" style="margin-top:4px; color:#333; font-size:0.85rem; line-height:1.3;">
+            <strong>Notes:</strong> ${contactsDisplay.join(", ")}
+          </div>`;
+        }
+      }
+    } catch {}
+    return "";
+  }
+
+  renderJobInfo(location) {
+    if (!location) return "";
+    try {
+      const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      if (contact && contact.job && contact.job.trim()) {
+        return `<div class="job-info" style="margin-top:6px; color:#666; font-size:0.8rem; font-style:italic;">
+          Job: ${contact.job.trim()}
+        </div>`;
       }
     } catch {}
     return "";
