@@ -542,8 +542,7 @@ class DataService extends EventTarget {
 
         const occurrences = this._generateNextOccurrences(String(weekday), 8);
         occurrences.forEach((d) => {
-          // For Monday routes, check if there's a linked Sunday SPFM route based on routeId mapping
-          let routeToNormalize = r;
+          // For Monday routes, only create routes that have a linked Sunday SPFM route
           if (weekday.toLowerCase() === "monday" && d.getDay() === 1) {
             const sundayDate = new Date(d);
             sundayDate.setDate(d.getDate() - 1); // Previous day (Sunday)
@@ -551,81 +550,149 @@ class DataService extends EventTarget {
 
             // RouteId mapping: Sunday routeId → Monday routeId
             const sundayToMondayMapping = {
-              '1': '6',
-              '2': '5', 
-              '3': '7'
+              1: "6",
+              2: "5",
+              3: "7",
             };
 
             // Get the current Monday route's routeId
-            const mondayRouteId = this._getField(r, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
-            
+            const mondayRouteId = this._getField(r, [
+              "routeID",
+              "routeId",
+              "RouteID",
+              "route_id",
+              "id",
+              "ID",
+            ]);
+
             // Find the corresponding Sunday routeId for this Monday route
             let correspondingSundayRouteId = null;
-            for (const [sundayId, mondayId] of Object.entries(sundayToMondayMapping)) {
+            for (const [sundayId, mondayId] of Object.entries(
+              sundayToMondayMapping
+            )) {
               if (mondayId === String(mondayRouteId)) {
                 correspondingSundayRouteId = sundayId;
                 break;
               }
             }
 
-            if (correspondingSundayRouteId) {
-              console.log(`[RouteId Link] Monday routeId=${mondayRouteId} should link to Sunday routeId=${correspondingSundayRouteId}`);
-              
-              // Look for Sunday SPFM route with the corresponding routeId
-              let sundayRoute = null;
-              if (Array.isArray(sheetsAPI.data)) {
-                for (const spfmRow of sheetsAPI.data) {
-                  const spfmDate = this._getField(spfmRow, ['date', 'Date', 'DATE']);
-                  const spfmRouteId = this._getField(spfmRow, ['routeID', 'routeId', 'RouteID', 'route_id', 'id', 'ID']);
-                  
-                  // Skip if no routeID
-                  if (!spfmRouteId || spfmRouteId.toString().trim() === '') continue;
-                  
-                  // Check if this SPFM row matches Sunday date and routeId
-                  let spfmDateObj;
-                  if (spfmDate instanceof Date) {
-                    spfmDateObj = spfmDate;
-                  } else {
-                    spfmDateObj = new Date(spfmDate);
-                  }
-                  
-                  if (!isNaN(spfmDateObj) && 
-                      spfmDateObj.toISOString().slice(0, 10) === sundayIso &&
-                      String(spfmRouteId) === correspondingSundayRouteId) {
-                    sundayRoute = spfmRow;
-                    console.log(
-                      `[RouteId Link] Found Sunday ${sundayIso} routeId=${spfmRouteId} for Monday ${d.toDateString()} routeId=${mondayRouteId}`
-                    );
-                    break;
-                  }
-                }
-              }
+            // Only proceed if we have a mapping and can find the Sunday route
+            if (!correspondingSundayRouteId) {
+              console.log(
+                `[RouteId Skip] Monday routeId=${mondayRouteId} has no Sunday mapping - skipping`
+              );
+              return; // Skip this Monday route entirely
+            }
 
-              if (sundayRoute) {
-                const sundayMarket = this._getField(sundayRoute, ['market', 'Market', 'location', 'Location']);
-                
-                // Create a copy of the route template with the Sunday route data
-                routeToNormalize = { ...r };
-                if (sundayMarket) {
-                  routeToNormalize.market = sundayMarket;
-                  routeToNormalize.Market = sundayMarket;
+            console.log(
+              `[RouteId Link] Monday routeId=${mondayRouteId} should link to Sunday routeId=${correspondingSundayRouteId}`
+            );
+
+            // Look for Sunday SPFM route with the corresponding routeId
+            let sundayRoute = null;
+            if (Array.isArray(sheetsAPI.data)) {
+              for (const spfmRow of sheetsAPI.data) {
+                const spfmDate = this._getField(spfmRow, [
+                  "date",
+                  "Date",
+                  "DATE",
+                ]);
+                const spfmRouteId = this._getField(spfmRow, [
+                  "routeID",
+                  "routeId",
+                  "RouteID",
+                  "route_id",
+                  "id",
+                  "ID",
+                ]);
+
+                // Skip if no routeID
+                if (!spfmRouteId || spfmRouteId.toString().trim() === "")
+                  continue;
+
+                // Check if this SPFM row matches Sunday date and routeId
+                let spfmDateObj;
+                if (spfmDate instanceof Date) {
+                  spfmDateObj = spfmDate;
+                } else {
+                  spfmDateObj = new Date(spfmDate);
                 }
-                // Mark as SPFM Delivery route
-                routeToNormalize.routeType = 'SPFM Delivery';
-                routeToNormalize.type = 'spfm-delivery';
-                console.log(
-                  `[RouteId Link] Linking Monday ${d.toDateString()} routeId=${mondayRouteId} to Sunday routeId=${correspondingSundayRouteId} market="${sundayMarket}" as SPFM Delivery`
-                );
+
+                if (
+                  !isNaN(spfmDateObj) &&
+                  spfmDateObj.toISOString().slice(0, 10) === sundayIso &&
+                  String(spfmRouteId) === correspondingSundayRouteId
+                ) {
+                  sundayRoute = spfmRow;
+                  console.log(
+                    `[RouteId Link] Found Sunday ${sundayIso} routeId=${spfmRouteId} for Monday ${d.toDateString()} routeId=${mondayRouteId}`
+                  );
+                  break;
+                }
               }
             }
+
+            // If no Sunday route found, skip this Monday route entirely
+            if (!sundayRoute) {
+              console.log(
+                `[RouteId Skip] No Sunday routeId=${correspondingSundayRouteId} found for Monday ${d.toDateString()} routeId=${mondayRouteId} - skipping`
+              );
+              return; // Skip this Monday route entirely
+            }
+
+            // Create the linked Monday route with Sunday market data
+            const sundayMarket = this._getField(sundayRoute, [
+              "market",
+              "Market",
+              "location",
+              "Location",
+            ]);
+            const routeToNormalize = { ...r };
+            if (sundayMarket) {
+              routeToNormalize.market = sundayMarket;
+              routeToNormalize.Market = sundayMarket;
+            }
+            // Mark as SPFM Delivery route
+            routeToNormalize.routeType = "SPFM Delivery";
+            routeToNormalize.type = "spfm-delivery";
+            console.log(
+              `[RouteId Link] Creating Monday ${d.toDateString()} routeId=${mondayRouteId} linked to Sunday routeId=${correspondingSundayRouteId} market="${sundayMarket}" as SPFM Delivery`
+            );
+
+            // Generate the route with linked data
+            const iso = d.toISOString().slice(0, 10);
+            const overrides = overridesByDate.get(iso) || [];
+            if (overrides.length) {
+              const pMarketNorm = this._normStr(
+                this._getField(routeToNormalize, [
+                  "market",
+                  "Market",
+                  "location",
+                  "Location",
+                ])
+              );
+              const skip = overrides.some((o) => {
+                if (o.type !== "spfm-delivery") return false;
+                if (o.type === "recovery" && o.marketEmpty) return true;
+                return o.marketNorm === pMarketNorm;
+              });
+              if (skip) return;
+            }
+            const clone = { ...routeToNormalize, date: iso, sortDate: d };
+            routes.push(this._normalizeRoute(clone, "spfm-delivery"));
+            return; // Exit early for Monday routes
           }
+
+          // For non-Monday routes, proceed with normal processing
+          let routeToNormalize = r;
 
           // Debug: Log all generated dates for Woodbury route
           if (market && market.toLowerCase().includes("woodbury")) {
-            console.log("[DEBUG] Generated date for Woodbury Monday route:", {
+            console.log("[DEBUG] Generated date for Woodbury route:", {
               iso: d.toISOString().slice(0, 10),
               dayOfWeek: d.getDay(),
               dateString: d.toDateString(),
+              weekday: weekday,
               isAug17: d.toISOString().slice(0, 10) === "2025-08-17",
             });
           }
@@ -647,7 +714,12 @@ class DataService extends EventTarget {
           const overrides = overridesByDate.get(iso) || [];
           if (overrides.length) {
             const pMarketNorm = this._normStr(
-              this._getField(r, ["market", "Market", "location", "Location"])
+              this._getField(routeToNormalize, [
+                "market",
+                "Market",
+                "location",
+                "Location",
+              ])
             );
             const skip = overrides.some((o) => {
               if (o.type !== fType) return false;
@@ -658,7 +730,7 @@ class DataService extends EventTarget {
             });
             if (skip) return;
           }
-          const clone = { ...r, date: iso, sortDate: d };
+          const clone = { ...routeToNormalize, date: iso, sortDate: d };
           routes.push(this._normalizeRoute(clone, fType));
         });
       });
@@ -741,14 +813,20 @@ class DataService extends EventTarget {
 
   // Vehicle emoji helper for components
   getVehicleEmoji(name) {
-    try { return sheetsAPI.getVehicleEmoji?.(name) || '🚐'; }
-    catch { return '🚐'; }
+    try {
+      return sheetsAPI.getVehicleEmoji?.(name) || "🚐";
+    } catch {
+      return "🚐";
+    }
   }
 
   // Address/contacts lookup for a given location name
   getAddressForLocation(name) {
-    try { return sheetsAPI.getAddressFromContacts?.(name) || null; }
-    catch { return null; }
+    try {
+      return sheetsAPI.getAddressFromContacts?.(name) || null;
+    } catch {
+      return null;
+    }
   }
 
   // ========================================
@@ -763,25 +841,57 @@ class DataService extends EventTarget {
   async getRemindersForRoute(routeOrKey) {
     try {
       await this._ensureApiLoaded();
-      const res = (typeof sheetsAPI.getRemindersForRoute === 'function')
-        ? sheetsAPI.getRemindersForRoute(routeOrKey)
-        : null;
-      if (!res) return { dropoff:[], atoffice:[], backatoffice:[], atmarket:[], materials_office:[], materials_storage:[], backAtOffice:[], atMarket:[] };
+      const res =
+        typeof sheetsAPI.getRemindersForRoute === "function"
+          ? sheetsAPI.getRemindersForRoute(routeOrKey)
+          : null;
+      if (!res)
+        return {
+          dropoff: [],
+          atoffice: [],
+          backatoffice: [],
+          atmarket: [],
+          materials_office: [],
+          materials_storage: [],
+          backAtOffice: [],
+          atMarket: [],
+        };
       const out = {
         dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
         atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-        backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : (Array.isArray(res.backAtOffice) ? res.backAtOffice : []),
-        atmarket: Array.isArray(res.atmarket) ? res.atmarket : (Array.isArray(res.atMarket) ? res.atMarket : []),
-        materials_office: Array.isArray(res.materials_office) ? res.materials_office : [],
-        materials_storage: Array.isArray(res.materials_storage) ? res.materials_storage : [],
+        backatoffice: Array.isArray(res.backatoffice)
+          ? res.backatoffice
+          : Array.isArray(res.backAtOffice)
+          ? res.backAtOffice
+          : [],
+        atmarket: Array.isArray(res.atmarket)
+          ? res.atmarket
+          : Array.isArray(res.atMarket)
+          ? res.atMarket
+          : [],
+        materials_office: Array.isArray(res.materials_office)
+          ? res.materials_office
+          : [],
+        materials_storage: Array.isArray(res.materials_storage)
+          ? res.materials_storage
+          : [],
       };
       // Provide camelCase aliases for convenience
       out.backAtOffice = out.backatoffice;
       out.atMarket = out.atmarket;
       return out;
     } catch (e) {
-      console.warn('getRemindersForRoute failed:', e);
-      return { dropoff:[], atoffice:[], backatoffice:[], atmarket:[], materials_office:[], materials_storage:[], backAtOffice:[], atMarket:[] };
+      console.warn("getRemindersForRoute failed:", e);
+      return {
+        dropoff: [],
+        atoffice: [],
+        backatoffice: [],
+        atmarket: [],
+        materials_office: [],
+        materials_storage: [],
+        backAtOffice: [],
+        atMarket: [],
+      };
     }
   }
 
@@ -791,8 +901,12 @@ class DataService extends EventTarget {
   async getAllReminders() {
     try {
       await this._ensureApiLoaded();
-      return Array.isArray(sheetsAPI.miscReminders) ? [...sheetsAPI.miscReminders] : [];
-    } catch { return []; }
+      return Array.isArray(sheetsAPI.miscReminders)
+        ? [...sheetsAPI.miscReminders]
+        : [];
+    } catch {
+      return [];
+    }
   }
 
   // ========================================
@@ -1122,7 +1236,7 @@ class DataService extends EventTarget {
         vehicles: (s.miscVehicles || []).length,
         reminders: (s.miscReminders || []).length,
       };
-      const sources = (s._tableSources) ? { ...s._tableSources } : {};
+      const sources = s._tableSources ? { ...s._tableSources } : {};
       return {
         lastFetchTs: s.lastFetchTs || 0,
         signature: sig,
@@ -1130,7 +1244,7 @@ class DataService extends EventTarget {
         sources,
       };
     } catch {
-      return { lastFetchTs: 0, signature: '', counts: {}, sources: {} };
+      return { lastFetchTs: 0, signature: "", counts: {}, sources: {} };
     }
   }
 
