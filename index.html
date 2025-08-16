@@ -27,12 +27,12 @@
 
     <!-- Optional local config (ignored in git): define window.__APP_CONFIG here -->
     <script>
-      (function(){
+      (function () {
         try {
-          var s = document.createElement('script');
-          s.src = './config.local.js';
+          var s = document.createElement("script");
+          s.src = "./config.local.js";
           s.async = false;
-          s.onerror = function(){};
+          s.onerror = function () {};
           document.head.appendChild(s);
         } catch (e) {}
       })();
@@ -199,10 +199,10 @@
     </div>
 
     <!-- Application Modules - Load synchronously to ensure order -->
-    <script src="js/util.js?v=7" type="text/javascript"></script>
+    <script src="js/util.js?v=8" type="text/javascript"></script>
     <!-- sheets.js (legacy) removed; ESM service handles Sheets access -->
-    <script src="js/assignments.js?v=7" type="text/javascript"></script>
-    <script src="js/inventory.js?v=7" type="text/javascript"></script>
+    <script src="js/assignments.js?v=8" type="text/javascript"></script>
+    <script src="js/inventory.js?v=8" type="text/javascript"></script>
     <!-- Removed legacy app.js to avoid duplicate routing and API loads -->
 
     <!-- Web Components + Bootstrap routes -->
@@ -404,9 +404,10 @@
       }
 
       function gisLoaded() {
-        const CLIENT_ID = (window.__APP_CONFIG && window.__APP_CONFIG.GOOGLE_CLIENT_ID)
-          ? window.__APP_CONFIG.GOOGLE_CLIENT_ID
-          : "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com";
+        const CLIENT_ID =
+          window.__APP_CONFIG && window.__APP_CONFIG.GOOGLE_CLIENT_ID
+            ? window.__APP_CONFIG.GOOGLE_CLIENT_ID
+            : "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com";
         tokenClient = window.google.accounts.oauth2.initTokenClient({
           client_id: CLIENT_ID,
           scope: SCOPES_AUTH,
