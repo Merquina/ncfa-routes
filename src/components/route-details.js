@@ -75,7 +75,7 @@ class RouteDetails extends HTMLElement {
       : '<span style="color:#800020;font-style:italic;">No workers assigned</span>';
   }
 
-  render() {
+  async render() {
     const route = this._route;
     if (!route) {
       this.shadowRoot.innerHTML = `<div style="padding:12px;color:#666;">No route selected</div>`;
