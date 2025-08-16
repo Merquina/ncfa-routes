@@ -25,6 +25,19 @@
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
 
+    <!-- Optional local config (ignored in git): define window.__APP_CONFIG here -->
+    <script>
+      (function(){
+        try {
+          var s = document.createElement('script');
+          s.src = './config.local.js';
+          s.async = false;
+          s.onerror = function(){};
+          document.head.appendChild(s);
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Performance: Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -326,14 +339,12 @@
       // Function to update last modified date
       function updateLastModified() {
         const lastUpdatedEl = document.getElementById("lastUpdated");
-        if (
-          lastUpdatedEl &&
-          window.sheetsAPI &&
-          window.sheetsAPI.data.length > 0
-        ) {
-          // Use current date as fallback since we can't get sheet modification date via API
-          const now = new Date();
-          const dateStr = now.toLocaleDateString("en-US", {
+        if (!lastUpdatedEl) return;
+        try {
+          const info = window.dataService?.getDebugInfo?.();
+          const ts = info?.lastFetchTs;
+          const dt = ts ? new Date(ts) : new Date();
+          const dateStr = dt.toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
             day: "numeric",
@@ -341,7 +352,7 @@
             minute: "2-digit",
           });
           lastUpdatedEl.textContent = `Last updated: ${dateStr}`;
-        }
+        } catch {}
       }
 
       // Additional iPhone-specific setup
@@ -393,9 +404,11 @@
       }
 
       function gisLoaded() {
+        const CLIENT_ID = (window.__APP_CONFIG && window.__APP_CONFIG.GOOGLE_CLIENT_ID)
+          ? window.__APP_CONFIG.GOOGLE_CLIENT_ID
+          : "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com";
         tokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id:
-            "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com",
+          client_id: CLIENT_ID,
           scope: SCOPES_AUTH,
           callback: "", // defined later
         });

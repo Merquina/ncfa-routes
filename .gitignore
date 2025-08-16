@@ -3,3 +3,5 @@ storybook-static/
 dist/
 *.log
 token.json
+config.local.js
+public/config.local.js

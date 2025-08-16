@@ -52,7 +52,11 @@ class RouteCard extends HTMLElement {
 
   getVanEmoji(vanName) {
     if (!vanName) return '🚐';
-    try { return window.sheetsAPI?.getVehicleEmoji?.(vanName) || '🚐'; } catch { return '🚐'; }
+    try {
+      return (window.dataService && typeof window.dataService.getVehicleEmoji === 'function')
+        ? window.dataService.getVehicleEmoji(vanName)
+        : '🚐';
+    } catch { return '🚐'; }
   }
 
   formatWorkerList(workers, volunteers, maxDisplay = 3) {
