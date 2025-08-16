@@ -32,17 +32,30 @@ class RemindersPage extends HTMLElement {
       ];
 
       for (const key of keysToTry) {
-        if (!(window.dataService && typeof window.dataService.getRemindersForRoute === 'function')) break;
+        if (
+          !(
+            window.dataService &&
+            typeof window.dataService.getRemindersForRoute === "function"
+          )
+        )
+          break;
         const result = await window.dataService.getRemindersForRoute(key);
-        const hasOffice = Array.isArray(result?.materials_office) && result.materials_office.length;
-        const hasStorage = Array.isArray(result?.materials_storage) && result.materials_storage.length;
+        const hasOffice =
+          Array.isArray(result?.materials_office) &&
+          result.materials_office.length;
+        const hasStorage =
+          Array.isArray(result?.materials_storage) &&
+          result.materials_storage.length;
         const hasAtMarket = Array.isArray(result?.atMarket)
           ? result.atMarket.length
-          : (Array.isArray(result?.atmarket) && result.atmarket.length);
+          : Array.isArray(result?.atmarket) && result.atmarket.length;
         const hasBackAtOffice = Array.isArray(result?.backAtOffice)
           ? result.backAtOffice.length
-          : (Array.isArray(result?.backatoffice) && result.backatoffice.length);
-        if (result && (hasOffice || hasStorage || hasAtMarket || hasBackAtOffice)) {
+          : Array.isArray(result?.backatoffice) && result.backatoffice.length;
+        if (
+          result &&
+          (hasOffice || hasStorage || hasAtMarket || hasBackAtOffice)
+        ) {
           reminders = result;
           console.log(`Found materials with key:`, key, result);
           break;
@@ -51,9 +64,11 @@ class RemindersPage extends HTMLElement {
 
       // If no specific match, try getting all reminders and find any with materials
       if (!reminders) {
-        const allReminders = (window.dataService && typeof window.dataService.getAllReminders === 'function')
-          ? await window.dataService.getAllReminders()
-          : [];
+        const allReminders =
+          window.dataService &&
+          typeof window.dataService.getAllReminders === "function"
+            ? await window.dataService.getAllReminders()
+            : [];
         console.log("All available reminders:", allReminders);
 
         // Find any reminder row that has materials
@@ -76,10 +91,10 @@ class RemindersPage extends HTMLElement {
         storage: reminders?.materials_storage || [],
         atMarket: Array.isArray(reminders?.atMarket)
           ? reminders.atMarket
-          : (reminders?.atmarket || []),
+          : reminders?.atmarket || [],
         backAtOffice: Array.isArray(reminders?.backAtOffice)
           ? reminders.backAtOffice
-          : (reminders?.backatoffice || []),
+          : reminders?.backatoffice || [],
       };
 
       console.log("Final materials data:", this._materialsData);
@@ -90,7 +105,10 @@ class RemindersPage extends HTMLElement {
         const dbg = window.dataService?.getDebugInfo?.();
         console.log("Debug info:", dbg);
         const all = await (window.dataService?.getAllReminders?.() || []);
-        console.log("All reminders sample:", Array.isArray(all) ? all.slice(0,3) : all);
+        console.log(
+          "All reminders sample:",
+          Array.isArray(all) ? all.slice(0, 3) : all
+        );
       } catch {}
     }
   }
@@ -106,62 +124,61 @@ class RemindersPage extends HTMLElement {
       </div>
 
       <div class="materials-grid">
-        <!-- Office Materials -->
-        <div class="material-card">
+        <!-- At Office - Combined Materials -->
+        <div class="material-card office-combined">
           <div class="card-header office">
-            <h3>🏢 At Office - Materials</h3>
+            <h3>🏢 At Office</h3>
             <span class="count">${
-              this._materialsData.office.length
-            } items</span>
-          </div>
-          <div class="checklist">
-            ${
-              this._materialsData.office
-                .map(
-                  (item) => `
-              <label class="checkbox-item">
-                <input type="checkbox" />
-                <span class="checkmark"></span>
-                <span class="item-text">${item}</span>
-              </label>
-            `
-                )
-                .join("") ||
-              '<div class="no-items">No office materials listed</div>'
-            }
-          </div>
-        </div>
-
-        <!-- Storage Materials -->
-        <div class="material-card">
-          <div class="card-header storage">
-            <h3>📦 At Office - Storage</h3>
-            <span class="count">${
+              this._materialsData.office.length +
               this._materialsData.storage.length
             } items</span>
           </div>
-          <div class="checklist">
-            ${
-              this._materialsData.storage
-                .map(
-                  (item) => `
-              <label class="checkbox-item">
-                <input type="checkbox" />
-                <span class="checkmark"></span>
-                <span class="item-text">${item}</span>
-              </label>
-            `
-                )
-                .join("") ||
-              '<div class="no-items">No storage materials listed</div>'
-            }
+          <div class="office-columns">
+            <div class="office-column">
+              <h4>📁 Office Materials</h4>
+              <div class="checklist">
+                ${
+                  this._materialsData.office
+                    .map(
+                      (item) => `
+                    <label class="checkbox-item">
+                      <input type="checkbox" />
+                      <span class="checkmark"></span>
+                      <span class="item-text">${item}</span>
+                    </label>
+                  `
+                    )
+                    .join("") ||
+                  '<div class="no-items">No office materials listed</div>'
+                }
+              </div>
+            </div>
+            <div class="office-column">
+              <h4>📦 Storage Materials</h4>
+              <div class="checklist">
+                ${
+                  this._materialsData.storage
+                    .map(
+                      (item) => `
+                    <label class="checkbox-item">
+                      <input type="checkbox" />
+                      <span class="checkmark"></span>
+                      <span class="item-text">${item}</span>
+                    </label>
+                  `
+                    )
+                    .join("") ||
+                  '<div class="no-items">No storage materials listed</div>'
+                }
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- At Market -->
         <div class="material-card">
           <div class="card-header market">
-            <h3>🌽 At Market - Setup</h3>
+            <h3>⛺ At Market - Setup</h3>
             <span class="count">${
               this._materialsData.atMarket.length
             } tasks</span>
@@ -223,12 +240,12 @@ class RemindersPage extends HTMLElement {
 
     // Wire up buttons inside shadow DOM
     try {
-      const reset = this.shadowRoot.querySelector('#resetBtn');
-      if (reset) reset.addEventListener('click', () => this.clearAll());
+      const reset = this.shadowRoot.querySelector("#resetBtn");
+      if (reset) reset.addEventListener("click", () => this.clearAll());
     } catch {}
     try {
-      const print = this.shadowRoot.querySelector('#printBtn');
-      if (print) print.addEventListener('click', () => window.print());
+      const print = this.shadowRoot.querySelector("#printBtn");
+      if (print) print.addEventListener("click", () => window.print());
     } catch {}
   }
 
@@ -280,9 +297,32 @@ class RemindersPage extends HTMLElement {
 
         .materials-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          grid-template-columns: 1fr;
           gap: 25px;
-          margin-bottom: 30px;
+          margin-top: 20px;
+        }
+
+        .office-combined {
+          grid-column: 1 / -1;
+        }
+
+        .office-columns {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+
+        .office-column h4 {
+          margin: 0 0 15px 0;
+          color: #666;
+          font-size: 1rem;
+          font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+          .office-columns {
+            grid-template-columns: 1fr;
+          }
         }
 
         .material-card {
