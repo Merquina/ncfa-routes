@@ -391,9 +391,11 @@
       }
 
       function gisLoaded() {
+        const CLIENT_ID = (window.__APP_CONFIG && window.__APP_CONFIG.GOOGLE_CLIENT_ID)
+          ? window.__APP_CONFIG.GOOGLE_CLIENT_ID
+          : "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com";
         tokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id:
-            "679707714871-h18m1gdtsdoovh8tjufr8idmr905i5gc.apps.googleusercontent.com",
+          client_id: CLIENT_ID,
           scope: SCOPES_AUTH,
           callback: "", // defined later
         });
