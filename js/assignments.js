@@ -602,14 +602,9 @@ class AssignmentsManager {
       "assignmentsContainer"
     );
 
-    // Get materials and reminders from Misc sheet Reminders table
+    // Get dropoff reminders from Misc sheet Reminders table
     let reminderBuckets = {
       dropoff: [],
-      atoffice: [],
-      backatoffice: [],
-      atmarket: [],
-      materials_office: [],
-      materials_storage: [],
     };
     try {
       const res =
@@ -619,23 +614,9 @@ class AssignmentsManager {
       if (res && typeof res === "object") {
         reminderBuckets = {
           dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
-          atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : [],
-          atmarket: Array.isArray(res.atmarket) ? res.atmarket : [],
-          materials_office: Array.isArray(res.materials_office)
-            ? res.materials_office
-            : [],
-          materials_storage: Array.isArray(res.materials_storage)
-            ? res.materials_storage
-            : [],
         };
       }
     } catch {}
-
-    const materialsOffice = reminderBuckets.materials_office;
-    const materialsStorage = reminderBuckets.materials_storage;
-    const atMarket = reminderBuckets.atmarket;
-    const backAtOffice = reminderBuckets.backatoffice;
 
     const workers = sheetsAPI.getAllWorkersFromRoute(route);
     const googleMapsUrl = this.buildSPFMGoogleMapsUrl(route);
@@ -925,14 +906,9 @@ class AssignmentsManager {
       return ""; // Recovery routes don't have material sections
     }
 
-    // Get materials and reminders from Misc sheet Reminders table
+    // Only used for dropoff reminders now - other sections moved to Reminders page
     let reminderBuckets = {
       dropoff: [],
-      atoffice: [],
-      backatoffice: [],
-      atmarket: [],
-      materials_office: [],
-      materials_storage: [],
     };
     try {
       const res =
@@ -942,22 +918,9 @@ class AssignmentsManager {
       if (res && typeof res === "object") {
         reminderBuckets = {
           dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
-          atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-          backatoffice: Array.isArray(res.backatoffice) ? res.backatoffice : [],
-          atmarket: Array.isArray(res.atmarket) ? res.atmarket : [],
-          materials_office: Array.isArray(res.materials_office)
-            ? res.materials_office
-            : [],
-          materials_storage: Array.isArray(res.materials_storage)
-            ? res.materials_storage
-            : [],
         };
       }
     } catch {}
-
-    const materialsOffice = reminderBuckets.materials_office;
-    const materialsStorage = reminderBuckets.materials_storage;
-    const backAtOffice = reminderBuckets.backatoffice;
 
     return `
       <div style="margin-bottom: 20px;">

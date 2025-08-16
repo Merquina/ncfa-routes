@@ -98,21 +98,9 @@ class RouteDetails extends HTMLElement {
     const volunteers = route.volunteers || [];
     const vans = route.vans || [];
     const stops = route.stops || [];
-    const materials = route.materials || {
-      office: [],
-      storage: [],
-      atMarket: [],
-      backAtOffice: [],
-    };
-
-    // Pull reminders from Misc sheet (via sheetsAPI), matched by market, dropOff, or type
+    // Pull dropoff reminders from Misc sheet (via sheetsAPI), matched by market, dropOff, or type
     let reminderBuckets = {
       dropoff: [],
-      atoffice: [],
-      backatoffice: [],
-      atmarket: [],
-      materials_office: [],
-      materials_storage: [],
     };
     try {
       const res =
@@ -124,26 +112,7 @@ class RouteDetails extends HTMLElement {
         // Backward-compat: older API returned a flat array; treat as dropoff list
         reminderBuckets.dropoff = res;
       } else if (res && typeof res === "object") {
-        reminderBuckets = {
-          dropoff: Array.isArray(res.dropoff) ? res.dropoff : [],
-          atoffice: Array.isArray(res.atoffice) ? res.atoffice : [],
-          backatoffice: Array.isArray(res.backatoffice)
-            ? res.backatoffice
-            : Array.isArray(res.backAtOffice)
-            ? res.backAtOffice
-            : [],
-          atmarket: Array.isArray(res.atmarket)
-            ? res.atmarket
-            : Array.isArray(res.atMarket)
-            ? res.atMarket
-            : [],
-          materials_office: Array.isArray(res.materials_office)
-            ? res.materials_office
-            : [],
-          materials_storage: Array.isArray(res.materials_storage)
-            ? res.materials_storage
-            : [],
-        };
+        reminderBuckets.dropoff = Array.isArray(res.dropoff) ? res.dropoff : [];
       }
     } catch {}
 
@@ -237,29 +206,9 @@ class RouteDetails extends HTMLElement {
     `;
   }
 
-  renderStandardLayout(materials, reminderBuckets, route, stops) {
+  renderStandardLayout(reminderBuckets, route, stops) {
     const dropoff = Array.isArray(reminderBuckets.dropoff)
       ? reminderBuckets.dropoff
-      : [];
-    const atOffice = Array.isArray(reminderBuckets.atoffice)
-      ? reminderBuckets.atoffice
-      : [];
-    // Support both camelCase and snake/lowercase variants
-    const backAtOffice = Array.isArray(reminderBuckets.backAtOffice)
-      ? reminderBuckets.backAtOffice
-      : Array.isArray(reminderBuckets.backatoffice)
-      ? reminderBuckets.backatoffice
-      : [];
-    const atMarket = Array.isArray(reminderBuckets.atMarket)
-      ? reminderBuckets.atMarket
-      : Array.isArray(reminderBuckets.atmarket)
-      ? reminderBuckets.atmarket
-      : [];
-    const materialsOffice = Array.isArray(reminderBuckets.materials_office)
-      ? reminderBuckets.materials_office
-      : [];
-    const materialsStorage = Array.isArray(reminderBuckets.materials_storage)
-      ? reminderBuckets.materials_storage
       : [];
 
     const list = (items) =>
@@ -282,11 +231,6 @@ class RouteDetails extends HTMLElement {
     // Render sections when there is content; keep the page compact otherwise
     return `
       ${section("Drop-off Reminders", dropoff)}
-      ${section("At Office – Tasks", atOffice)}
-      ${section("Back at Office – Tasks", backAtOffice)}
-      ${section("At Market – Tasks", atMarket)}
-      ${section("Materials – Office", materialsOffice)}
-      ${section("Materials – Storage", materialsStorage)}
     `;
   }
 
