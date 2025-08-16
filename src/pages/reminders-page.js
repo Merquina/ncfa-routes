@@ -212,14 +212,24 @@ class RemindersPage extends HTMLElement {
       </div>
 
       <div class="quick-actions">
-        <button class="action-btn primary" onclick="window.print()">
+        <button class="action-btn primary" id="printBtn">
           🖨️ Print Checklist
         </button>
-        <button class="action-btn secondary" onclick="this.clearAll()">
+        <button class="action-btn secondary" id="resetBtn">
           ↺ Reset All
         </button>
       </div>
     `;
+
+    // Wire up buttons inside shadow DOM
+    try {
+      const reset = this.shadowRoot.querySelector('#resetBtn');
+      if (reset) reset.addEventListener('click', () => this.clearAll());
+    } catch {}
+    try {
+      const print = this.shadowRoot.querySelector('#printBtn');
+      if (print) print.addEventListener('click', () => window.print());
+    } catch {}
   }
 
   clearAll() {
