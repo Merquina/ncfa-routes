@@ -954,16 +954,11 @@ class SheetsAPIService extends EventTarget {
             ms.length === 0 &&
             bao.length === 0;
           if (emptyRow) continue;
-          if (
-            keys.length > 0 &&
-            (d.length ||
-              a.length ||
-              b.length ||
-              m.length ||
-              mo.length ||
-              ms.length ||
-              bao.length)
-          ) {
+          // If no keys/market/type columns exist in the sheet, treat rows as global (applies to 'all')
+          if (keys.length === 0 && (d.length || a.length || b.length || m.length || mo.length || ms.length || bao.length)) {
+            keys.push('all');
+          }
+          if (keys.length > 0 && (d.length || a.length || b.length || m.length || mo.length || ms.length || bao.length)) {
             const rec = {
               keys: Array.from(new Set(keys)),
               dropoff: d,
