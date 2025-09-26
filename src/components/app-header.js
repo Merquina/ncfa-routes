@@ -27,41 +27,41 @@ class AppHeader extends HTMLElement {
         }
 
         .header {
-          background: #4a9b5e;
-          background-image:
-            linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-            linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-            linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
-            linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
-          background-size: 20px 20px;
-          background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+          background: linear-gradient(135deg, #1a365d 0%, #2c5282 50%, #3182ce 100%);
           color: white;
-          padding: 8px;
+          padding: 12px;
           text-align: center;
           position: relative;
           flex-shrink: 0;
           z-index: 1001;
           cursor: pointer;
-          transition: opacity 0.2s ease;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .header:hover {
-          opacity: 0.9;
+          background: linear-gradient(135deg, #1e3a5f 0%, #2d5486 50%, #3687d1 100%);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
 
         .header h1 {
-          font-family: var(--header-font, "Barrio", cursive);
-          font-size: clamp(1rem, 4.8vw, 2.2rem);
-          line-height: 1.1;
-          font-weight: 400;
-          margin: 0 0 8px 0;
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          font-size: var(--font-size-xl, 1.5rem);
+          line-height: 1.3;
+          font-weight: 700;
+          margin: 0 0 6px 0;
           white-space: nowrap;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          letter-spacing: 0.025em;
         }
 
         .header p {
-          font-size: 1rem;
-          opacity: 0.9;
-          margin: 0 0 8px 0;
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          font-size: var(--font-size-base, 1rem);
+          font-weight: 600;
+          margin: 0;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          letter-spacing: 0.025em;
         }
       </style>
 

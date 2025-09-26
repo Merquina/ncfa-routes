@@ -52,6 +52,70 @@
     <!-- Main Stylesheet (cache-busted) -->
     <link rel="stylesheet" href="css/app.css?v=4" />
 
+    <!-- Global Typography -->
+    <style>
+      /* Dyslexia-friendly font stack */
+      :root {
+        --font-family: "OpenDyslexic", "Comic Sans MS", "Trebuchet MS",
+          "Verdana", "Arial", sans-serif;
+        --font-size-small: 0.875rem; /* 14px */
+        --font-size-base: 1rem; /* 16px */
+        --font-size-large: 1.25rem; /* 20px */
+        --font-size-xl: 1.5rem; /* 24px */
+        --line-height: 1.5;
+        --letter-spacing: 0.025em;
+      }
+
+      * {
+        font-family: var(--font-family) !important;
+        letter-spacing: var(--letter-spacing);
+      }
+
+      body,
+      html {
+        font-family: var(--font-family);
+        font-size: var(--font-size-base);
+        line-height: var(--line-height);
+      }
+
+      /* Consistent button styling */
+      button,
+      input[type="button"],
+      input[type="submit"] {
+        font-family: var(--font-family) !important;
+        font-size: var(--font-size-base) !important;
+        font-weight: 600 !important;
+        line-height: var(--line-height) !important;
+        letter-spacing: var(--letter-spacing) !important;
+      }
+
+      /* Heading hierarchy */
+      h1 {
+        font-size: var(--font-size-xl);
+        font-weight: 700;
+      }
+      h2 {
+        font-size: var(--font-size-large);
+        font-weight: 600;
+      }
+      h3 {
+        font-size: var(--font-size-base);
+        font-weight: 600;
+      }
+      h4,
+      h5,
+      h6 {
+        font-size: var(--font-size-base);
+        font-weight: 500;
+      }
+
+      /* Small text */
+      .text-small,
+      small {
+        font-size: var(--font-size-small) !important;
+      }
+    </style>
+
     <!-- Print Styles -->
     <style>
       @media print {
@@ -156,28 +220,40 @@
         "
       >
         <div style="text-align: center; max-width: 400px">
-          <h2 style="margin: 0 0 30px 0; color: #333">Welcome!</h2>
+          <h2
+            style="
+              margin: 0 0 30px 0;
+              color: #1a365d;
+              font-weight: 700;
+              font-size: 1.8rem;
+            "
+          >
+            Welcome!
+          </h2>
           <button
             id="signInButton"
             onclick="handleSignInClick()"
             style="
-              background: #b3d4fc;
-              color: #333;
+              background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+              color: white;
               border: none;
               padding: 15px 24px;
-              border-radius: 6px;
+              border-radius: 8px;
               font-size: 1rem;
+              font-weight: 600;
               cursor: pointer;
               font-family: var(--body-font);
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-              transition: background-color 0.2s;
+              box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+              transition: all 0.3s ease;
               width: 280px;
               height: 50px;
-              display: block;
+              display: flex;
+              align-items: center;
+              justify-content: center;
               margin: 0 auto;
             "
-            onmouseover="this.style.backgroundColor='#9cc5f7'"
-            onmouseout="this.style.backgroundColor='#b3d4fc'"
+            onmouseover="this.style.background='linear-gradient(135deg, #2c5282 0%, #1a365d 100%)'; this.style.boxShadow='0 6px 20px rgba(49, 130, 206, 0.4)'; this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.background='linear-gradient(135deg, #3182ce 0%, #2c5282 100%)'; this.style.boxShadow='0 4px 12px rgba(49, 130, 206, 0.3)'; this.style.transform='translateY(0)'"
           >
             Sign in with your NCFA account
           </button>
@@ -187,23 +263,28 @@
             id="devBypassButton"
             onclick="showMainApp(); updateStatus('Development mode - bypassed authentication')"
             style="
-              background: #ffb3a0;
-              color: #333;
+              background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+              color: white;
               border: none;
               padding: 15px 24px;
-              border-radius: 6px;
+              border-radius: 8px;
               font-size: 1rem;
+              font-weight: 600;
               cursor: pointer;
               font-family: var(--body-font);
               margin-top: 15px;
               width: 280px;
               height: 50px;
-              display: block;
+              display: flex;
+              align-items: center;
+              justify-content: center;
               margin-left: auto;
               margin-right: auto;
+              box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+              transition: all 0.3s ease;
             "
-            onmouseover="this.style.backgroundColor='#ff9d85'"
-            onmouseout="this.style.backgroundColor='#ffb3a0'"
+            onmouseover="this.style.background='linear-gradient(135deg, #c53030 0%, #9c2626 100%)'; this.style.boxShadow='0 6px 20px rgba(229, 62, 62, 0.4)'; this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.background='linear-gradient(135deg, #e53e3e 0%, #c53030 100%)'; this.style.boxShadow='0 4px 12px rgba(229, 62, 62, 0.3)'; this.style.transform='translateY(0)'"
           >
             Dev Mode (No password)
           </button>
@@ -215,13 +296,14 @@
           <!-- Installation Instructions Box -->
           <div
             style="
-              background: #f8f9fa;
-              border: 2px solid #28a745;
-              border-radius: 8px;
+              background: white;
+              border: 3px solid #3182ce;
+              border-radius: 12px;
               padding: 25px;
               margin-top: 30px;
               text-align: center;
               max-width: 400px;
+              box-shadow: 0 8px 25px rgba(49, 130, 206, 0.15);
             "
           >
             <h3
@@ -257,7 +339,7 @@
                 style="
                   width: 30px;
                   height: 30px;
-                  background: #28a745;
+                  background: #3182ce;
                   color: white;
                   border-radius: 50%;
                   display: flex;
@@ -285,7 +367,10 @@
                       display: inline-flex;
                       align-items: center;
                     "
-                    ><i class="mdi mdi-share-outline" style="color: #007aff"></i
+                    ><i
+                      class="mdi mdi-export-variant"
+                      style="color: #007aff"
+                    ></i
                   ></span>
                 </div>
                 <div
@@ -322,7 +407,7 @@
                 style="
                   width: 30px;
                   height: 30px;
-                  background: #28a745;
+                  background: #3182ce;
                   color: white;
                   border-radius: 50%;
                   display: flex;
@@ -347,7 +432,7 @@
                 style="
                   width: 30px;
                   height: 30px;
-                  background: #28a745;
+                  background: #3182ce;
                   color: white;
                   border-radius: 50%;
                   display: flex;

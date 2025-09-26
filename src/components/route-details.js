@@ -31,7 +31,12 @@ class RouteDetails extends HTMLElement {
 
   formatDate(dateStr) {
     try {
+      if (!dateStr) return "No date";
       const d = new Date(dateStr);
+      // Check if the date is valid
+      if (isNaN(d.getTime())) {
+        return String(dateStr);
+      }
       return d.toLocaleDateString("en-US", {
         weekday: "long",
         month: "short",
@@ -39,7 +44,7 @@ class RouteDetails extends HTMLElement {
         year: "numeric",
       });
     } catch {
-      return String(dateStr || "");
+      return String(dateStr || "No date");
     }
   }
 
@@ -78,6 +83,55 @@ class RouteDetails extends HTMLElement {
       : '<span style="color:#800020;font-style:italic;">No workers assigned</span>';
   }
 
+  renderBoxesSection(route) {
+    if (!route || route.type !== "spfm") return "";
+
+    const boxesLarge = this.getField(route, [
+      "boxesLARGE",
+      "boxesLarge",
+      "large",
+      "Large",
+    ]);
+    const boxesSmall = this.getField(route, [
+      "boxesSMALL",
+      "boxesSmall",
+      "small",
+      "Small",
+    ]);
+
+    // Only show section if we have box data
+    if (!boxesLarge && !boxesSmall) return "";
+
+    const chips = [];
+    if (boxesLarge) {
+      chips.push(
+        `<span class="chip" style="background: #e3f2fd;"><i class="mdi mdi-package-variant" style="margin-right: 4px;"></i>Large: ${boxesLarge}</span>`
+      );
+    }
+    if (boxesSmall) {
+      chips.push(
+        `<span class="chip" style="background: #f3e5f5;"><i class="mdi mdi-package" style="margin-right: 4px;"></i>Small: ${boxesSmall}</span>`
+      );
+    }
+
+    return `
+      <div class="section">
+        <div class="label">Boxes</div>
+        <div class="chips">${chips.join("")}</div>
+      </div>
+    `;
+  }
+
+  getField(obj, aliases = []) {
+    if (!obj || typeof obj !== "object") return undefined;
+    for (const alias of aliases) {
+      if (alias in obj && obj[alias] !== undefined && obj[alias] !== "") {
+        return obj[alias];
+      }
+    }
+    return undefined;
+  }
+
   async render() {
     const route = this._route;
     if (!route) {
@@ -87,7 +141,11 @@ class RouteDetails extends HTMLElement {
 
     const type = route.type || "spfm";
     const titleEmoji =
-      type === "recovery" ? "<i class='mdi mdi-shopping-cart'></i>" : type === "spfm-delivery" ? "<i class='mdi mdi-truck'></i>" : "<i class='mdi mdi-account-hard-hat'></i>";
+      type === "recovery"
+        ? "<i class='mdi mdi-shopping-cart'></i>"
+        : type === "spfm-delivery"
+        ? "<i class='mdi mdi-truck'></i>"
+        : "<i class='mdi mdi-account-hard-hat'></i>";
     const title =
       type === "recovery"
         ? "Recovery Route"
@@ -120,17 +178,64 @@ class RouteDetails extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display:block; font-family: var(--body-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif); }
+        :host {
+          display: block;
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          font-size: var(--font-size-base, 1rem);
+          line-height: var(--line-height, 1.5);
+          letter-spacing: var(--letter-spacing, 0.025em);
+        }
         .container { background:#fff; border:1px solid #ddd; border-radius:8px; overflow:hidden; }
         .header { padding:16px; border-bottom:1px solid #eee; }
-        .title { margin:0 0 6px 0; color:#333; }
-        .meta { color:#666; font-size:0.9rem; }
+        .title {
+          margin:0 0 6px 0;
+          color:#333;
+          font-size: var(--font-size-large, 1.25rem);
+          font-weight: 600;
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+        }
+        .meta {
+          color:#666;
+          font-size: var(--font-size-base, 1rem);
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+        }
         .section { padding:16px; border-top:1px solid #f1f1f1; }
-        .label { color:#666; font-weight:600; }
+        .label {
+          color:#666;
+          font-weight:600;
+          font-size: var(--font-size-base, 1rem);
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+        }
         .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
-        .chip { background:#f0f0f0; border-radius:12px; padding:4px 8px; font-size:0.85rem; }
-        .stop { padding:10px; border:1px solid #eee; border-radius:6px; margin:8px 0; }
-        .btn { background:#28a745; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
+        .chip {
+          background:#f0f0f0;
+          border-radius:12px;
+          padding:6px 10px;
+          font-size: var(--font-size-small, 0.875rem);
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          font-weight: 500;
+        }
+        .stop {
+          padding:12px;
+          border:1px solid #eee;
+          border-radius:6px;
+          margin:8px 0;
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+        }
+        .btn {
+          background:#3182ce;
+          color:#fff;
+          border:none;
+          padding:10px 16px;
+          border-radius:6px;
+          cursor:pointer;
+          font-size: var(--font-size-base, 1rem);
+          font-weight: 600;
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          letter-spacing: var(--letter-spacing, 0.025em);
+          transition: background 0.2s ease;
+        }
+        .btn:hover { background:#2c5282; }
         .btn:disabled { opacity:0.6; cursor:default; }
       </style>
       <div class="container">
@@ -175,6 +280,7 @@ class RouteDetails extends HTMLElement {
         `
             : ""
         }
+        ${this.renderBoxesSection(route)}
         ${
           stops && stops.length
             ? `

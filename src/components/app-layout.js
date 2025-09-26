@@ -123,7 +123,10 @@ class AppLayout extends HTMLElement {
           display: flex;
           flex-direction: column;
           height: 100vh;
-          font-family: var(--body-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          font-size: var(--font-size-base, 1rem);
+          line-height: var(--line-height, 1.5);
+          letter-spacing: var(--letter-spacing, 0.025em);
           background: #f5f5f5;
           overflow: hidden;
         }
@@ -188,19 +191,83 @@ class AppLayout extends HTMLElement {
         }
 
         .tab-label {
-          font-size: 0.75rem;
+          font-size: var(--font-size-small, 0.875rem);
           font-weight: 500;
+          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          letter-spacing: var(--letter-spacing, 0.025em);
         }
 
         /* Mobile optimizations */
         @media (max-width: 600px) {
           .tab-label {
-            font-size: 0.7rem;
+            font-size: var(--font-size-small, 0.875rem);
           }
         }
       </style>
 
-      <app-header></app-header>
+      <div style="position: relative;">
+        <app-header></app-header>
+
+        <!-- Hamburger Menu Button -->
+        <button id="hamburgerMenu" style="
+          position: absolute;
+          top: 50%;
+          right: 15px;
+          transform: translateY(-50%);
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: white;
+          font-size: 1.5rem;
+          padding: 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          z-index: 1002;
+          transition: background 0.2s ease;
+        " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+          <i class="mdi mdi-menu"></i>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div id="dropdownMenu" style="
+          position: absolute;
+          top: 100%;
+          right: 15px;
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          min-width: 200px;
+          z-index: 1003;
+          display: none;
+        ">
+          <button onclick="this.getRootNode().host.openBackendData()" style="
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-family: inherit;
+          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+            <i class="mdi mdi-table" style="margin-right: 8px; color: #666;"></i>
+            Open Backend Data
+          </button>
+          <button onclick="this.getRootNode().host.handleSignOut()" style="
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+            color: #e53e3e;
+          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+            <i class="mdi mdi-logout" style="margin-right: 8px;"></i>
+            Sign Out
+          </button>
+        </div>
+      </div>
 
       <div class="main-content">
         <div class="page-container">
