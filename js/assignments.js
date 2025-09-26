@@ -76,7 +76,7 @@ class AssignmentsManager {
       html += `
         <div style="text-align: center; margin-top: 20px;">
           <button onclick="printAssignment()" class="directions-btn" style="background: #6c757d;">
-            🖨️ ${printButtonText}
+            <i class="mdi mdi-printer"></i> ${printButtonText}
           </button>
         </div>
       `;

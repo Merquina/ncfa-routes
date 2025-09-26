@@ -87,7 +87,7 @@ class RouteDetails extends HTMLElement {
 
     const type = route.type || "spfm";
     const titleEmoji =
-      type === "recovery" ? "🛒" : type === "spfm-delivery" ? "🚚" : "👨‍🌾";
+      type === "recovery" ? "<i class='mdi mdi-shopping-cart'></i>" : type === "spfm-delivery" ? "<i class='mdi mdi-truck'></i>" : "<i class='mdi mdi-account-hard-hat'></i>";
     const title =
       type === "recovery"
         ? "Recovery Route"
@@ -142,12 +142,12 @@ class RouteDetails extends HTMLElement {
             route.displayDate || route.date
           )} · ${route.startTime || route.Time || "TBD"}</div>
           <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn" onclick="window.print()">🖨️ Print</button>
+            <button class="btn" onclick="window.print()"><i class="mdi mdi-printer"></i> Print</button>
             ${
               stops.length
                 ? `<button class="btn" style="background:#6f42c1" onclick="window.open('${this.buildFullRouteUrl(
                     stops
-                  )}','_blank')">🗺️ Full route on Google Maps</button>`
+                  )}','_blank')"><i class="mdi mdi-map"></i> Full route on Google Maps</button>`
                 : ""
             }
           </div>
@@ -246,12 +246,12 @@ class RouteDetails extends HTMLElement {
       const link = `https://maps.google.com/maps?q=${encodeURIComponent(
         address
       )}`;
-      return `<button class="btn" onclick="window.open('${link}', '_blank')">📍 ${address}</button>`;
+      return `<button class="btn" onclick="window.open('${link}', '_blank')"><i class="mdi mdi-map-marker"></i> ${address}</button>`;
     } catch {
       const link = `https://maps.google.com/maps?q=${encodeURIComponent(
         location
       )}`;
-      return `<button class="btn" onclick="window.open('${link}', '_blank')">📍 ${location}</button>`;
+      return `<button class="btn" onclick="window.open('${link}', '_blank')"><i class="mdi mdi-map-marker"></i> ${location}</button>`;
     }
   }
 
@@ -267,7 +267,7 @@ class RouteDetails extends HTMLElement {
         return contact.phones
           .map(
             (p) =>
-              `<button class="btn" style="background:#007bff;margin-left:6px;" onclick="window.open('tel:${p}','_blank')">📞 ${p}</button>`
+              `<button class="btn" style="background:#007bff;margin-left:6px;" onclick="window.open('tel:${p}','_blank')"><i class="mdi mdi-phone"></i> ${p}</button>`
           )
           .join("");
       }

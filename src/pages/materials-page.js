@@ -165,7 +165,7 @@ class MaterialsPage extends HTMLElement {
       </style>
       <div id="container">
         <div class="header">
-          <h1 class="title">📋 Materials Checklist</h1>
+          <h1 class="title"><i class="mdi mdi-clipboard-list"></i> Materials Checklist</h1>
           <p class="subtitle">Track materials and tasks for SPFM routes</p>
         </div>
         
@@ -173,7 +173,7 @@ class MaterialsPage extends HTMLElement {
           <!-- Office Materials Section -->
           <div class="section">
             <h2 class="section-title" style="color:#17a2b8;">
-              📁 Office Materials
+              <i class="mdi mdi-folder-open"></i> Office Materials
             </h2>
             <div class="checklist">
               ${this.materials.office.length ? 
@@ -191,7 +191,7 @@ class MaterialsPage extends HTMLElement {
           <!-- Storage Materials Section -->
           <div class="section">
             <h2 class="section-title" style="color:#17a2b8;">
-              📦 Storage Materials
+              <i class="mdi mdi-package-variant"></i> Storage Materials
             </h2>
             <div class="checklist">
               ${this.materials.storage.length ? 
@@ -209,7 +209,7 @@ class MaterialsPage extends HTMLElement {
           <!-- At Market Section -->
           <div class="section">
             <h2 class="section-title" style="color:#28a745;">
-              🌽 At Market
+              <i class="mdi mdi-store"></i> At Market
             </h2>
             <div class="checklist">
               ${this.materials.atMarket.length ? 
@@ -227,7 +227,7 @@ class MaterialsPage extends HTMLElement {
           <!-- Back at Office Section -->
           <div class="section">
             <h2 class="section-title" style="color:#dc3545;">
-              ↩️ Back at Office
+              <i class="mdi mdi-arrow-u-left-top"></i> Back at Office
             </h2>
             <div class="checklist">
               ${this.materials.backAtOffice.length ? 
@@ -244,7 +244,7 @@ class MaterialsPage extends HTMLElement {
         </div>
 
         <div class="actions">
-          <button class="btn" onclick="window.print()">🖨️ Print Checklist</button>
+          <button class="btn" onclick="window.print()"><i class="mdi mdi-printer"></i> Print Checklist</button>
           <button class="btn secondary" onclick="this.getRootNode().host.clearAllChecks()">↺ Clear All</button>
         </div>
       </div>

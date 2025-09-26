@@ -1,0 +1,1 @@
+- we aren't using vite to build, please ensure that we don't use direct links to anything in node_modules

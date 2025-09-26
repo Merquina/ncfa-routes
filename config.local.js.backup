@@ -1,0 +1,11 @@
+// Local configuration file
+// This file is loaded by index.html to provide local configuration overrides
+// It's ignored by git, so you can add your local settings here
+
+// Example:
+// window.__APP_CONFIG = {
+//   GOOGLE_CLIENT_ID: 'your-client-id-here'
+// };
+
+// Empty configuration for now
+window.__APP_CONFIG = window.__APP_CONFIG || {};

@@ -167,7 +167,7 @@ class DateCard extends HTMLElement {
 
       <div class="date-card ${isUpcoming ? 'upcoming' : 'past'} ${variant === 'compact' ? 'compact' : ''}">
         <div class="date-display">
-          📅 ${this.formatDate(this.dateData.date)}
+          <i class="mdi mdi-calendar"></i> ${this.formatDate(this.dateData.date)}
         </div>
         
         <div class="route-count">

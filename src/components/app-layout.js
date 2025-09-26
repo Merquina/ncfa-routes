@@ -1,5 +1,6 @@
 import sheetsAPI from "../services/sheets-api.js";
 import dataService from "../services/data-service.js";
+import "./app-header.js";
 
 class AppLayout extends HTMLElement {
   constructor() {
@@ -13,6 +14,7 @@ class AppLayout extends HTMLElement {
     this.setupMenuHandlers();
     this.setupRouting();
     this._wireSyncStatus();
+    this.setupHeaderHandler();
   }
   disconnectedCallback() {}
 
@@ -31,7 +33,7 @@ class AppLayout extends HTMLElement {
       router.registerRoute("/boxes", "boxes-page", "Box Inventory");
       router.registerRoute("/dates", "dates-page", "Upcoming Routes");
       router.registerRoute("/workers", "workers-page", "Routes by Worker");
-      router.registerRoute("/materials", "materials-page", "Materials Checklist");
+
       router.registerRoute("/route", "route-details-page", "Route Details");
     } catch {}
   }
@@ -96,9 +98,27 @@ class AppLayout extends HTMLElement {
     window.open(sheetsUrl, "_blank");
   }
 
+  setupHeaderHandler() {
+    const header = this.shadowRoot.querySelector("app-header");
+    if (header) {
+      header.addEventListener("header-click", () => {
+        this.goToSignInPage();
+      });
+    }
+  }
+
+  goToSignInPage() {
+    // Call the global function to show sign-in page
+    if (typeof window.showSignInPage === "function") {
+      window.showSignInPage();
+    }
+  }
+
   render() {
     this.shadowRoot.innerHTML = `
       <style>
+        @import url("https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.4.47/css/materialdesignicons.min.css");
+
         :host {
           display: flex;
           flex-direction: column;
@@ -108,73 +128,9 @@ class AppLayout extends HTMLElement {
           overflow: hidden;
         }
 
-        .header {
-          background: #28a745;
-          color: white;
-          padding: 8px;
-          text-align: center;
-          position: relative;
-          flex-shrink: 0;
-          z-index: 1001;
-          padding-right: 64px; /* keep content clear of the menu */
-        }
 
-        .header h1 {
-          font-family: var(--header-font, "Barrio", cursive);
-          font-size: clamp(1rem, 4.8vw, 2.2rem);
-          line-height: 1.1;
-          font-weight: 400;
-          margin: 0 0 8px 0;
-          white-space: nowrap; /* never break the title */
-        }
 
-        .header p {
-          font-size: 1rem;
-          opacity: 0.9;
-          margin: 0 0 8px 0;
-        }
 
-        .hamburger-menu {
-          position: absolute; /* anchored to header */
-          bottom: 8px;
-          right: 10px;
-          background: none;
-          border: none;
-          color: white;
-          font-size: 1.5rem;
-          cursor: pointer;
-          padding: 5px;
-          z-index: 10010;
-        }
-
-        .dropdown-menu {
-          position: absolute; /* drop just below header */
-          top: 100%;
-          right: 10px;
-          background: white;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          z-index: 10011;
-          display: none;
-          min-width: 200px;
-        }
-
-        .menu-item {
-          width: 100%;
-          background: none;
-          border: none;
-          padding: 12px 20px;
-          text-align: left;
-          cursor: pointer;
-          font-size: 0.9rem;
-          color: #333;
-          font-family: inherit;
-        }
-
-        .menu-item:hover {
-          background: #f8f9fa;
-        }
 
         .main-content {
           flex: 1;
@@ -244,22 +200,7 @@ class AppLayout extends HTMLElement {
         }
       </style>
 
-      <div class="header">
-        <button id="hamburgerMenu" class="hamburger-menu" title="Menu">☰</button>
-
-        <div id="dropdownMenu" class="dropdown-menu">
-          <button class="menu-item" id="refreshBtn">🔄 Refresh Now</button>
-          <button class="menu-item" id="backendDataBtn">📊 Backend Data</button>
-          <button class="menu-item" id="signOutBtn">🚪 Sign Out</button>
-        </div>
-
-        <h1>North Country Food Alliance</h1>
-        <div style="font-size: 1.2rem; margin: 5px 0;">🥕 🥒 🥬</div>
-        <p>SPFM and Recovery Routes</p>
-        <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">
-          Last synced: <span id="lastSynced">—</span>
-        </div>
-      </div>
+      <app-header></app-header>
 
       <div class="main-content">
         <div class="page-container">
@@ -269,55 +210,24 @@ class AppLayout extends HTMLElement {
 
       <div class="bottom-tabs">
         <a href="/reminders" class="tab-btn" data-route="/reminders">
-          <div class="tab-icon">📋</div>
+          <div class="tab-icon"><i class="mdi mdi-bell"></i></div>
           <div class="tab-label">Reminders</div>
         </a>
         <a href="/boxes" class="tab-btn" data-route="/boxes">
-          <div class="tab-icon">📦</div>
+          <div class="tab-icon"><i class="mdi mdi-package-variant"></i></div>
           <div class="tab-label">Boxes</div>
         </a>
         <a href="/dates" class="tab-btn" data-route="/dates">
-          <div class="tab-icon">📅</div>
+          <div class="tab-icon"><i class="mdi mdi-calendar"></i></div>
           <div class="tab-label">By Date</div>
         </a>
         <a href="/workers" class="tab-btn" data-route="/workers">
-          <div class="tab-icon">👥</div>
+          <div class="tab-icon"><i class="mdi mdi-account"></i></div>
           <div class="tab-label">By Worker</div>
         </a>
-        <a href="/materials" class="tab-btn" data-route="/materials">
-          <div class="tab-icon">🧰</div>
-          <div class="tab-label">Materials</div>
-        </a>
+
       </div>
     `;
-
-    // Set up menu event listeners
-    const signOutBtn = this.shadowRoot.querySelector("#signOutBtn");
-    const backendDataBtn = this.shadowRoot.querySelector("#backendDataBtn");
-    const refreshBtn = this.shadowRoot.querySelector("#refreshBtn");
-
-    if (signOutBtn) {
-      signOutBtn.addEventListener("click", () => {
-        this.handleSignOut();
-        this.toggleMenu();
-      });
-    }
-
-    if (backendDataBtn) {
-      backendDataBtn.addEventListener("click", () => {
-        this.openBackendData();
-        this.toggleMenu();
-      });
-    }
-    if (refreshBtn) {
-      refreshBtn.addEventListener("click", async () => {
-        try {
-          await dataService.loadApiData(true);
-        } finally {
-          this.toggleMenu();
-        }
-      });
-    }
   }
 
   _wireSyncStatus() {

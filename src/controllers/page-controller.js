@@ -511,7 +511,7 @@ class DatesPageController extends PageController {
           window.assignmentsManager.renderUnifiedAssignments({
             routes: upcomingRoutes,
             title: "Upcoming Routes",
-            emoji: "📅",
+            emoji: "<i class=\"mdi mdi-calendar\"></i>",
             color: "#007bff",
             groupByMarket: false,
             showPrintButton: false,

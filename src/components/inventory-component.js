@@ -448,7 +448,7 @@ class InventoryComponent extends HTMLElement {
 
       <!-- Box Inventory Section -->
       <div class="section">
-        <h4>📦 Box Inventory</h4>
+        <h4><i class="mdi mdi-package-variant"></i> Box Inventory</h4>
         <div class="grid-2">
           <div class="box-card">
             <div class="box-count">${smallBoxes}</div>
@@ -472,7 +472,7 @@ class InventoryComponent extends HTMLElement {
 
       <!-- Box Calculator Section -->
       <div class="section">
-        <h4>🧮 Box Calculator</h4>
+        <h4><i class="mdi mdi-calculator"></i> Box Calculator</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div class="form-row">
             <label class="form-label">How many farmers:</label>
@@ -495,7 +495,7 @@ class InventoryComponent extends HTMLElement {
 
       <!-- Update Inventory Section -->
       <div class="section">
-        <h4>📝 Update Inventory</h4>
+        <h4><i class="mdi mdi-clipboard-edit"></i> Update Inventory</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div class="form-row">
             <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">small boxes:</label>
@@ -506,7 +506,7 @@ class InventoryComponent extends HTMLElement {
             <input type="number" id="updateLargeBoxes" min="0" value="${largeBoxes}" inputmode="numeric" class="form-input">
           </div>
           <!-- Name field removed; we use OAuth profile name -->
-          <button id="updateBtn" class="btn" style="margin-top: 5px; font-size: 0.9rem;">📊 Update & Share Inventory</button>
+          <button id="updateBtn" class="btn" style="margin-top: 5px; font-size: 0.9rem;"><i class="mdi mdi-chart-bar"></i> Update & Share Inventory</button>
         </div>
       </div>
       <div id="toast" role="status" aria-live="polite"></div>

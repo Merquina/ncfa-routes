@@ -3,8 +3,8 @@
    ======================================== */
 
 /* Font Imports */
-@import url("https://fonts.googleapis.com/css2?family=Barrio:wght@400&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap");
+@import url("https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/opendyslexic-regular.css");
 
 /* Root Variables */
 :root {
@@ -21,8 +21,8 @@
   --border-radius: 8px;
   --transition: all 0.3s ease;
   --tab-height: 70px;
-  --header-font: "Barrio", cursive;
-  --body-font: "Atkinson Hyperlegible", sans-serif;
+  --header-font: "Atkinson Hyperlegible", "OpenDyslexic", sans-serif;
+  --body-font: "Atkinson Hyperlegible", "OpenDyslexic", sans-serif;
 }
 
 /* Base Styles */
@@ -340,6 +340,7 @@ body {
   cursor: pointer;
   transition: var(--transition);
   color: #666;
+  text-decoration: none !important;
   /* iPhone touch fixes */
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -360,6 +361,7 @@ body {
 .tab-btn:focus {
   background: var(--light-gray);
   outline: none;
+  text-decoration: none;
 }
 
 .tab-btn:active {
@@ -375,6 +377,20 @@ body {
   font-size: 0.7rem;
   font-weight: 500;
   font-family: var(--body-font);
+  text-decoration: none !important;
+}
+
+.tab-btn,
+.tab-btn:hover,
+.tab-btn:focus,
+.tab-btn:active,
+.tab-btn:visited {
+  text-decoration: none !important;
+}
+
+.tab-label,
+.tab-icon {
+  text-decoration: none !important;
 }
 
 /* Date Grid */

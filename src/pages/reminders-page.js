@@ -2,143 +2,251 @@ class RemindersPage extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this._materialsData = null;
+    this._remindersData = null;
   }
 
   connectedCallback() {
     this.render();
-    this.loadMaterials();
+    this.loadReminders();
 
     // Listen for data updates
     if (window.dataService) {
       window.dataService.addEventListener("data-loaded", () => {
-        this.loadMaterials();
+        this.loadReminders();
       });
     }
   }
 
-  async loadMaterials() {
+  async loadReminders() {
     try {
-      // Try multiple keys to find materials in Reminders table
-      let reminders = null;
-
-      // Try different keys that might match your Reminders table
-      const keysToTry = [
-        { market: "all", type: "spfm" },
-        { market: "SPFM", type: "spfm" },
-        { market: "spfm", type: "spfm" },
-        { market: "All", type: "spfm" },
-        { market: "ANY", type: "spfm" },
+      // TEMPORARY TEST: Use hardcoded data to test display
+      const testReminders = [
+        { section: "Office", item: "Tablets (2)" },
+        { section: "Office", item: "Printers (2)" },
+        { section: "Storage", item: "Boxes (50 LARGE, 20 small)" },
+        { section: "Market", item: "2 workers - setup" },
+        { section: "Return", item: "Tablets - sync + charge" },
       ];
 
-      for (const key of keysToTry) {
-        if (
-          !(
-            window.dataService &&
-            typeof window.dataService.getRemindersForRoute === "function"
-          )
-        )
-          break;
-        const result = await window.dataService.getRemindersForRoute(key);
-        const hasOffice =
-          Array.isArray(result?.materials_office) &&
-          result.materials_office.length;
-        const hasStorage =
-          Array.isArray(result?.materials_storage) &&
-          result.materials_storage.length;
-        const hasAtMarket = Array.isArray(result?.atMarket)
-          ? result.atMarket.length
-          : Array.isArray(result?.atmarket) && result.atmarket.length;
-        const hasBackAtOffice = Array.isArray(result?.backAtOffice)
-          ? result.backAtOffice.length
-          : Array.isArray(result?.backatoffice) && result.backatoffice.length;
-        if (
-          result &&
-          (hasOffice || hasStorage || hasAtMarket || hasBackAtOffice)
-        ) {
-          reminders = result;
-          console.log(`Found materials with key:`, key, result);
-          break;
+      // Try to get reminders directly from the correct Google Sheets range
+      let allReminders = [];
+
+      try {
+        // First try public CSV access (no auth needed)
+        console.log("Trying public CSV access first...");
+        try {
+          const csvUrl = `https://docs.google.com/spreadsheets/d/1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k/export?format=csv&range=Misc!G:H`;
+          const csvResponse = await fetch(csvUrl);
+          if (csvResponse.ok) {
+            const csvText = await csvResponse.text();
+            console.log(
+              "CSV data received:",
+              csvText.substring(0, 200) + "..."
+            );
+
+            // Parse CSV
+            const rows = csvText
+              .split("\n")
+              .map((row) =>
+                row.split(",").map((cell) => cell.trim().replace(/"/g, ""))
+              );
+            console.log("Parsed CSV rows:", rows.slice(0, 3));
+
+            if (rows.length > 1) {
+              allReminders = rows
+                .slice(1)
+                .map((row) => ({
+                  section: row[0],
+                  item: row[1],
+                }))
+                .filter((item) => item.section && item.item);
+
+              console.log("CSV converted to objects:", allReminders);
+            }
+          }
+        } catch (csvError) {
+          console.log("CSV access failed:", csvError);
         }
+
+        // If CSV didn't work, try authenticated API
+        if (
+          (!allReminders || allReminders.length === 0) &&
+          window.gapi &&
+          window.gapi.client &&
+          window.gapi.client.sheets
+        ) {
+          console.log("Attempting direct Google Sheets API call for Misc!G:H");
+          const response =
+            await window.gapi.client.sheets.spreadsheets.values.get({
+              spreadsheetId: "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k",
+              range: "Misc!G:H",
+            });
+
+          if (response.result && response.result.values) {
+            const rows = response.result.values;
+            console.log("Raw Google Sheets data from G:H:", rows);
+
+            // Skip header row and convert to objects
+            console.log("First few rows:", rows.slice(0, 3));
+
+            if (rows[0] && rows[0].length === 2) {
+              // 2 columns: section, item (no order column)
+              console.log("Detected 2-column format");
+              allReminders = rows
+                .slice(1)
+                .map((row) => ({
+                  section: row[0],
+                  item: row[1],
+                }))
+                .filter((item) => item.section && item.item);
+            } else if (rows[0] && rows[0].length === 3) {
+              // 3 columns: order, section, item
+              console.log("Detected 3-column format");
+              allReminders = rows
+                .slice(1)
+                .map((row) => ({
+                  order: row[0],
+                  section: row[1],
+                  item: row[2],
+                }))
+                .filter((item) => item.section && item.item);
+            }
+
+            console.log("Converted to objects:", allReminders);
+          }
+        }
+      } catch (error) {
+        console.error("Direct API call failed:", error);
       }
 
-      // If no specific match, try getting all reminders and find any with materials
-      if (!reminders) {
-        const allReminders =
+      // If direct call didn't work, try the normal data service
+      if (!allReminders || allReminders.length === 0) {
+        console.log("Direct API failed, trying dataService...");
+        allReminders =
           window.dataService &&
           typeof window.dataService.getAllReminders === "function"
             ? await window.dataService.getAllReminders()
             : [];
-        console.log("All available reminders:", allReminders);
+      }
 
-        // Find any reminder row that has materials
-        for (const reminder of allReminders) {
-          if (
-            reminder.materials_office?.length ||
-            reminder.materials_storage?.length ||
-            reminder.atMarket?.length ||
-            reminder.backAtOffice?.length
-          ) {
-            reminders = reminder;
-            console.log("Using reminder row:", reminder);
-            break;
+      // If still no real data, fall back to test data
+      if (!allReminders || allReminders.length === 0) {
+        console.log("No sheets data found, using test data");
+        allReminders = testReminders;
+      }
+
+      console.log("All reminders loaded:", allReminders);
+      console.log(
+        "Sample reminder object keys:",
+        allReminders[0] ? Object.keys(allReminders[0]) : "No data"
+      );
+      console.log("Raw sheets API access test:");
+      console.log("window.dataService:", !!window.dataService);
+      console.log(
+        "window.dataService.sheetsAPI:",
+        !!window.dataService?.sheetsAPI
+      );
+      console.log(
+        "miscReminders:",
+        window.dataService?.sheetsAPI?.miscReminders
+      );
+
+      // If the data structure is the old format, try to access the underlying sheet data directly
+      if (
+        allReminders.length === 1 &&
+        !allReminders[0].section &&
+        !allReminders[0].item
+      ) {
+        console.log("Detected old format, trying to access raw sheet data...");
+
+        // Try different ways to access the raw data
+        console.log("Trying to access raw data from multiple sources...");
+
+        // Check if we can access sheetsAPI through dataService
+        const dataService = window.dataService;
+        if (dataService && dataService.sheetsAPI) {
+          console.log("Found sheetsAPI via dataService.sheetsAPI");
+          if (dataService.sheetsAPI.miscReminders) {
+            allReminders = dataService.sheetsAPI.miscReminders;
+            console.log(
+              "Using dataService.sheetsAPI.miscReminders:",
+              allReminders
+            );
           }
+        }
+
+        // Check direct import
+        if (window.sheetsAPI && window.sheetsAPI.miscReminders) {
+          allReminders = window.sheetsAPI.miscReminders;
+          console.log("Using window.sheetsAPI.miscReminders:", allReminders);
+        }
+
+        // If still no data, use our test data
+        if (
+          !allReminders ||
+          allReminders.length === 0 ||
+          !allReminders[0].section
+        ) {
+          console.log("No valid sheets data found, using test data");
+          allReminders = testReminders;
         }
       }
 
-      this._materialsData = {
-        office: reminders?.materials_office || [],
-        storage: reminders?.materials_storage || [],
-        atMarket: Array.isArray(reminders?.atMarket)
-          ? reminders.atMarket
-          : reminders?.atmarket || [],
-        backAtOffice: Array.isArray(reminders?.backAtOffice)
-          ? reminders.backAtOffice
-          : reminders?.backatoffice || [],
+      // Group by section
+      this._remindersData = {
+        office: [],
+        storage: [],
+        market: [],
+        return: [],
       };
 
-      console.log("Final materials data:", this._materialsData);
-      this.renderMaterials();
+      allReminders.forEach((reminder) => {
+        const section = (
+          reminder.section ||
+          reminder.Section ||
+          ""
+        ).toLowerCase();
+        const item = reminder.item || reminder.Item || "";
+
+        console.log("Processing reminder:", { section, item });
+
+        if (!item || item.trim() === "") return; // Skip empty items
+
+        if (section.includes("office")) {
+          this._remindersData.office.push(item);
+        } else if (section.includes("storage")) {
+          this._remindersData.storage.push(item);
+        } else if (section.includes("market")) {
+          this._remindersData.market.push(item);
+        } else if (section.includes("return")) {
+          this._remindersData.return.push(item);
+        }
+      });
+
+      console.log("Processed reminders data:", this._remindersData);
+      this.renderReminders();
     } catch (error) {
-      console.error("Error loading materials:", error);
-      try {
-        const dbg = window.dataService?.getDebugInfo?.();
-        console.log("Debug info:", dbg);
-        const all = await (window.dataService?.getAllReminders?.() || []);
-        console.log(
-          "All reminders sample:",
-          Array.isArray(all) ? all.slice(0, 3) : all
-        );
-      } catch {}
+      console.error("Error loading reminders:", error);
     }
   }
 
-  renderMaterials() {
-    const container = this.shadowRoot.querySelector(".materials-container");
+  renderReminders() {
+    const container = this.shadowRoot.querySelector(".reminders-container");
     if (!container) return;
 
     container.innerHTML = `
-      <div class="welcome-section">
-        <h2>📋 SPFM Reminders Checklist</h2>
-        <p>Everything you need for a successful route</p>
-      </div>
-
-      <div class="materials-grid">
-        <!-- At Office - Combined Materials -->
-        <div class="material-card office-combined">
-          <div class="card-header office">
-            <h3>🏢 At Office</h3>
-            <span class="count">${
-              this._materialsData.office.length +
-              this._materialsData.storage.length
-            } items</span>
+      <div class="reminders-grid">
+        <!-- Arrive at Office -->
+        <div class="reminder-box">
+          <div class="box-header">
+            <h3>Arrive at Office</h3>
           </div>
-          <div class="office-columns">
-            <div class="office-column">
-              <h4>📁 Office Materials</h4>
+          <div class="box-columns">
+            <div class="box-column">
+              <h4>Office</h4>
               <div class="checklist">
                 ${
-                  this._materialsData.office
+                  this._remindersData.office
                     .map(
                       (item) => `
                     <label class="checkbox-item">
@@ -148,16 +256,15 @@ class RemindersPage extends HTMLElement {
                     </label>
                   `
                     )
-                    .join("") ||
-                  '<div class="no-items">No office materials listed</div>'
+                    .join("") || '<div class="no-items">No office items</div>'
                 }
               </div>
             </div>
-            <div class="office-column">
-              <h4>📦 Storage Materials</h4>
+            <div class="box-column">
+              <h4>Storage</h4>
               <div class="checklist">
                 ${
-                  this._materialsData.storage
+                  this._remindersData.storage
                     .map(
                       (item) => `
                     <label class="checkbox-item">
@@ -167,86 +274,72 @@ class RemindersPage extends HTMLElement {
                     </label>
                   `
                     )
-                    .join("") ||
-                  '<div class="no-items">No storage materials listed</div>'
+                    .join("") || '<div class="no-items">No storage items</div>'
                 }
               </div>
             </div>
           </div>
         </div>
 
-        <!-- At Market -->
-        <div class="material-card">
-          <div class="card-header market">
-            <h3>⛺ At Market - Setup</h3>
-            <span class="count">${
-              this._materialsData.atMarket.length
-            } tasks</span>
+        <!-- Market -->
+        <div class="reminder-box">
+          <div class="box-header">
+            <h3>Market</h3>
           </div>
-          <div class="checklist">
-            ${
-              this._materialsData.atMarket
-                .map(
-                  (item) => `
-              <label class="checkbox-item">
-                <input type="checkbox" />
-                <span class="checkmark"></span>
-                <span class="item-text">${item}</span>
-              </label>
-            `
-                )
-                .join("") ||
-              '<div class="no-items">No market tasks listed</div>'
-            }
+          <div class="box-single-column">
+            <div class="checklist">
+              ${
+                this._remindersData.market
+                  .map(
+                    (item) => `
+                  <label class="checkbox-item">
+                    <input type="checkbox" />
+                    <span class="checkmark"></span>
+                    <span class="item-text">${item}</span>
+                  </label>
+                `
+                  )
+                  .join("") || '<div class="no-items">No market items</div>'
+              }
+            </div>
           </div>
         </div>
 
-        <!-- Back At Office -->
-        <div class="material-card">
-          <div class="card-header return">
-            <h3>🔄 Back At Office - Return</h3>
-            <span class="count">${
-              this._materialsData.backAtOffice.length
-            } tasks</span>
+        <!-- Return to Office -->
+        <div class="reminder-box">
+          <div class="box-header">
+            <h3>Return to Office</h3>
           </div>
-          <div class="checklist">
-            ${
-              this._materialsData.backAtOffice
-                .map(
-                  (item) => `
-              <label class="checkbox-item">
-                <input type="checkbox" />
-                <span class="checkmark"></span>
-                <span class="item-text">${item}</span>
-              </label>
-            `
-                )
-                .join("") ||
-              '<div class="no-items">No return tasks listed</div>'
-            }
+          <div class="box-single-column">
+            <div class="checklist">
+              ${
+                this._remindersData.return
+                  .map(
+                    (item) => `
+                  <label class="checkbox-item">
+                    <input type="checkbox" />
+                    <span class="checkmark"></span>
+                    <span class="item-text">${item}</span>
+                  </label>
+                `
+                  )
+                  .join("") || '<div class="no-items">No return items</div>'
+              }
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="quick-actions">
-        <button class="action-btn primary" id="printBtn">
-          🖨️ Print Checklist
-        </button>
-        <button class="action-btn secondary" id="resetBtn">
-          ↺ Reset All
-        </button>
+      <div class="actions">
+        <button class="action-btn" id="resetBtn">Reset All</button>
       </div>
     `;
 
-    // Wire up buttons inside shadow DOM
-    try {
-      const reset = this.shadowRoot.querySelector("#resetBtn");
-      if (reset) reset.addEventListener("click", () => this.clearAll());
-    } catch {}
-    try {
-      const print = this.shadowRoot.querySelector("#printBtn");
-      if (print) print.addEventListener("click", () => window.print());
-    } catch {}
+    // Wire up reset button
+    const resetBtn = this.shadowRoot.querySelector("#resetBtn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => this.clearAll());
+    }
   }
 
   clearAll() {
@@ -263,132 +356,78 @@ class RemindersPage extends HTMLElement {
           display: block;
           padding: 20px;
           font-family: var(--body-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          background: #f5f5f5;
           min-height: 100%;
         }
 
-        .materials-container {
+        .reminders-container {
           max-width: 1200px;
           margin: 0 auto;
         }
 
-        .welcome-section {
-          text-align: center;
-          margin-bottom: 20px;
-          background: white;
-          padding: 20px;
-          border-radius: 15px;
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-          border: 2px solid #28a745;
-        }
-
-        .welcome-section h2 {
-          margin: 0 0 8px 0;
-          color: #28a745;
-          font-size: 1.4rem;
-          font-weight: 600;
-        }
-
-        .welcome-section p {
-          margin: 0;
-          color: #666;
-          font-size: 0.9rem;
-        }
-
-        .materials-grid {
+        .reminders-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 25px;
-          margin-top: 20px;
-        }
-
-        .office-combined {
-          grid-column: 1 / -1;
-        }
-
-        .office-columns {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
           gap: 20px;
         }
 
-        .office-column h4 {
+        .reminder-box {
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+        }
+
+        .box-header {
+          background: #f8f9fa;
+          padding: 15px 20px;
+          border-bottom: 1px solid #ddd;
+        }
+
+        .box-header h3 {
+          margin: 0;
+          color: #333;
+          font-size: 1.2rem;
+          font-weight: 600;
+        }
+
+        .box-columns {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0;
+        }
+
+        .box-single-column {
+          padding: 20px;
+        }
+
+        .box-column {
+          padding: 20px;
+        }
+
+        .box-column:first-child {
+          border-right: 1px solid #eee;
+        }
+
+        .box-column h4 {
           margin: 0 0 15px 0;
           color: #666;
           font-size: 1rem;
           font-weight: 600;
         }
 
-        @media (max-width: 768px) {
-          .office-columns {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .material-card {
-          background: white;
-          border-radius: 15px;
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-          border: 2px solid #e9ecef;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .material-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-        }
-
-        .card-header {
-          padding: 20px;
-          color: white;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .card-header.office {
-          background: linear-gradient(135deg, #17a2b8, #138496);
-        }
-
-        .card-header.storage {
-          background: linear-gradient(135deg, #6f42c1, #5a32a3);
-        }
-
-        .card-header.market {
-          background: linear-gradient(135deg, #28a745, #20754a);
-        }
-
-        .card-header.return {
-          background: linear-gradient(135deg, #dc3545, #b02a37);
-        }
-
-        .card-header h3 {
-          margin: 0;
-          font-size: 1.0rem;
-          font-weight: 600;
-        }
-
-        .count {
-          background: rgba(255, 255, 255, 0.2);
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-size: 0.75rem;
-          font-weight: 500;
-        }
-
         .checklist {
-          padding: 18px;
+          /* Container for checkboxes */
         }
 
         .checkbox-item {
           display: flex;
           align-items: center;
-          margin-bottom: 15px;
+          margin-bottom: 12px;
           cursor: pointer;
-          transition: all 0.2s ease;
-          padding: 8px;
-          border-radius: 8px;
+          padding: 6px;
+          border-radius: 4px;
+          transition: background-color 0.2s;
         }
 
         .checkbox-item:hover {
@@ -400,11 +439,11 @@ class RemindersPage extends HTMLElement {
         }
 
         .checkmark {
-          width: 20px;
-          height: 20px;
+          width: 18px;
+          height: 18px;
           border: 2px solid #ddd;
-          border-radius: 4px;
-          margin-right: 12px;
+          border-radius: 3px;
+          margin-right: 10px;
           position: relative;
           transition: all 0.3s ease;
           flex-shrink: 0;
@@ -423,7 +462,7 @@ class RemindersPage extends HTMLElement {
           transform: translate(-50%, -50%);
           color: white;
           font-weight: bold;
-          font-size: 12px;
+          font-size: 11px;
         }
 
         .checkbox-item input[type="checkbox"]:checked + .checkmark + .item-text {
@@ -432,7 +471,7 @@ class RemindersPage extends HTMLElement {
         }
 
         .item-text {
-          font-size: 0.75rem;
+          font-size: 0.9rem;
           color: #333;
           line-height: 1.3;
         }
@@ -441,47 +480,29 @@ class RemindersPage extends HTMLElement {
           color: #999;
           font-style: italic;
           text-align: center;
-          padding: 20px;
+          padding: 15px;
+          font-size: 0.9rem;
         }
 
-        .quick-actions {
-          display: flex;
-          justify-content: center;
-          gap: 15px;
+        .actions {
+          text-align: center;
           margin-top: 30px;
         }
 
         .action-btn {
-          padding: 12px 24px;
-          border: none;
-          border-radius: 8px;
-          font-size: 0.85rem;
-          font-weight: 600;
+          background: #f8f9fa;
+          color: #333;
+          border: 1px solid #ddd;
+          padding: 10px 20px;
+          border-radius: 6px;
+          font-size: 0.9rem;
           cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
         }
 
-        .action-btn.primary {
-          background: linear-gradient(135deg, #28a745, #20754a);
-          color: white;
-        }
-
-        .action-btn.primary:hover {
-          background: linear-gradient(135deg, #20754a, #1e6040);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .action-btn.secondary {
-          background: linear-gradient(135deg, #6c757d, #545b62);
-          color: white;
-        }
-
-        .action-btn.secondary:hover {
-          background: linear-gradient(135deg, #545b62, #495057);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        .action-btn:hover {
+          background: #e9ecef;
+          border-color: #adb5bd;
         }
 
         /* Mobile responsive */
@@ -490,65 +511,18 @@ class RemindersPage extends HTMLElement {
             padding: 15px;
           }
 
-          .materials-grid {
+          .box-columns {
             grid-template-columns: 1fr;
-            gap: 20px;
           }
 
-          .welcome-section {
-            padding: 20px;
-          }
-
-          .welcome-section h2 {
-            font-size: 1.2rem;
-          }
-
-          .card-header h3 {
-            font-size: 0.9rem;
-          }
-
-          .quick-actions {
-            flex-direction: column;
-            align-items: center;
-          }
-
-          .action-btn {
-            width: 200px;
-          }
-        }
-
-        /* Print styles */
-        @media print {
-          :host {
-            background: white;
-            padding: 0;
-          }
-
-          .welcome-section {
-            border: 2px solid #28a745;
-            margin-bottom: 20px;
-            box-shadow: none;
-          }
-
-          .material-card {
-            break-inside: avoid;
-            box-shadow: none;
-            border: 2px solid #ddd;
-            margin-bottom: 20px;
-          }
-
-          .card-header {
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-          }
-
-          .quick-actions {
-            display: none;
+          .box-column:first-child {
+            border-right: none;
+            border-bottom: 1px solid #eee;
           }
         }
       </style>
 
-      <div class="materials-container">
+      <div class="reminders-container">
         <!-- Content will be dynamically inserted here -->
       </div>
     `;

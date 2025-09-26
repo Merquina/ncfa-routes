@@ -346,7 +346,7 @@ class RouteList extends HTMLElement {
       // Empty state
       const emptyDiv = document.createElement('div');
       emptyDiv.className = 'empty-state';
-      emptyDiv.innerHTML = '<div class="empty-icon">📅</div><p>' + this.emptyMessage + '</p>';
+      emptyDiv.innerHTML = '<div class="empty-icon"><i class="mdi mdi-calendar"></i></div><p>' + this.emptyMessage + '</p>';
       listContent.appendChild(emptyDiv);
     }
     // Notify listeners that the list has finished rendering

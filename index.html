@@ -21,11 +21,18 @@
       rel="stylesheet"
     />
 
+    <!-- Material Design Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.4.47/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
+
     <!-- Google APIs -->
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
 
     <!-- Optional local config (ignored in git): define window.__APP_CONFIG here -->
+    <!-- Config loading disabled - was causing server routing conflicts
     <script>
       (function () {
         try {
@@ -37,6 +44,7 @@
         } catch (e) {}
       })();
     </script>
+    -->
 
     <!-- Performance: Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -135,17 +143,7 @@
   <body>
     <!-- Sign-in Landing Page -->
     <div id="signInPage" class="container" style="display: none">
-      <div class="header" style="background: #28a745; color: white">
-        <div style="text-align: center; padding: 20px">
-          <h1 style="margin: 0 0 10px 0; white-space: nowrap">
-            North Country Food Alliance
-          </h1>
-          <div style="font-size: 1.2rem; margin: 10px 0">🥕 🥒 🥬</div>
-          <p style="margin: 10px 0 20px 0; font-size: 1.1rem">
-            NCFA and Recovery Routes
-          </p>
-        </div>
-      </div>
+      <app-header></app-header>
 
       <div
         class="main-content"
@@ -158,35 +156,215 @@
         "
       >
         <div style="text-align: center; max-width: 400px">
-          <h2 style="margin: 0 0 15px 0; color: #333">Welcome!</h2>
-          <p style="margin: 0 0 30px 0; color: #666; line-height: 1.5">
-            Please sign in with your Google account to access the NCFA Routes
-            application.
-          </p>
+          <h2 style="margin: 0 0 30px 0; color: #333">Welcome!</h2>
           <button
             id="signInButton"
             onclick="handleSignInClick()"
             style="
-              background: #4285f4;
-              color: white;
+              background: #b3d4fc;
+              color: #333;
               border: none;
-              padding: 12px 24px;
+              padding: 15px 24px;
               border-radius: 6px;
               font-size: 1rem;
               cursor: pointer;
               font-family: var(--body-font);
               box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
               transition: background-color 0.2s;
+              width: 280px;
+              height: 50px;
+              display: block;
+              margin: 0 auto;
             "
-            onmouseover="this.style.backgroundColor='#3367d6'"
-            onmouseout="this.style.backgroundColor='#4285f4'"
+            onmouseover="this.style.backgroundColor='#9cc5f7'"
+            onmouseout="this.style.backgroundColor='#b3d4fc'"
           >
             Sign in with your NCFA account
+          </button>
+
+          <!-- Development Mode Bypass -->
+          <button
+            id="devBypassButton"
+            onclick="showMainApp(); updateStatus('Development mode - bypassed authentication')"
+            style="
+              background: #ffb3a0;
+              color: #333;
+              border: none;
+              padding: 15px 24px;
+              border-radius: 6px;
+              font-size: 1rem;
+              cursor: pointer;
+              font-family: var(--body-font);
+              margin-top: 15px;
+              width: 280px;
+              height: 50px;
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+            "
+            onmouseover="this.style.backgroundColor='#ff9d85'"
+            onmouseout="this.style.backgroundColor='#ffb3a0'"
+          >
+            Dev Mode (No password)
           </button>
           <div
             id="signInStatus"
             style="margin-top: 20px; color: #666; font-size: 0.9rem"
           ></div>
+
+          <!-- Installation Instructions Box -->
+          <div
+            style="
+              background: #f8f9fa;
+              border: 2px solid #28a745;
+              border-radius: 8px;
+              padding: 25px;
+              margin-top: 30px;
+              text-align: center;
+              max-width: 400px;
+            "
+          >
+            <h3
+              style="
+                margin: 0 0 20px 0;
+                color: #8b1538;
+                font-size: 1.3rem;
+                font-weight: bold;
+              "
+            >
+              Wait!
+            </h3>
+            <p
+              style="
+                margin: 0 0 25px 0;
+                color: #333;
+                font-size: 1rem;
+                font-weight: 500;
+              "
+            >
+              First do this so you can have easy access:
+            </p>
+
+            <div
+              style="
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+              "
+            >
+              <div
+                style="
+                  width: 30px;
+                  height: 30px;
+                  background: #28a745;
+                  color: white;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-weight: bold;
+                  font-size: 1.1rem;
+                  margin-bottom: 8px;
+                "
+              >
+                1
+              </div>
+              <div style="text-align: center; line-height: 1.4">
+                <div style="font-weight: 600; color: #333; margin-bottom: 4px">
+                  For iPhone:
+                </div>
+                <div style="color: #666">
+                  Tap the share button
+                  <span
+                    style="
+                      background: #e9ecef;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      font-size: 1rem;
+                      display: inline-flex;
+                      align-items: center;
+                    "
+                    ><i class="mdi mdi-share-outline" style="color: #007aff"></i
+                  ></span>
+                </div>
+                <div
+                  style="font-weight: 600; color: #333; margin: 12px 0 4px 0"
+                >
+                  For Android:
+                </div>
+                <div style="color: #666">
+                  Tap the three dots menu
+                  <span
+                    style="
+                      background: #e9ecef;
+                      padding: 3px 7px;
+                      border-radius: 4px;
+                      font-family: monospace;
+                      font-size: 1.1rem;
+                    "
+                    >⋮</span
+                  >
+                  (top right)
+                </div>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+              "
+            >
+              <div
+                style="
+                  width: 30px;
+                  height: 30px;
+                  background: #28a745;
+                  color: white;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-weight: bold;
+                  font-size: 1.1rem;
+                  margin-bottom: 8px;
+                "
+              >
+                2
+              </div>
+              <div style="color: #666; text-align: center; line-height: 1.4">
+                Scroll down and tap "Add to Home Screen"
+              </div>
+            </div>
+
+            <div
+              style="display: flex; flex-direction: column; align-items: center"
+            >
+              <div
+                style="
+                  width: 30px;
+                  height: 30px;
+                  background: #28a745;
+                  color: white;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-weight: bold;
+                  font-size: 1.1rem;
+                  margin-bottom: 8px;
+                "
+              >
+                3
+              </div>
+              <div style="color: #666; text-align: center; line-height: 1.4">
+                Tap "Add"
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
