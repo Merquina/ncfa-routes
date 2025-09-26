@@ -49,6 +49,11 @@
     <!-- Performance: Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Barrio font for header title -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barrio&display=swap"
+      rel="stylesheet"
+    />
     <!-- Main Stylesheet (cache-busted) -->
     <link rel="stylesheet" href="css/app.css?v=4" />
 
@@ -216,16 +221,27 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 40px;
+          padding: 16px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
         "
       >
-        <div style="text-align: center; max-width: 400px">
+        <div style="text-align: center; max-width: 350px; width: 100%">
           <h2
             style="
-              margin: 0 0 30px 0;
+              margin: 0 0 20px 0;
               color: #1a365d;
               font-weight: 700;
-              font-size: 1.8rem;
+              font-size: var(--font-size-large, 1.25rem);
+              font-family: var(
+                --font-family,
+                'OpenDyslexic',
+                'Comic Sans MS',
+                'Trebuchet MS',
+                'Verdana',
+                'Arial',
+                sans-serif
+              );
             "
           >
             Welcome!
@@ -239,14 +255,23 @@
               border: none;
               padding: 15px 24px;
               border-radius: 8px;
-              font-size: 1rem;
+              font-size: var(--font-size-base, 1rem);
               font-weight: 600;
               cursor: pointer;
-              font-family: var(--body-font);
+              font-family: var(
+                --font-family,
+                'OpenDyslexic',
+                'Comic Sans MS',
+                'Trebuchet MS',
+                'Verdana',
+                'Arial',
+                sans-serif
+              );
               box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
               transition: all 0.3s ease;
-              width: 280px;
-              height: 50px;
+              width: 100%;
+              max-width: 280px;
+              height: 48px;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -268,13 +293,22 @@
               border: none;
               padding: 15px 24px;
               border-radius: 8px;
-              font-size: 1rem;
+              font-size: var(--font-size-base, 1rem);
               font-weight: 600;
               cursor: pointer;
-              font-family: var(--body-font);
-              margin-top: 15px;
-              width: 280px;
-              height: 50px;
+              font-family: var(
+                --font-family,
+                'OpenDyslexic',
+                'Comic Sans MS',
+                'Trebuchet MS',
+                'Verdana',
+                'Arial',
+                sans-serif
+              );
+              margin-top: 12px;
+              width: 100%;
+              max-width: 280px;
+              height: 48px;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -299,29 +333,48 @@
               background: white;
               border: 3px solid #3182ce;
               border-radius: 12px;
-              padding: 25px;
-              margin-top: 30px;
+              padding: 16px;
+              margin-top: 20px;
               text-align: center;
-              max-width: 400px;
+              max-width: 350px;
+              width: 100%;
               box-shadow: 0 8px 25px rgba(49, 130, 206, 0.15);
             "
           >
             <h3
               style="
-                margin: 0 0 20px 0;
+                margin: 0 0 12px 0;
                 color: #8b1538;
-                font-size: 1.3rem;
+                font-size: var(--font-size-large, 1.25rem);
                 font-weight: bold;
+                font-family: var(
+                  --font-family,
+                  'OpenDyslexic',
+                  'Comic Sans MS',
+                  'Trebuchet MS',
+                  'Verdana',
+                  'Arial',
+                  sans-serif
+                );
               "
             >
               Wait!
             </h3>
             <p
               style="
-                margin: 0 0 25px 0;
+                margin: 0 0 16px 0;
                 color: #333;
-                font-size: 1rem;
+                font-size: var(--font-size-base, 1rem);
                 font-weight: 500;
+                font-family: var(
+                  --font-family,
+                  'OpenDyslexic',
+                  'Comic Sans MS',
+                  'Trebuchet MS',
+                  'Verdana',
+                  'Arial',
+                  sans-serif
+                );
               "
             >
               First do this so you can have easy access:

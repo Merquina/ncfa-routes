@@ -45,10 +45,10 @@ class AppHeader extends HTMLElement {
         }
 
         .header h1 {
-          font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+          font-family: "Barrio", cursive;
           font-size: var(--font-size-xl, 1.5rem);
           line-height: 1.3;
-          font-weight: 700;
+          font-weight: 400;
           margin: 0 0 6px 0;
           white-space: nowrap;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
