@@ -92,6 +92,11 @@ class AppLayout extends HTMLElement {
     this.dispatchEvent(new CustomEvent("sign-out", { bubbles: true }));
   }
 
+  navigateToAddressBook() {
+    window.location.hash = "/address-book";
+    this.toggleMenu(); // Close menu after navigation
+  }
+
   openBackendData() {
     const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
     const sheetsUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
@@ -276,7 +281,7 @@ class AppLayout extends HTMLElement {
           z-index: 1003;
           display: none;
         ">
-          <button onclick="window.location.hash='/address-book'" style="
+          <button onclick="this.getRootNode().host.navigateToAddressBook()" style="
             width: 100%;
             padding: 12px 16px;
             border: none;
