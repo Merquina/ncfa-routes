@@ -368,16 +368,16 @@ class RouteDetails extends HTMLElement {
       if (!contact) return "";
 
       const buttons = [];
-      
-      // Get all contacts and phones
-      const contacts = contact.contacts || [];
-      const phones = contact.phones || [];
+
+      // Get all contacts and phones using helper methods
+      const contacts = window.sheetsAPI?.getAllContacts?.(contact) || [];
+      const phones = window.sheetsAPI?.getAllPhones?.(contact) || [];
 
       // Create buttons pairing contacts with phones
       for (let i = 0; i < Math.max(contacts.length, phones.length); i++) {
-        const contactName = contacts[i] || 'Contact';
+        const contactName = contacts[i] || "Contact";
         const phone = phones[i];
-        
+
         if (phone) {
           buttons.push(
             `<button class="btn" style="background:#007bff;margin-left:6px;" onclick="window.open('tel:${phone}','_blank')">
@@ -386,9 +386,11 @@ class RouteDetails extends HTMLElement {
           );
         }
       }
-      
+
       return buttons.join("");
-    } catch {}
+    } catch (e) {
+      console.error("Error rendering phone buttons:", e);
+    }
     return "";
   }
 
