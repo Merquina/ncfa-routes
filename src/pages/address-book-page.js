@@ -6,6 +6,7 @@ class AddressBookPage extends HTMLElement {
   }
 
   connectedCallback() {
+    console.log("Address Book Page - connectedCallback");
     this.render();
     this.loadContacts();
   }
