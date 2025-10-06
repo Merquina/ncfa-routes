@@ -4,35 +4,41 @@
 
 /* Font Imports */
 @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap");
-@import url("https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/opendyslexic-regular.css");
 
-/* Root Variables */
+/* Root Variables - High Contrast for Accessibility */
 :root {
-  --primary-color: #4a4a4a;
-  --success-color: #28a745;
-  --success-hover: #218838;
-  --danger-color: #dc3545;
+  --primary-color: #000;
+  --success-color: #006400;
+  --success-hover: #004d00;
+  --danger-color: #8b0000;
   --light-gray: #f5f5f5;
-  --medium-gray: #f0f0f0;
-  --dark-gray: #666;
-  --border-color: #ddd;
-  --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  --shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.15);
+  --medium-gray: #e0e0e0;
+  --dark-gray: #000;
+  --border-color: #000;
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.3);
   --border-radius: 8px;
   --transition: all 0.3s ease;
   --tab-height: 70px;
-  --header-font: "Atkinson Hyperlegible", "OpenDyslexic", sans-serif;
-  --body-font: "Atkinson Hyperlegible", "OpenDyslexic", sans-serif;
+  --header-font: "Barrio", cursive;
+  --body-font: "Atkinson Hyperlegible", -apple-system, BlinkMacSystemFont,
+    sans-serif;
+}
+
+/* Global Font Override - Force dyslexia-friendly font everywhere */
+* {
+  font-family: var(--body-font) !important;
 }
 
 /* Base Styles */
 body {
-  font-family: var(--body-font);
+  font-family: var(--body-font) !important;
   background: var(--light-gray);
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  line-height: 1.1;
+  line-height: 1.6;
+  color: #000;
   /* iPhone viewport fixes */
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -62,13 +68,13 @@ body {
   }
 }
 
-/* Header */
+/* Header - Barrio font ONLY for "North Country Food Alliance" */
 .header {
   background: var(--primary-color);
   padding: 8px;
   text-align: center;
   color: white;
-  font-family: var(--body-font);
+  font-family: var(--body-font) !important;
   position: fixed;
   top: 0;
   left: 0;
@@ -77,13 +83,14 @@ body {
 }
 
 .header h1 {
-  font-family: var(--header-font);
+  font-family: var(--header-font) !important;
   font-size: 2.2rem;
   font-weight: 400;
   margin: 0 0 8px 0;
 }
 
 .header p {
+  font-family: var(--body-font) !important;
   font-size: 1rem;
   opacity: 0.9;
   margin: 0 0 8px 0;
@@ -91,9 +98,10 @@ body {
 
 /* Section Titles */
 .section-title {
+  font-family: var(--body-font) !important;
   font-size: 1.5rem;
-  color: #333;
-  font-weight: 600;
+  color: #000;
+  font-weight: 700;
   margin-bottom: 8px;
   text-align: center;
   padding: 0 8px;
@@ -104,17 +112,15 @@ body {
   flex: 1;
   overflow-y: auto;
   padding-bottom: var(--tab-height);
-  padding-top: 120px; /* Space for fixed header */
-  /* Mobile scroll fixes */
+  padding-top: 120px;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  /* Ensure proper scrolling with fixed header */
   scroll-padding-top: 130px;
 }
 
 .tab-content {
   padding: 8px;
-  min-height: calc(100vh - 200px); /* Account for fixed header */
+  min-height: calc(100vh - 200px);
 }
 
 .tab-content.hidden {
@@ -131,10 +137,12 @@ body {
 }
 
 .dates-section h3 {
+  font-family: var(--body-font) !important;
   margin: 16px 0 8px 0;
   color: var(--primary-color);
   font-size: 1.1rem;
   text-align: center;
+  font-weight: 700;
 }
 
 /* Worker Grid */
@@ -148,6 +156,7 @@ body {
 }
 
 .worker-card {
+  font-family: var(--body-font) !important;
   background: #f8f9fa;
   border-radius: 12px;
   padding: 8px;
@@ -156,8 +165,9 @@ body {
   transition: var(--transition);
   border: 2px solid var(--border-color);
   box-shadow: var(--shadow);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
+  color: #000;
 }
 
 .worker-card:hover {
@@ -170,12 +180,13 @@ body {
   background: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
-  box-shadow: 0 8px 16px rgba(74, 74, 74, 0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   transform: translateY(-3px);
 }
 
 /* Assignment Cards */
 .assignment-card {
+  font-family: var(--body-font) !important;
   background: white;
   border-radius: 15px;
   overflow: hidden;
@@ -195,53 +206,62 @@ body {
 
 /* Market Section */
 .market-section {
+  font-family: var(--body-font) !important;
   padding: 8px;
   border-bottom: 1px solid #eee;
 }
 
 .market-section h2 {
+  font-family: var(--body-font) !important;
   margin: 0 0 8px 0;
   color: var(--primary-color);
   font-size: 1.3rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .market-section p {
+  font-family: var(--body-font) !important;
   margin: 4px 0;
   color: var(--dark-gray);
 }
 
 /* Team Members */
 .team-member {
+  font-family: var(--body-font) !important;
   display: inline-block;
   background: #e9ecef;
   padding: 2px 6px;
   border-radius: 12px;
   margin: 2px;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: #000;
 }
 
 /* Van Info */
 .van-info {
+  font-family: var(--body-font) !important;
   background: #d1ecf1;
   padding: 4px 8px;
   border-radius: 4px;
   margin: 2px 0;
   font-size: 0.9rem;
+  color: #000;
 }
 
 /* Steps */
 .step-header {
+  font-family: var(--body-font) !important;
   background: var(--primary-color);
   color: white;
   padding: 8px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
   font-size: 1.1rem;
 }
 
 .step-number {
+  font-family: var(--body-font) !important;
   display: inline-block;
   background: white;
   color: var(--primary-color);
@@ -250,25 +270,29 @@ body {
   border-radius: 50%;
   line-height: 30px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
   margin-right: 8px;
 }
 
 /* Single Column Layout */
 .single-column {
+  font-family: var(--body-font) !important;
   padding: 8px;
   border-bottom: 1px solid #eee;
 }
 
 .single-column h3 {
+  font-family: var(--body-font) !important;
   margin: 0 0 8px 0;
   color: var(--primary-color);
   font-size: 1.1rem;
+  font-weight: 700;
 }
 
 /* Buttons */
 .directions-btn,
 .print-btn {
+  font-family: var(--body-font) !important;
   display: inline-block;
   background: #007bff;
   color: white;
@@ -276,10 +300,10 @@ body {
   padding: 6px 12px;
   border-radius: var(--border-radius);
   font-size: 0.9rem;
+  font-weight: 700;
   transition: var(--transition);
   border: none;
   cursor: pointer;
-  font-family: var(--body-font);
 }
 
 .directions-btn:hover,
@@ -290,6 +314,7 @@ body {
 }
 
 .phone-btn {
+  font-family: var(--body-font) !important;
   display: inline-block;
   background: var(--success-color);
   color: white;
@@ -297,8 +322,8 @@ body {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.9em;
+  font-weight: 700;
   transition: var(--transition);
-  font-family: var(--body-font);
 }
 
 .phone-btn:hover {
@@ -315,13 +340,12 @@ body {
   right: 0;
   height: var(--tab-height);
   background: white;
-  border-top: 1px solid var(--border-color);
+  border-top: 2px solid var(--border-color);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  /* iPhone-specific fixes */
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -329,6 +353,7 @@ body {
 }
 
 .tab-btn {
+  font-family: var(--body-font) !important;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -339,9 +364,8 @@ body {
   padding: 8px 4px;
   cursor: pointer;
   transition: var(--transition);
-  color: #666;
+  color: #000;
   text-decoration: none !important;
-  /* iPhone touch fixes */
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -349,11 +373,11 @@ body {
   touch-action: manipulation;
   min-height: 44px;
   position: relative;
-  font-family: var(--body-font);
 }
 
 .tab-btn.active {
   color: var(--primary-color);
+  font-weight: 700;
 }
 
 .tab-btn:hover,
@@ -374,9 +398,9 @@ body {
 }
 
 .tab-label {
+  font-family: var(--body-font) !important;
   font-size: 0.7rem;
-  font-weight: 500;
-  font-family: var(--body-font);
+  font-weight: 600;
   text-decoration: none !important;
 }
 
@@ -402,6 +426,7 @@ body {
 }
 
 .date-card {
+  font-family: var(--body-font) !important;
   background: #f8f9fa;
   border-radius: 12px;
   padding: 8px;
@@ -410,6 +435,7 @@ body {
   transition: var(--transition);
   border: 2px solid var(--border-color);
   box-shadow: var(--shadow);
+  color: #000;
 }
 
 .date-card:hover {
@@ -422,55 +448,60 @@ body {
   background: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
-  box-shadow: 0 8px 16px rgba(74, 74, 74, 0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   transform: translateY(-3px);
 }
 
 .date-card h3 {
+  font-family: var(--body-font) !important;
   margin: 0 0 8px 0;
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .date-card p {
+  font-family: var(--body-font) !important;
   margin: 4px 0;
   font-size: 0.9rem;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 /* Recovery Sections */
 .recovery-header {
+  font-family: var(--body-font) !important;
   background: var(--danger-color);
   color: white;
   padding: 8px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
   font-size: 1.1rem;
 }
 
 /* Loading States */
 .loading {
+  font-family: var(--body-font) !important;
   text-align: center;
   padding: 40px;
   color: var(--dark-gray);
 }
 
 .error {
+  font-family: var(--body-font) !important;
   background: #f8d7da;
   color: #721c24;
   padding: 12px;
   border-radius: var(--border-radius);
   margin: 8px;
-  border: 1px solid #f5c6cb;
+  border: 2px solid #000;
+  font-weight: 700;
 }
 
 /* Assignment Container Animation */
 #assignmentsContainer {
   transition: all 0.3s ease;
   margin-top: 8px;
-  /* Mobile scroll padding */
   padding-bottom: calc(var(--tab-height) + 20px);
-  scroll-margin-top: 130px; /* Account for fixed header */
+  scroll-margin-top: 130px;
 }
 
 #assignmentsContainer .assignment-card {
@@ -491,6 +522,7 @@ body {
 
 /* Box Management Styles */
 #inventoryContainer {
+  font-family: var(--body-font) !important;
   padding: 16px;
 }
 
@@ -502,11 +534,12 @@ body {
 }
 
 .inventory-item {
+  font-family: var(--body-font) !important;
   background: var(--light-gray);
   border-radius: var(--border-radius);
   padding: 16px;
   text-align: center;
-  border: 2px solid transparent;
+  border: 2px solid var(--border-color);
   transition: var(--transition);
 }
 
@@ -515,16 +548,18 @@ body {
 }
 
 .inventory-count {
+  font-family: var(--body-font) !important;
   font-size: 2rem;
-  font-weight: bold;
+  font-weight: 700;
   color: var(--primary-color);
   margin-bottom: 4px;
 }
 
 .inventory-label {
+  font-family: var(--body-font) !important;
   font-size: 0.9rem;
   color: var(--dark-gray);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 /* Responsive Design */
@@ -534,18 +569,19 @@ body {
   }
 
   .header h1 {
-    font-family: var(--header-font);
+    font-family: var(--header-font) !important;
     font-size: 1.8rem;
     margin-bottom: 4px;
   }
 
   .header p {
+    font-family: var(--body-font) !important;
     font-size: 0.9rem;
     margin: 0;
   }
 
   .main-content {
-    padding-top: 110px; /* Adjust for smaller header on mobile */
+    padding-top: 110px;
     scroll-padding-top: 120px;
   }
 
@@ -578,7 +614,7 @@ body {
 
 @media (max-width: 480px) {
   .header h1 {
-    font-family: var(--header-font);
+    font-family: var(--header-font) !important;
     font-size: 1.5rem;
   }
 
@@ -596,18 +632,17 @@ body {
   }
 
   .main-content {
-    padding-top: 100px; /* Adjust for even smaller header on small mobile */
+    padding-top: 100px;
     scroll-padding-top: 110px;
   }
 
-  /* Mobile scroll behavior */
   html {
     scroll-behavior: smooth;
   }
 
   #assignmentsContainer {
     padding-bottom: calc(var(--tab-height) + 40px);
-    scroll-margin-top: 110px; /* Account for smaller fixed header on mobile */
+    scroll-margin-top: 110px;
   }
 }
 
@@ -627,8 +662,10 @@ body {
 }
 
 #dropdownMenu button {
-  transition: background-color 0.2s ease;
   font-family: var(--body-font) !important;
+  transition: background-color 0.2s ease;
+  font-weight: 700;
+  color: #000;
 }
 
 @keyframes slideDown {
@@ -648,7 +685,6 @@ body {
 }
 
 /* Print Styles */
-
 @media print {
   .bottom-tabs,
   .worker-grid,
@@ -657,7 +693,7 @@ body {
   }
 
   .header {
-    position: static; /* Reset fixed positioning for print */
+    position: static;
   }
 
   .container {
@@ -668,7 +704,7 @@ body {
 
   .main-content {
     padding-bottom: 0;
-    padding-top: 0; /* Reset padding for print */
+    padding-top: 0;
   }
 
   .assignment-card {

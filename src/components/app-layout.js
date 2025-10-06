@@ -276,6 +276,19 @@ class AppLayout extends HTMLElement {
           z-index: 1003;
           display: none;
         ">
+          <button onclick="window.location.hash='/address-book'" style="
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-family: inherit;
+          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+            <i class="mdi mdi-book-open-page-variant" style="margin-right: 8px; color: #666;"></i>
+            Address Book
+          </button>
           <button onclick="this.getRootNode().host.openBackendData()" style="
             width: 100%;
             padding: 12px 16px;

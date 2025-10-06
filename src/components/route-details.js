@@ -364,19 +364,30 @@ class RouteDetails extends HTMLElement {
   renderPhoneButtons(location) {
     if (!location) return "";
     try {
-      const contact =
-        window.dataService &&
-        typeof window.dataService.getAddressForLocation === "function"
-          ? window.dataService.getAddressForLocation(location)
-          : null;
-      if (contact && contact.phones && contact.phones.length) {
-        return contact.phones
-          .map(
-            (p) =>
-              `<button class="btn" style="background:#007bff;margin-left:6px;" onclick="window.open('tel:${p}','_blank')"><i class="mdi mdi-phone"></i> ${p}</button>`
-          )
-          .join("");
+      const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      if (!contact) return "";
+
+      const buttons = [];
+      
+      // Get all contacts and phones
+      const contacts = contact.contacts || [];
+      const phones = contact.phones || [];
+
+      // Create buttons pairing contacts with phones
+      for (let i = 0; i < Math.max(contacts.length, phones.length); i++) {
+        const contactName = contacts[i] || 'Contact';
+        const phone = phones[i];
+        
+        if (phone) {
+          buttons.push(
+            `<button class="btn" style="background:#007bff;margin-left:6px;" onclick="window.open('tel:${phone}','_blank')">
+              <i class="mdi mdi-phone"></i> ${contactName}: ${phone}
+            </button>`
+          );
+        }
       }
+      
+      return buttons.join("");
     } catch {}
     return "";
   }
@@ -385,24 +396,13 @@ class RouteDetails extends HTMLElement {
     if (!location) return "";
     try {
       const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
-      if (contact) {
-        const contactsDisplay = [];
-
-        // Add all contacts (Contact1, Contact2, etc.)
-        if (contact.contacts && contact.contacts.length) {
-          contactsDisplay.push(...contact.contacts);
-        }
-
-        // Add notes if available
-        if (contact.notes && contact.notes.trim()) {
-          contactsDisplay.push(contact.notes.trim());
-        }
-
-        if (contactsDisplay.length > 0) {
-          return `<div class="contact-notes" style="margin-top:4px; color:#333; font-size:0.85rem; line-height:1.3;">
-            <strong>Notes:</strong> ${contactsDisplay.join(", ")}
-          </div>`;
-        }
+      if (contact && contact.notes && contact.notes.trim()) {
+        return `<div class="contact-notes" style="margin-top:12px; padding:12px; background:#f8f9fa; border-radius:6px; border-left:4px solid #007bff;">
+          <div style="font-weight:700; color:#000; margin-bottom:6px; font-size:0.95rem;">
+            <i class="mdi mdi-note-text"></i> Notes / Special Instructions:
+          </div>
+          <div style="color:#000; font-size:0.9rem; line-height:1.6;">${contact.notes.trim()}</div>
+        </div>`;
       }
     } catch {}
     return "";

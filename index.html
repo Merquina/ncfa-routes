@@ -57,20 +57,22 @@
     <!-- Main Stylesheet (cache-busted) -->
     <link rel="stylesheet" href="css/app.css?v=4" />
 
-    <!-- Global Typography -->
+    <!-- Global Typography - Dyslexia-Friendly -->
     <style>
-      /* Dyslexia-friendly font stack */
+      /* Atkinson Hyperlegible font stack for maximum readability */
       :root {
-        --font-family: "OpenDyslexic", "Comic Sans MS", "Trebuchet MS",
-          "Verdana", "Arial", sans-serif;
+        --font-family: "Atkinson Hyperlegible", -apple-system,
+          BlinkMacSystemFont, sans-serif;
+        --header-font: "Barrio", cursive;
         --font-size-small: 0.875rem; /* 14px */
         --font-size-base: 1rem; /* 16px */
         --font-size-large: 1.25rem; /* 20px */
         --font-size-xl: 1.5rem; /* 24px */
-        --line-height: 1.5;
+        --line-height: 1.6;
         --letter-spacing: 0.025em;
       }
 
+      /* Force dyslexia-friendly font everywhere */
       * {
         font-family: var(--font-family) !important;
         letter-spacing: var(--letter-spacing);
@@ -78,46 +80,72 @@
 
       body,
       html {
-        font-family: var(--font-family);
+        font-family: var(--font-family) !important;
         font-size: var(--font-size-base);
         line-height: var(--line-height);
+        color: #000;
       }
 
-      /* Consistent button styling */
+      /* Consistent button styling with high contrast */
       button,
       input[type="button"],
       input[type="submit"] {
         font-family: var(--font-family) !important;
         font-size: var(--font-size-base) !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         line-height: var(--line-height) !important;
         letter-spacing: var(--letter-spacing) !important;
+        color: #000;
       }
 
-      /* Heading hierarchy */
+      /* Heading hierarchy - high contrast */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: var(--font-family) !important;
+        color: #000;
+      }
+
       h1 {
         font-size: var(--font-size-xl);
         font-weight: 700;
       }
       h2 {
         font-size: var(--font-size-large);
-        font-weight: 600;
+        font-weight: 700;
       }
       h3 {
         font-size: var(--font-size-base);
-        font-weight: 600;
+        font-weight: 700;
       }
       h4,
       h5,
       h6 {
         font-size: var(--font-size-base);
-        font-weight: 500;
+        font-weight: 600;
       }
 
       /* Small text */
       .text-small,
       small {
         font-size: var(--font-size-small) !important;
+      }
+
+      /* Input fields */
+      input,
+      textarea,
+      select {
+        font-family: var(--font-family) !important;
+        color: #000;
+      }
+
+      /* Links */
+      a {
+        font-family: var(--font-family) !important;
+        color: #000;
       }
     </style>
 

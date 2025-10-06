@@ -422,6 +422,43 @@ class SheetsAPIService extends EventTarget {
     } catch {}
   }
 
+
+  // ===== Public API fallback for dev mode (no OAuth) =====
+  async _fetchWithPublicAPI() {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchGet?ranges=SPFM!A:T&ranges=Routes!A:Z&ranges=Recovery!A:P&ranges=SPFM_Delivery!A:P&ranges=Status!A:E&ranges=Contacts!A:Z&ranges=Misc!A:B&ranges=Misc!D:E&key=${API_KEY}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`Public API failed: ${resp.statusText}`);
+    const data = await resp.json();
+    
+    const map = new Map((data.valueRanges || []).map(vr => [vr.range.split('!')[0], vr]));
+    
+    this._parseSPFM(map.get("SPFM")?.values || []);
+    
+    // Simple parsing for other sheets
+    const parseSheet = (name) => {
+      const values = map.get(name)?.values || [];
+      if (values.length < 2) return [];
+      const headers = values[0];
+      return values.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((h, i) => (obj[h] = row[i] || ""));
+        return obj;
+      });
+    };
+    
+    this.routesData = parseSheet("Routes");
+    this.recoveryData = parseSheet("Recovery");
+    this.deliveryData = parseSheet("SPFM_Delivery");
+    this.inventoryData = parseSheet("Status");
+    this.contactsData = parseSheet("Contacts");
+    
+    this.miscWorkers = [];
+    this.miscVehicles = [];
+    this.miscReminders = [];
+    
+    console.info('[Public API] Successfully loaded basic data');
+  }
+
   // ===== Declarative table helpers (maintainable) =====
   async _getFirstNonEmptyRange(possibleRanges) {
     for (const range of possibleRanges) {
