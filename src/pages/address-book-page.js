@@ -1,7 +1,7 @@
 class AddressBookPage extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
     this.contacts = [];
   }
 
@@ -14,7 +14,7 @@ class AddressBookPage extends HTMLElement {
     try {
       // Get contacts from sheetsAPI
       if (window.sheetsAPI && window.sheetsAPI.contactsData) {
-        this.contacts = window.sheetsAPI.contactsData.filter(c => {
+        this.contacts = window.sheetsAPI.contactsData.filter((c) => {
           // Only include contacts with location
           return c.Location || c.location;
         });
@@ -23,9 +23,9 @@ class AddressBookPage extends HTMLElement {
 
       // Listen for data updates
       if (window.dataService) {
-        window.dataService.addEventListener('data-loaded', () => {
+        window.dataService.addEventListener("data-loaded", () => {
           if (window.sheetsAPI && window.sheetsAPI.contactsData) {
-            this.contacts = window.sheetsAPI.contactsData.filter(c => {
+            this.contacts = window.sheetsAPI.contactsData.filter((c) => {
               return c.Location || c.location;
             });
             this.renderContacts();
@@ -33,12 +33,12 @@ class AddressBookPage extends HTMLElement {
         });
       }
     } catch (error) {
-      console.error('Error loading contacts:', error);
+      console.error("Error loading contacts:", error);
     }
   }
 
   renderContacts() {
-    const container = this.shadowRoot.querySelector('#contactsList');
+    const container = this.shadowRoot.querySelector("#contactsList");
     if (!container) return;
 
     if (this.contacts.length === 0) {
@@ -51,22 +51,69 @@ class AddressBookPage extends HTMLElement {
       return;
     }
 
-    // Sort contacts by location name
+    // Sort contacts by location name alphabetically
     const sorted = [...this.contacts].sort((a, b) => {
-      const nameA = (a.Location || a.location || '').toLowerCase();
-      const nameB = (b.Location || b.location || '').toLowerCase();
+      const nameA = (a.Location || a.location || "").toLowerCase();
+      const nameB = (b.Location || b.location || "").toLowerCase();
       return nameA.localeCompare(nameB);
     });
 
-    container.innerHTML = sorted.map(contact => this.renderContactCard(contact)).join('');
+    // Group by first letter
+    const grouped = {};
+    sorted.forEach((contact) => {
+      const name = contact.Location || contact.location || "";
+      const firstLetter = name.charAt(0).toUpperCase();
+      if (!grouped[firstLetter]) {
+        grouped[firstLetter] = [];
+      }
+      grouped[firstLetter].push(contact);
+    });
+
+    // Get all letters present
+    const letters = Object.keys(grouped).sort();
+
+    // Render alphabet navigation
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const navHTML = `
+      <div class="alphabet-nav">
+        ${alphabet
+          .map((letter) => {
+            const hasContacts = letters.includes(letter);
+            return `<a href="#letter-${letter}" class="letter-link ${
+              hasContacts ? "active" : "inactive"
+            }">${letter}</a>`;
+          })
+          .join("")}
+      </div>
+    `;
+
+    // Render grouped contacts
+    const contactsHTML = letters
+      .map(
+        (letter) => `
+      <div id="letter-${letter}" class="letter-section">
+        <h3 class="letter-header">${letter}</h3>
+        ${grouped[letter]
+          .map((contact) => this.renderContactCard(contact))
+          .join("")}
+      </div>
+    `
+      )
+      .join("");
+
+    container.innerHTML = navHTML + contactsHTML;
   }
 
   renderContactCard(contact) {
-    const location = contact.Location || contact.location || 'Unknown';
-    const address = contact.Address || contact.address || '';
-    const type = contact.Type || contact.type || contact.TYPE || '';
-    const job = contact.Job || contact.job || contact.JOB || '';
-    const notes = contact['Notes/ Special Instructions'] || contact.Notes || contact.notes || '';
+    const location = contact.Location || contact.location || "Unknown";
+    const address = contact.Address || contact.address || "";
+    const type = contact.Type || contact.type || contact.TYPE || "";
+    const job = contact.Job || contact.job || contact.JOB || "";
+    const notes =
+      contact["Notes/ Special Instructions"] ||
+      contact.Notes ||
+      contact.notes ||
+      "";
 
     // Get all contacts and phones
     const contacts = this.getAllContacts(contact);
@@ -79,38 +126,60 @@ class AddressBookPage extends HTMLElement {
             <i class="mdi mdi-map-marker" style="color: #3182ce;"></i>
             ${location}
           </h3>
-          ${type ? `<span class="contact-type">${type}</span>` : ''}
+          ${type ? `<span class="contact-type">${type}</span>` : ""}
         </div>
 
-        ${address ? `
+        ${
+          address
+            ? `
           <div class="contact-row">
             <i class="mdi mdi-home-map-marker"></i>
             <span>${address}</span>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${contacts.length > 0 ? `
+        ${
+          contacts.length > 0
+            ? `
           <div class="contact-row">
             <i class="mdi mdi-account"></i>
             <div>
-              ${contacts.map((c, i) => `
+              ${contacts
+                .map(
+                  (c, i) => `
                 <div style="margin-bottom: 4px;">
                   <strong>${c}</strong>
-                  ${phones[i] ? `<a href="tel:${phones[i]}" class="phone-link"><i class="mdi mdi-phone"></i> ${phones[i]}</a>` : ''}
+                  ${
+                    phones[i]
+                      ? `<a href="tel:${phones[i]}" class="phone-link"><i class="mdi mdi-phone"></i> ${phones[i]}</a>`
+                      : ""
+                  }
                 </div>
-              `).join('')}
+              `
+                )
+                .join("")}
             </div>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${job ? `
+        ${
+          job
+            ? `
           <div class="contact-row">
             <i class="mdi mdi-briefcase"></i>
             <span>${job}</span>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${notes ? `
+        ${
+          notes
+            ? `
           <div class="notes-section">
             <div class="notes-header">
               <i class="mdi mdi-note-text"></i>
@@ -118,14 +187,22 @@ class AddressBookPage extends HTMLElement {
             </div>
             <div class="notes-content">${notes}</div>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
         <div class="contact-actions">
-          ${address ? `
-            <button class="action-btn" onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(address)}', '_blank')">
+          ${
+            address
+              ? `
+            <button class="action-btn" onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
+              address
+            )}', '_blank')">
               <i class="mdi mdi-map"></i> Directions
             </button>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
       </div>
     `;
@@ -135,7 +212,11 @@ class AddressBookPage extends HTMLElement {
     const contacts = [];
     let i = 1;
     while (contact[`contact${i}`] || contact[`Contact${i}`]) {
-      const contactPerson = (contact[`contact${i}`] || contact[`Contact${i}`] || '').trim();
+      const contactPerson = (
+        contact[`contact${i}`] ||
+        contact[`Contact${i}`] ||
+        ""
+      ).trim();
       if (contactPerson) contacts.push(contactPerson);
       i++;
     }
@@ -151,7 +232,7 @@ class AddressBookPage extends HTMLElement {
     const phones = [];
     let i = 1;
     while (contact[`phone${i}`] || contact[`Phone${i}`]) {
-      const phone = (contact[`phone${i}`] || contact[`Phone${i}`] || '').trim();
+      const phone = (contact[`phone${i}`] || contact[`Phone${i}`] || "").trim();
       if (phone) phones.push(phone);
       i++;
     }
@@ -310,6 +391,63 @@ class AddressBookPage extends HTMLElement {
           margin-right: 4px;
         }
 
+        .alphabet-nav {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 4px;
+          padding: 16px;
+          background: white;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+
+        .letter-link {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          text-decoration: none;
+          border-radius: 4px;
+          font-weight: 700;
+          font-size: 0.9rem;
+          transition: all 0.2s ease;
+        }
+
+        .letter-link.active {
+          background: #3182ce;
+          color: white;
+        }
+
+        .letter-link.active:hover {
+          background: #2c5282;
+        }
+
+        .letter-link.inactive {
+          background: #f0f0f0;
+          color: #ccc;
+          pointer-events: none;
+        }
+
+        .letter-section {
+          margin-bottom: 24px;
+        }
+
+        .letter-header {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #1a365d;
+          margin: 0 0 12px 0;
+          padding: 8px 0;
+          border-bottom: 3px solid #3182ce;
+          scroll-margin-top: 60px;
+        }
+
         @media (max-width: 600px) {
           .page-header {
             padding: 15px;
@@ -327,6 +465,16 @@ class AddressBookPage extends HTMLElement {
           .contact-header {
             flex-direction: column;
             gap: 8px;
+          }
+
+          .alphabet-nav {
+            gap: 2px;
+          }
+
+          .letter-link {
+            width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
           }
         }
       </style>
@@ -346,4 +494,4 @@ class AddressBookPage extends HTMLElement {
   }
 }
 
-customElements.define('address-book-page', AddressBookPage);
+customElements.define("address-book-page", AddressBookPage);
