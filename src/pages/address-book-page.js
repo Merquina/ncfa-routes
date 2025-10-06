@@ -12,20 +12,26 @@ class AddressBookPage extends HTMLElement {
 
   async loadContacts() {
     try {
-      // Get contacts from sheetsAPI
-      if (window.sheetsAPI && window.sheetsAPI.contactsData) {
-        this.contacts = window.sheetsAPI.contactsData.filter((c) => {
+      // Get contacts from sheetsAPI via dataService
+      const sheetsAPI = window.dataService?.sheetsAPI || window.sheetsAPI;
+      console.log("Address Book - sheetsAPI:", !!sheetsAPI);
+      console.log("Address Book - contactsData:", sheetsAPI?.contactsData);
+
+      if (sheetsAPI && sheetsAPI.contactsData) {
+        this.contacts = sheetsAPI.contactsData.filter((c) => {
           // Only include contacts with location
           return c.Location || c.location;
         });
+        console.log("Address Book - filtered contacts:", this.contacts.length);
         this.renderContacts();
       }
 
       // Listen for data updates
       if (window.dataService) {
         window.dataService.addEventListener("data-loaded", () => {
-          if (window.sheetsAPI && window.sheetsAPI.contactsData) {
-            this.contacts = window.sheetsAPI.contactsData.filter((c) => {
+          const sheetsAPI = window.dataService?.sheetsAPI || window.sheetsAPI;
+          if (sheetsAPI && sheetsAPI.contactsData) {
+            this.contacts = sheetsAPI.contactsData.filter((c) => {
               return c.Location || c.location;
             });
             this.renderContacts();
