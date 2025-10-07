@@ -781,6 +781,10 @@
       function showMainApp() {
         document.getElementById("signInPage").style.display = "none";
         document.getElementById("mainApp").style.display = "flex";
+
+        // Navigate to Reminders tab after sign-in
+        window.location.hash = "/reminders";
+
         // Eagerly load data once visible using the modern service; retry until ready
         (function ensureLoad(attempts = 0) {
           try {
