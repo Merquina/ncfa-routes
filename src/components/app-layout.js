@@ -66,20 +66,6 @@ class AppLayout extends HTMLElement {
       hamburger.addEventListener("click", () => this.toggleMenu());
     }
 
-    // Add address book button listener with slight delay to ensure DOM is ready
-    setTimeout(() => {
-      const addressBookBtn = this.shadowRoot.querySelector("#addressBookBtn");
-      console.log("Setting up address book button, found:", !!addressBookBtn);
-      if (addressBookBtn) {
-        addressBookBtn.addEventListener("click", (e) => {
-          console.log("Address book button clicked!");
-          e.preventDefault();
-          e.stopPropagation();
-          this.navigateToAddressBook();
-        });
-      }
-    }, 100);
-
     // Close menu when clicking outside
     this.shadowRoot.addEventListener("click", (event) => {
       const menu = this.shadowRoot.querySelector("#dropdownMenu");
@@ -315,19 +301,6 @@ class AppLayout extends HTMLElement {
           z-index: 1003;
           display: none;
         ">
-          <button id="addressBookBtn" style="
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            font-family: inherit;
-          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
-            <i class="mdi mdi-book-open-page-variant" style="margin-right: 8px; color: #666;"></i>
-            Address Book
-          </button>
           <button onclick="this.getRootNode().host.openBackendData()" style="
             width: 100%;
             padding: 12px 16px;
@@ -382,7 +355,7 @@ class AppLayout extends HTMLElement {
         </a>
         <a href="/address-book" class="tab-btn" data-route="/address-book">
           <div class="tab-icon"><i class="mdi mdi-book-open-page-variant"></i></div>
-          <div class="tab-label">Address Book</div>
+          <div class="tab-label">Contacts</div>
         </a>
 
       </div>
