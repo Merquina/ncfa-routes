@@ -364,7 +364,12 @@ class RouteDetails extends HTMLElement {
   renderPhoneButtons(location) {
     if (!location) return "";
     try {
+      console.log("renderPhoneButtons - location:", location);
+      console.log("renderPhoneButtons - window.sheetsAPI:", !!window.sheetsAPI);
+
       const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      console.log("renderPhoneButtons - contact:", contact);
+
       if (!contact) return "";
 
       const buttons = [];
@@ -372,6 +377,9 @@ class RouteDetails extends HTMLElement {
       // Get all contacts and phones using helper methods
       const contacts = window.sheetsAPI?.getAllContacts?.(contact) || [];
       const phones = window.sheetsAPI?.getAllPhones?.(contact) || [];
+
+      console.log("renderPhoneButtons - contacts:", contacts);
+      console.log("renderPhoneButtons - phones:", phones);
 
       // Create buttons pairing contacts with phones
       for (let i = 0; i < Math.max(contacts.length, phones.length); i++) {
@@ -387,6 +395,7 @@ class RouteDetails extends HTMLElement {
         }
       }
 
+      console.log("renderPhoneButtons - buttons count:", buttons.length);
       return buttons.join("");
     } catch (e) {
       console.error("Error rendering phone buttons:", e);
@@ -397,7 +406,11 @@ class RouteDetails extends HTMLElement {
   renderContactInfo(location) {
     if (!location) return "";
     try {
+      console.log("renderContactInfo - location:", location);
       const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      console.log("renderContactInfo - contact:", contact);
+      console.log("renderContactInfo - notes:", contact?.notes);
+
       if (contact && contact.notes && contact.notes.trim()) {
         return `<div class="contact-notes" style="margin-top:12px; padding:12px; background:#f8f9fa; border-radius:6px; border-left:4px solid #007bff;">
           <div style="font-weight:700; color:#000; margin-bottom:6px; font-size:0.95rem;">
@@ -406,7 +419,9 @@ class RouteDetails extends HTMLElement {
           <div style="color:#000; font-size:0.9rem; line-height:1.6;">${contact.notes.trim()}</div>
         </div>`;
       }
-    } catch {}
+    } catch (e) {
+      console.error("Error rendering contact info:", e);
+    }
     return "";
   }
 
