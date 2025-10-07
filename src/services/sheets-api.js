@@ -832,8 +832,9 @@ class SheetsAPIService extends EventTarget {
         this.marketSummaryColors = colors || [];
         this._tableSources.marketSummary = range;
         console.info(
-          `✅ Loaded Market Summary (${values.length} rows) from ${range}`
+          `✅ Loaded Market Summary (${values.length} rows, ${colors.length} color rows) from ${range}`
         );
+        console.log("Market Summary Colors:", colors);
       }
     } catch (e) {
       console.info("Market Summary table not available:", e);
@@ -854,8 +855,9 @@ class SheetsAPIService extends EventTarget {
         this.vanCapacityColors = colors || [];
         this._tableSources.vanCapacity = range;
         console.info(
-          `✅ Loaded Van Capacity (${values.length} rows) from ${range}`
+          `✅ Loaded Van Capacity (${values.length} rows, ${colors.length} color rows) from ${range}`
         );
+        console.log("Van Capacity Colors:", colors);
       }
     } catch (e) {
       console.info("Van Capacity table not available:", e);
@@ -879,11 +881,11 @@ class SheetsAPIService extends EventTarget {
         const values = [];
         const colors = [];
 
-        data.rowData.forEach((row) => {
+        data.rowData.forEach((row, rowIdx) => {
           const rowValues = [];
           const rowColors = [];
 
-          (row.values || []).forEach((cell) => {
+          (row.values || []).forEach((cell, cellIdx) => {
             rowValues.push(cell.formattedValue || "");
 
             // Extract background color
@@ -892,7 +894,15 @@ class SheetsAPIService extends EventTarget {
               const r = Math.round((bgColor.red || 0) * 255);
               const g = Math.round((bgColor.green || 0) * 255);
               const b = Math.round((bgColor.blue || 0) * 255);
-              rowColors.push(`rgb(${r}, ${g}, ${b})`);
+              const colorString = `rgb(${r}, ${g}, ${b})`;
+              rowColors.push(colorString);
+              if (rowIdx < 3 && cellIdx < 3) {
+                console.log(
+                  `Cell [${rowIdx}][${cellIdx}] color:`,
+                  colorString,
+                  bgColor
+                );
+              }
             } else {
               rowColors.push("");
             }
