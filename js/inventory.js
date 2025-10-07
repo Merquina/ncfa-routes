@@ -29,32 +29,33 @@ class InventoryManager {
       inventoryComponent.updateInventory(
         inventory.smallBoxes,
         inventory.largeBoxes,
-        inventory.updatedBy || 'System'
+        inventory.updatedBy || "System"
       );
 
       // Set up the default box configuration for SPFM
       inventoryComponent.setBoxConfig({
         small: {
-          label: 'small',
-          description: '5/9 bushel',
-          farmersRatio: 2
+          label: "small",
+          description: "5/9 bushel",
+          farmersRatio: 2,
         },
         large: {
-          label: 'LARGE', 
-          description: '1 1/9 bushel',
-          farmersRatio: 1
-        }
+          label: "LARGE",
+          description: "1 1/9 bushel",
+          farmersRatio: 1,
+        },
       });
 
       // Listen for inventory updates from the component
-      inventoryComponent.addEventListener('inventory-updated', (e) => {
+      inventoryComponent.addEventListener("inventory-updated", (e) => {
         this.saveInventoryToLocalStorage(e.detail);
         this.tryUploadInventoryToSheets(e.detail);
       });
 
       // Scroll to the top of inventory container
       setTimeout(() => {
-        const inventoryContainer = document.getElementById("inventoryContainer");
+        const inventoryContainer =
+          document.getElementById("inventoryContainer");
         if (inventoryContainer) {
           inventoryContainer.scrollIntoView({
             behavior: "smooth",
@@ -82,7 +83,7 @@ class InventoryManager {
   // ========================================
   renderInventoryContent(inventoryContainer) {
     console.debug(
-      "🔍 Debug: renderInventoryContent called - Google Sheets + localStorage",
+      "🔍 Debug: renderInventoryContent called - Google Sheets + localStorage"
     );
 
     // Refresh timestamp format for existing data
@@ -97,12 +98,16 @@ class InventoryManager {
         <h4>📦 Box Inventory</h4>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px;">
           <div style="text-align: center; padding: 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
-            <div style="font-size: 1.2rem; font-weight: bold; color: #333; line-height: 1; margin-bottom: 2px;">${inventory.smallBoxes}</div>
+            <div style="font-size: 1.2rem; font-weight: bold; color: #333; line-height: 1; margin-bottom: 2px;">${
+              inventory.smallBoxes
+            }</div>
             <div style="font-size: 0.75rem; color: #666; line-height: 1; margin-bottom: 1px;">small</div>
             <div style="font-size: 0.6rem; color: #999; line-height: 1;">5/9 bushel</div>
           </div>
           <div style="text-align: center; padding: 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
-            <div style="font-size: 1.2rem; font-weight: bold; color: #333; line-height: 1; margin-bottom: 2px;">${inventory.largeBoxes}</div>
+            <div style="font-size: 1.2rem; font-weight: bold; color: #333; line-height: 1; margin-bottom: 2px;">${
+              inventory.largeBoxes
+            }</div>
             <div style="font-size: 0.75rem; color: #666; line-height: 1; margin-bottom: 1px;">LARGE</div>
             <div style="font-size: 0.6rem; color: #999; line-height: 1;">1 1/9 bushel</div>
           </div>
@@ -151,11 +156,15 @@ class InventoryManager {
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.85rem; font-weight: normal;">small boxes:</label>
-            <input type="number" id="updateSmallBoxes" min="0" value="${inventory.smallBoxes}" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
+            <input type="number" id="updateSmallBoxes" min="0" value="${
+              inventory.smallBoxes
+            }" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.85rem; font-weight: normal;">LARGE boxes:</label>
-            <input type="number" id="updateLargeBoxes" min="0" value="${inventory.largeBoxes}" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
+            <input type="number" id="updateLargeBoxes" min="0" value="${
+              inventory.largeBoxes
+            }" inputmode="numeric" onfocus="this.select()" style="width: 60px; height: 40px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1.0rem;">
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <label style="line-height: 1; flex: 1; font-size: 0.85rem; font-weight: normal;">Your name:</label>
@@ -167,7 +176,7 @@ class InventoryManager {
     `;
 
     console.log(
-      "🔍 Debug: Google Sheets inventory rendered, setting up listeners",
+      "🔍 Debug: Google Sheets inventory rendered, setting up listeners"
     );
     this.setupCalculatorListeners();
   }
@@ -185,7 +194,7 @@ class InventoryManager {
       // Check if user is signed in (OAuth)
       if (!window.gapi || !window.gapi.client) {
         console.info(
-          "📱 Google API not loaded or user not signed in, using localStorage",
+          "📱 Google API not loaded or user not signed in, using localStorage"
         );
         return this.getLocalInventory();
       }
@@ -220,17 +229,20 @@ class InventoryManager {
 
         // Update localStorage with sheets data
         this.saveLocalInventory(sheetsInventory);
-        console.info("✅ Loaded inventory from Google Sheets:", sheetsInventory);
+        console.info(
+          "✅ Loaded inventory from Google Sheets:",
+          sheetsInventory
+        );
         return sheetsInventory;
       } else {
         console.info(
-          "📱 No inventory data in Google Sheets, using localStorage",
+          "📱 No inventory data in Google Sheets, using localStorage"
         );
       }
     } catch (error) {
       console.warn(
         "📱 Failed to load from Google Sheets, using localStorage:",
-        error,
+        error
       );
     } finally {
       this.isLoadingFromSheets = false;
@@ -263,14 +275,15 @@ class InventoryManager {
         ],
       ];
 
-      const response = await window.gapi.client.sheets.spreadsheets.values.update({
-        spreadsheetId: SPREADSHEET_ID,
-        range: "Status!A2:E2",
-        valueInputOption: "RAW",
-        resource: {
-          values: data,
-        },
-      });
+      const response =
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: "Status!A2:E2",
+          valueInputOption: "RAW",
+          resource: {
+            values: data,
+          },
+        });
 
       console.log("✅ Inventory updated via OAuth:", response);
       return response;
@@ -286,16 +299,16 @@ class InventoryManager {
       // Prefer stored Google profile name if available
       let name = inventory?.updatedBy;
       try {
-        const stored = localStorage.getItem('gapi_user_name');
+        const stored = localStorage.getItem("gapi_user_name");
         if (stored) name = stored;
       } catch {}
       const payload = {
         ...inventory,
-        updatedBy: name || inventory?.updatedBy || 'Anonymous',
+        updatedBy: name || inventory?.updatedBy || "Anonymous",
       };
       return await this.saveInventoryToSheets(payload);
     } catch (err) {
-      console.error('❌ tryUploadInventoryToSheets failed:', err);
+      console.error("❌ tryUploadInventoryToSheets failed:", err);
       throw err;
     }
   }
@@ -353,7 +366,6 @@ class InventoryManager {
       weekday: "long",
       month: "short",
       day: "numeric",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -458,8 +470,20 @@ class InventoryManager {
     if (resultDiv && distributionText) {
       distributionText.innerHTML = `
         <strong>small: ${smallPerFarmer}</strong> | <strong>LARGE: ${largePerFarmer}</strong>
-        ${smallBoxes % farmers > 0 ? `<br><small>Remaining small boxes: ${smallBoxes % farmers}</small>` : ""}
-        ${largeBoxes % farmers > 0 ? `<br><small>Remaining LARGE boxes: ${largeBoxes % farmers}</small>` : ""}
+        ${
+          smallBoxes % farmers > 0
+            ? `<br><small>Remaining small boxes: ${
+                smallBoxes % farmers
+              }</small>`
+            : ""
+        }
+        ${
+          largeBoxes % farmers > 0
+            ? `<br><small>Remaining LARGE boxes: ${
+                largeBoxes % farmers
+              }</small>`
+            : ""
+        }
       `;
       resultDiv.style.display = "block";
     }
@@ -481,7 +505,6 @@ class InventoryManager {
       weekday: "long",
       month: "short",
       day: "numeric",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -493,10 +516,10 @@ class InventoryManager {
 
   removeBoxes() {
     const smallToRemove = parseInt(
-      prompt("How many small boxes to remove?") || "0",
+      prompt("How many small boxes to remove?") || "0"
     );
     const largeToRemove = parseInt(
-      prompt("How many large boxes to remove?") || "0",
+      prompt("How many large boxes to remove?") || "0"
     );
     const name = prompt("Your name:");
 
@@ -511,7 +534,6 @@ class InventoryManager {
       weekday: "long",
       month: "short",
       day: "numeric",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -550,7 +572,6 @@ class InventoryManager {
         weekday: "long",
         month: "short",
         day: "numeric",
-        year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
       });

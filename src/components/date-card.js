@@ -1,19 +1,19 @@
 class DateCard extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
     this.dateData = null;
   }
 
   static get observedAttributes() {
-    return ['date-data', 'variant'];
+    return ["date-data", "variant"];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
-      if (name === 'date-data') {
+      if (name === "date-data") {
         try {
-          this.dateData = JSON.parse(newValue || 'null');
+          this.dateData = JSON.parse(newValue || "null");
         } catch (e) {
           this.dateData = null;
         }
@@ -28,17 +28,16 @@ class DateCard extends HTMLElement {
 
   setDate(dateData) {
     this.dateData = dateData;
-    this.setAttribute('date-data', JSON.stringify(dateData));
+    this.setAttribute("date-data", JSON.stringify(dateData));
   }
 
   formatDate(dateString) {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
       });
     } catch (e) {
       return dateString;
@@ -57,13 +56,15 @@ class DateCard extends HTMLElement {
   }
 
   handleDateClick() {
-    this.dispatchEvent(new CustomEvent('date-selected', {
-      detail: { 
-        date: this.dateData?.date,
-        dateData: this.dateData 
-      },
-      bubbles: true
-    }));
+    this.dispatchEvent(
+      new CustomEvent("date-selected", {
+        detail: {
+          date: this.dateData?.date,
+          dateData: this.dateData,
+        },
+        bubbles: true,
+      })
+    );
   }
 
   render() {
@@ -80,7 +81,7 @@ class DateCard extends HTMLElement {
       return;
     }
 
-    const variant = this.getAttribute('variant') || 'default';
+    const variant = this.getAttribute("variant") || "default";
     const isUpcoming = this.isUpcoming(this.dateData.date);
     const routeCount = this.dateData.routes?.length || 0;
 
@@ -165,28 +166,38 @@ class DateCard extends HTMLElement {
         }
       </style>
 
-      <div class="date-card ${isUpcoming ? 'upcoming' : 'past'} ${variant === 'compact' ? 'compact' : ''}">
+      <div class="date-card ${isUpcoming ? "upcoming" : "past"} ${
+      variant === "compact" ? "compact" : ""
+    }">
         <div class="date-display">
-          <i class="mdi mdi-calendar"></i> ${this.formatDate(this.dateData.date)}
+          <i class="mdi mdi-calendar"></i> ${this.formatDate(
+            this.dateData.date
+          )}
         </div>
-        
+
         <div class="route-count">
           <span class="route-badge">${routeCount} routes</span>
         </div>
 
-        ${this.dateData.market && variant !== 'compact' ? `
+        ${
+          this.dateData.market && variant !== "compact"
+            ? `
           <div class="market-info">
             ${this.dateData.market}
           </div>
-        ` : ''}
+        `
+            : ""
+        }
       </div>
     `;
 
     // Add click event listener
-    this.shadowRoot.querySelector('.date-card').addEventListener('click', () => {
-      this.handleDateClick();
-    });
+    this.shadowRoot
+      .querySelector(".date-card")
+      .addEventListener("click", () => {
+        this.handleDateClick();
+      });
   }
 }
 
-customElements.define('date-card', DateCard);
+customElements.define("date-card", DateCard);

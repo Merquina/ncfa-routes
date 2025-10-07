@@ -456,7 +456,6 @@ function updateLastModified() {
   if (lastUpdatedEl && sheetsAPI && sheetsAPI.data.length > 0) {
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-US", {
-      year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",

@@ -232,7 +232,6 @@ class AssignmentsManager {
                 weekday: "long",
                 month: "short",
                 day: "numeric",
-                year: "numeric",
               }),
             });
           }
@@ -273,7 +272,6 @@ class AssignmentsManager {
                   weekday: "long",
                   month: "short",
                   day: "numeric",
-                  year: "numeric",
                 }),
                 _routeId: `delivery-${normalizeText(dayName)}-${occurrence}`,
               });
@@ -358,7 +356,6 @@ class AssignmentsManager {
 
     const formattedDate = new Date(date).toLocaleDateString("en-US", {
       weekday: "long",
-      year: "numeric",
       month: "long",
       day: "numeric",
     });
@@ -489,7 +486,6 @@ class AssignmentsManager {
       const date = new Date(dateStr);
       return date.toLocaleDateString("en-US", {
         weekday: "long",
-        year: "numeric",
         month: "long",
         day: "numeric",
       });
@@ -540,7 +536,6 @@ class AssignmentsManager {
         sortDate: route.parsed,
         displayDate: route.parsed.toLocaleDateString("en-US", {
           weekday: "long",
-          year: "numeric",
           month: "short",
           day: "numeric",
         }),

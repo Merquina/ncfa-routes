@@ -41,7 +41,6 @@ class RouteDetails extends HTMLElement {
         weekday: "long",
         month: "short",
         day: "numeric",
-        year: "numeric",
       });
     } catch {
       return String(dateStr || "No date");
@@ -294,10 +293,10 @@ class RouteDetails extends HTMLElement {
                   s.location || s.name || "Stop"
                 }</strong></div>
                 ${s.address ? `<div>${s.address}</div>` : ""}
+                ${this.renderPhoneNumbers(s.location)}
                 ${this.renderContactInfo(s.location)}
                 <div style="margin-top:8px;">
                   ${this.renderAddressButton(s.location)}
-                  ${this.renderPhoneButtons(s.location)}
                 </div>
               </div>
             `
@@ -360,44 +359,40 @@ class RouteDetails extends HTMLElement {
     }
   }
 
-  renderPhoneButtons(location) {
+  renderPhoneNumbers(location) {
     if (!location) return "";
     try {
-      console.log("renderPhoneButtons - location:", location);
-      console.log("renderPhoneButtons - window.sheetsAPI:", !!window.sheetsAPI);
-
       const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
-      console.log("renderPhoneButtons - contact:", contact);
 
       if (!contact) return "";
-
-      const buttons = [];
 
       // Get all contacts and phones using helper methods
       const contacts = window.sheetsAPI?.getAllContacts?.(contact) || [];
       const phones = window.sheetsAPI?.getAllPhones?.(contact) || [];
 
-      console.log("renderPhoneButtons - contacts:", contacts);
-      console.log("renderPhoneButtons - phones:", phones);
+      if (contacts.length === 0 && phones.length === 0) return "";
 
-      // Create buttons pairing contacts with phones
+      const rows = [];
       for (let i = 0; i < Math.max(contacts.length, phones.length); i++) {
         const contactName = contacts[i] || "Contact";
         const phone = phones[i];
 
-        if (phone) {
-          buttons.push(
-            `<button class="btn" style="background:#007bff;margin-left:6px;" onclick="window.open('tel:${phone}','_blank')">
-              <i class="mdi mdi-phone"></i> ${contactName}: ${phone}
-            </button>`
-          );
-        }
+        rows.push(`
+          <div style="margin-bottom: 4px;">
+            <i class="mdi mdi-account" style="color:#666;"></i>
+            <strong>${contactName}</strong>
+            ${
+              phone
+                ? `<a href="tel:${phone}" style="color:#3182ce;text-decoration:none;margin-left:8px;font-weight:500;"><i class="mdi mdi-phone"></i> ${phone}</a>`
+                : ""
+            }
+          </div>
+        `);
       }
 
-      console.log("renderPhoneButtons - buttons count:", buttons.length);
-      return buttons.join("");
+      return `<div style="margin-top:8px;">${rows.join("")}</div>`;
     } catch (e) {
-      console.error("Error rendering phone buttons:", e);
+      console.error("Error rendering phone numbers:", e);
     }
     return "";
   }
@@ -429,19 +424,6 @@ class RouteDetails extends HTMLElement {
     } catch (e) {
       console.error("Error rendering contact info:", e);
     }
-    return "";
-  }
-
-  renderJobInfo(location) {
-    if (!location) return "";
-    try {
-      const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
-      if (contact && contact.job && contact.job.trim()) {
-        return `<div class="job-info" style="margin-top:6px; color:#666; font-size:0.8rem; font-style:italic;">
-          Job: ${contact.job.trim()}
-        </div>`;
-      }
-    } catch {}
     return "";
   }
 

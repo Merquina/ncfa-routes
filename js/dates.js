@@ -95,7 +95,7 @@ class DatesManager {
         const routes = sheetsAPI.getRoutesByDate(dateObj.original);
         const workers = routes
           .flatMap((r) => sheetsAPI.getAllWorkersFromRoute(r))
-          .map((w) => `${(window.sheetsAPI?.getWorkerEmoji?.(w) || '👤')} ${w}`)
+          .map((w) => `${window.sheetsAPI?.getWorkerEmoji?.(w) || "👤"} ${w}`)
           .join(", ");
 
         const markets = [...new Set(routes.map((r) => r.market))].join(", ");
@@ -179,9 +179,11 @@ class DatesManager {
         const workerDisplay =
           workers.length > 0
             ? workers
-                .map((w) => `${(window.sheetsAPI?.getWorkerEmoji?.(w) || '👤')} ${w}`)
+                .map(
+                  (w) => `${window.sheetsAPI?.getWorkerEmoji?.(w) || "👤"} ${w}`
+                )
                 .join(", ")
-                : "No workers assigned";
+            : "No workers assigned";
 
         return `
                 <div class="date-card" onclick="selectRecoveryRoute('${firstWorker}', '${
@@ -238,7 +240,10 @@ class DatesManager {
   }
 
   findRecoveryRouteForDate(targetDate) {
-    console.debug("🔍 Debug: findRecoveryRouteForDate called with:", targetDate);
+    console.debug(
+      "🔍 Debug: findRecoveryRouteForDate called with:",
+      targetDate
+    );
 
     if (!sheetsAPI.recoveryData || sheetsAPI.recoveryData.length === 0) {
       console.debug("🔍 Debug: No recovery data available");
@@ -403,7 +408,10 @@ class DatesManager {
     );
 
     const combinedDates = [...spfmDates, ...recoveryDates];
-    console.debug("🔍 Debug: Combined dates before dedup:", combinedDates.length);
+    console.debug(
+      "🔍 Debug: Combined dates before dedup:",
+      combinedDates.length
+    );
 
     // Debug: Check for Tuesday routes in combined data
     const tuesdayItems = combinedDates.filter((item) => {
@@ -489,7 +497,10 @@ class DatesManager {
     console.debug("🔍 Debug: After sorting:", sortedDates.length);
 
     const allDates = sortedDates.slice(0, 7); // Show next 7 dates
-    console.debug("🔍 Debug: Final allDates after slice(0,7):", allDates.length);
+    console.debug(
+      "🔍 Debug: Final allDates after slice(0,7):",
+      allDates.length
+    );
     console.debug("🔍 Debug: allDates:", allDates);
 
     if (allDates.length === 0) {
@@ -608,7 +619,6 @@ class DatesManager {
                 date: dateString,
                 displayDate: nextDate.toLocaleDateString("en-US", {
                   weekday: "long",
-                  year: "numeric",
                   month: "short",
                   day: "numeric",
                 }),
@@ -646,7 +656,10 @@ class DatesManager {
     const tuesdayRoutes = recoveryDates.filter(
       (r) => r.dayName && flexibleTextMatch(r.dayName, "tuesday")
     );
-    console.debug("🔍 Debug: Final recovery dates array:", recoveryDates.length);
+    console.debug(
+      "🔍 Debug: Final recovery dates array:",
+      recoveryDates.length
+    );
     console.debug(
       `🚨 TUESDAY DEBUG: Total Tuesday recovery routes generated: ${tuesdayRoutes.length}`
     );
@@ -731,7 +744,10 @@ class DatesManager {
       });
 
       if (deliveryRoute) {
-        console.debug("🔍 Debug: Found matching delivery route:", deliveryRoute);
+        console.debug(
+          "🔍 Debug: Found matching delivery route:",
+          deliveryRoute
+        );
 
         // Calculate next Monday after this Sunday market
         const sundayDate = new Date(sundayMarket.date);
@@ -744,7 +760,6 @@ class DatesManager {
             date: mondayDate.toLocaleDateString("en-US"),
             displayDate: mondayDate.toLocaleDateString("en-US", {
               weekday: "long",
-              year: "numeric",
               month: "short",
               day: "numeric",
             }),
@@ -775,7 +790,10 @@ class DatesManager {
       }
     });
 
-    console.debug("🔍 Debug: Final Monday delivery dates array:", deliveryDates);
+    console.debug(
+      "🔍 Debug: Final Monday delivery dates array:",
+      deliveryDates
+    );
     return deliveryDates;
   }
 
