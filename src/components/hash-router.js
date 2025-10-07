@@ -76,19 +76,26 @@ class HashRouter extends HTMLElement {
   }
 
   async loadRoute(path) {
+    console.log(`[Router] loadRoute called for: ${path}`);
+    console.log(`[Router] Available routes:`, Array.from(this.routes.keys()));
     const route = this.routes.get(path);
+    console.log(`[Router] Found route for ${path}:`, !!route);
 
     if (!route) {
       // Retry briefly for missing route to allow late registration
       if (!this._retry) this._retry = {};
       const key = `p:${path}`;
       const attempts = this._retry[key] || 0;
+      console.log(`[Router] Route not found, retry attempt ${attempts}/40`);
       if (attempts < 40) {
         // ~2s total at 50ms
         this._retry[key] = attempts + 1;
         return setTimeout(() => this.loadRoute(path), 50);
       }
       // Try to find a matching route or fallback to default
+      console.log(
+        `[Router] Max retries reached, falling back to ${this.defaultRoute}`
+      );
       const fallbackRoute = this.routes.get(this.defaultRoute);
       if (fallbackRoute) {
         this.navigate(this.defaultRoute);
