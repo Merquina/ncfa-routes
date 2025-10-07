@@ -817,14 +817,19 @@ class SheetsAPIService extends EventTarget {
       return TABLE_RANGES[key] || [];
     };
 
-    // Fetch Market Summary
+    // Fetch Market Summary with formatting
     try {
-      const { range, values } = await this._getFirstNonEmptyRange(
-        pickRanges("announcements")
-      );
+      const ranges = pickRanges("announcements");
+      const range = ranges[0]; // Use first range
+
+      const { values, colors } =
+        await this._getFirstNonEmptyRangeWithFormatting(ranges);
       this.marketSummary = [];
+      this.marketSummaryColors = [];
+
       if (values.length > 0) {
         this.marketSummary = values;
+        this.marketSummaryColors = colors || [];
         this._tableSources.marketSummary = range;
         console.info(
           `✅ Loaded Market Summary (${values.length} rows) from ${range}`
@@ -834,14 +839,19 @@ class SheetsAPIService extends EventTarget {
       console.info("Market Summary table not available:", e);
     }
 
-    // Fetch Van Capacity
+    // Fetch Van Capacity with formatting
     try {
-      const { range, values } = await this._getFirstNonEmptyRange(
-        pickRanges("vanCapacity")
-      );
+      const ranges = pickRanges("vanCapacity");
+      const range = ranges[0];
+
+      const { values, colors } =
+        await this._getFirstNonEmptyRangeWithFormatting(ranges);
       this.vanCapacity = [];
+      this.vanCapacityColors = [];
+
       if (values.length > 0) {
         this.vanCapacity = values;
+        this.vanCapacityColors = colors || [];
         this._tableSources.vanCapacity = range;
         console.info(
           `✅ Loaded Van Capacity (${values.length} rows) from ${range}`
@@ -850,6 +860,56 @@ class SheetsAPIService extends EventTarget {
     } catch (e) {
       console.info("Van Capacity table not available:", e);
     }
+  }
+
+  async _getFirstNonEmptyRangeWithFormatting(possibleRanges) {
+    for (const range of possibleRanges) {
+      try {
+        const resp = await window.gapi.client.sheets.spreadsheets.get({
+          spreadsheetId: SPREADSHEET_ID,
+          ranges: [range],
+          includeGridData: true,
+        });
+
+        const sheet = resp.result?.sheets?.[0];
+        const data = sheet?.data?.[0];
+
+        if (!data || !data.rowData || data.rowData.length === 0) continue;
+
+        const values = [];
+        const colors = [];
+
+        data.rowData.forEach((row) => {
+          const rowValues = [];
+          const rowColors = [];
+
+          (row.values || []).forEach((cell) => {
+            rowValues.push(cell.formattedValue || "");
+
+            // Extract background color
+            const bgColor = cell.effectiveFormat?.backgroundColor;
+            if (bgColor && (bgColor.red || bgColor.green || bgColor.blue)) {
+              const r = Math.round((bgColor.red || 0) * 255);
+              const g = Math.round((bgColor.green || 0) * 255);
+              const b = Math.round((bgColor.blue || 0) * 255);
+              rowColors.push(`rgb(${r}, ${g}, ${b})`);
+            } else {
+              rowColors.push("");
+            }
+          });
+
+          values.push(rowValues);
+          colors.push(rowColors);
+        });
+
+        if (values.length > 0) {
+          return { range, values, colors };
+        }
+      } catch (e) {
+        console.warn(`Failed to fetch range ${range} with formatting:`, e);
+      }
+    }
+    return { range: null, values: [], colors: [] };
   }
 
   async fetchMiscData() {

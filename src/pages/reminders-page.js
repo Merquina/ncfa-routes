@@ -5,6 +5,8 @@ class RemindersPage extends HTMLElement {
     this._remindersData = null;
     this._marketSummary = [];
     this._vanCapacity = [];
+    this._marketSummaryColors = [];
+    this._vanCapacityColors = [];
   }
 
   connectedCallback() {
@@ -25,9 +27,14 @@ class RemindersPage extends HTMLElement {
       if (window.dataService && window.dataService.sheetsAPI) {
         this._marketSummary = window.dataService.sheetsAPI.marketSummary || [];
         this._vanCapacity = window.dataService.sheetsAPI.vanCapacity || [];
+        this._marketSummaryColors =
+          window.dataService.sheetsAPI.marketSummaryColors || [];
+        this._vanCapacityColors =
+          window.dataService.sheetsAPI.vanCapacityColors || [];
         console.log("📢 Announcements loaded from sheetsAPI:", {
           marketSummary: this._marketSummary.length,
           vanCapacity: this._vanCapacity.length,
+          hasColors: this._marketSummaryColors.length > 0,
         });
       }
 
@@ -434,7 +441,7 @@ class RemindersPage extends HTMLElement {
       return "";
     }
 
-    const renderTable = (data, title) => {
+    const renderTable = (data, colors, title) => {
       if (!data || data.length === 0) return "";
 
       const headers = data[0] || [];
@@ -446,15 +453,31 @@ class RemindersPage extends HTMLElement {
           <table>
             <thead>
               <tr>
-                ${headers.map((h) => `<th>${h || ""}</th>`).join("")}
+                ${headers
+                  .map((h, i) => {
+                    const bgColor = colors[0]?.[i] || "";
+                    const style = bgColor
+                      ? `style="background-color: ${bgColor};"`
+                      : "";
+                    return `<th ${style}>${h || ""}</th>`;
+                  })
+                  .join("")}
               </tr>
             </thead>
             <tbody>
               ${rows
                 .map(
-                  (row) => `
+                  (row, rowIdx) => `
                 <tr>
-                  ${headers.map((_, i) => `<td>${row[i] || ""}</td>`).join("")}
+                  ${headers
+                    .map((_, cellIdx) => {
+                      const bgColor = colors[rowIdx + 1]?.[cellIdx] || "";
+                      const style = bgColor
+                        ? `style="background-color: ${bgColor};"`
+                        : "";
+                      return `<td ${style}>${row[cellIdx] || ""}</td>`;
+                    })
+                    .join("")}
                 </tr>
               `
                 )
@@ -467,8 +490,16 @@ class RemindersPage extends HTMLElement {
 
     return `
       <div class="announcements-section">
-        ${renderTable(this._marketSummary, this._marketSummary[0]?.[0] || "")}
-        ${renderTable(this._vanCapacity, this._vanCapacity[0]?.[0] || "")}
+        ${renderTable(
+          this._marketSummary,
+          this._marketSummaryColors,
+          this._marketSummary[0]?.[0] || ""
+        )}
+        ${renderTable(
+          this._vanCapacity,
+          this._vanCapacityColors,
+          this._vanCapacity[0]?.[0] || ""
+        )}
       </div>
     `;
   }
