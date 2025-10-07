@@ -11,6 +11,7 @@ import sheetsAPI, {
 class DataService extends EventTarget {
   constructor() {
     super();
+    this.sheetsAPI = sheetsAPI; // Expose sheetsAPI on dataService
     this.inventory = {
       smallBoxes: 0,
       largeBoxes: 0,
@@ -1344,6 +1345,9 @@ class DataService extends EventTarget {
 
 // Create singleton instance
 window.dataService = window.dataService || new DataService();
+
+// Also expose sheetsAPI globally for components that need direct access
+window.sheetsAPI = sheetsAPI;
 
 export { DataService };
 export default window.dataService;
