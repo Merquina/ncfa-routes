@@ -86,9 +86,11 @@ class AddressBookPage extends HTMLElement {
         ${alphabet
           .map((letter) => {
             const hasContacts = letters.includes(letter);
-            return `<a href="#letter-${letter}" class="letter-link ${
+            return `<button class="letter-link ${
               hasContacts ? "active" : "inactive"
-            }">${letter}</a>`;
+            }" data-letter="${letter}" ${
+              hasContacts ? "" : "disabled"
+            }>${letter}</button>`;
           })
           .join("")}
       </div>
@@ -109,6 +111,20 @@ class AddressBookPage extends HTMLElement {
       .join("");
 
     container.innerHTML = navHTML + contactsHTML;
+
+    // Add click listeners to alphabet navigation buttons
+    const letterButtons = this.shadowRoot.querySelectorAll(
+      ".letter-link.active"
+    );
+    letterButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const letter = e.target.dataset.letter;
+        const section = this.shadowRoot.querySelector(`#letter-${letter}`);
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
   }
 
   renderContactCard(contact) {
@@ -420,10 +436,12 @@ class AddressBookPage extends HTMLElement {
           justify-content: center;
           width: 32px;
           height: 32px;
-          text-decoration: none;
+          border: none;
           border-radius: 4px;
           font-weight: 700;
           font-size: 0.9rem;
+          font-family: inherit;
+          cursor: pointer;
           transition: all 0.2s ease;
         }
 
@@ -434,12 +452,13 @@ class AddressBookPage extends HTMLElement {
 
         .letter-link.active:hover {
           background: #2c5282;
+          transform: scale(1.1);
         }
 
         .letter-link.inactive {
           background: #f0f0f0;
           color: #ccc;
-          pointer-events: none;
+          cursor: not-allowed;
         }
 
         .letter-section {
