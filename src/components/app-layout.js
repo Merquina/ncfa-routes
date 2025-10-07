@@ -33,6 +33,11 @@ class AppLayout extends HTMLElement {
       router.registerRoute("/boxes", "boxes-page", "Box Inventory");
       router.registerRoute("/dates", "dates-page", "Upcoming Routes");
       router.registerRoute("/workers", "workers-page", "Routes by Worker");
+      router.registerRoute(
+        "/address-book",
+        "address-book-page",
+        "Address Book"
+      );
 
       router.registerRoute("/route", "route-details-page", "Route Details");
     } catch {}
