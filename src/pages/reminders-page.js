@@ -602,31 +602,40 @@ class RemindersPage extends HTMLElement {
         .announcement-table table {
           width: 100%;
           border-collapse: collapse;
-          table-layout: auto;
+          table-layout: fixed;
           max-width: 100%;
         }
 
         .announcement-table th,
         .announcement-table td {
-          padding: 12px 15px;
+          padding: 8px 6px;
           text-align: left;
           border-bottom: 1px solid #eee;
           word-wrap: break-word;
           overflow-wrap: break-word;
-          max-width: 200px;
+          word-break: break-word;
+          font-size: 0.75rem;
+          line-height: 1.3;
         }
 
         .announcement-table th {
           background: #f8f9fa;
           font-weight: 600;
           color: #555;
-          font-size: 0.9rem;
           text-transform: capitalize;
         }
 
         .announcement-table td {
           color: #333;
-          font-size: 0.9rem;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+          .announcement-table th,
+          .announcement-table td {
+            padding: 6px 4px;
+            font-size: 0.7rem;
+          }
         }
 
         .announcement-table tbody tr:hover {
