@@ -913,6 +913,9 @@ class SheetsAPIService extends EventTarget {
         trimmedRows[0]?.length || 0
       } cols (was ${values.length} x ${values[0]?.length || 0})`
     );
+    console.log("Filtered values:", trimmedRows);
+    console.log("First row:", trimmedRows[0]);
+    console.log("Last row:", trimmedRows[trimmedRows.length - 1]);
 
     return { values: trimmedRows, colors: trimmedColors };
   }

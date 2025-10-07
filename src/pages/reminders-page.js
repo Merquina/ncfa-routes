@@ -380,11 +380,12 @@ class RemindersPage extends HTMLElement {
         const marketResponse = await fetch(marketUrl);
         if (marketResponse.ok) {
           const csvText = await marketResponse.text();
-          this._marketSummary = this.parseCSV(csvText);
+          const parsed = this.parseCSV(csvText);
+          this._marketSummary = this.filterEmptyRowsAndColumns(parsed);
           console.log(
             "✅ Loaded Market Summary from CSV:",
             this._marketSummary.length,
-            "rows"
+            "rows (filtered)"
           );
         }
       }
@@ -395,17 +396,66 @@ class RemindersPage extends HTMLElement {
         const vanResponse = await fetch(vanUrl);
         if (vanResponse.ok) {
           const csvText = await vanResponse.text();
-          this._vanCapacity = this.parseCSV(csvText);
+          const parsed = this.parseCSV(csvText);
+          this._vanCapacity = this.filterEmptyRowsAndColumns(parsed);
           console.log(
             "✅ Loaded Van Capacity from CSV:",
             this._vanCapacity.length,
-            "rows"
+            "rows (filtered)"
           );
         }
       }
     } catch (error) {
       console.error("Error loading announcements from CSV:", error);
     }
+  }
+
+  filterEmptyRowsAndColumns(values) {
+    if (!values || values.length === 0) return [];
+
+    // Find first and last non-empty rows
+    let firstRow = -1;
+    let lastRow = -1;
+
+    for (let i = 0; i < values.length; i++) {
+      const row = values[i] || [];
+      const hasContent = row.some((cell) => String(cell || "").trim() !== "");
+      if (hasContent) {
+        if (firstRow === -1) firstRow = i;
+        lastRow = i;
+      }
+    }
+
+    if (firstRow === -1) return [];
+
+    // Extract only rows between first and last non-empty
+    const rowSlice = values.slice(firstRow, lastRow + 1);
+
+    // Find first and last non-empty columns
+    let firstCol = Infinity;
+    let lastCol = -1;
+
+    for (const row of rowSlice) {
+      for (let c = 0; c < row.length; c++) {
+        if (String(row[c] || "").trim() !== "") {
+          firstCol = Math.min(firstCol, c);
+          lastCol = Math.max(lastCol, c);
+        }
+      }
+    }
+
+    if (firstCol === Infinity || lastCol === -1) return [];
+
+    // Trim to only content columns
+    const trimmedRows = rowSlice.map((row) => row.slice(firstCol, lastCol + 1));
+
+    console.log(
+      `Filtered CSV table: ${trimmedRows.length} rows x ${
+        trimmedRows[0]?.length || 0
+      } cols (was ${values.length} x ${values[0]?.length || 0})`
+    );
+
+    return trimmedRows;
   }
 
   parseCSV(csvText) {
