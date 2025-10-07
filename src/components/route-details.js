@@ -362,13 +362,23 @@ class RouteDetails extends HTMLElement {
   renderPhoneNumbers(location) {
     if (!location) return "";
     try {
+      console.log("renderPhoneNumbers - location:", location);
+      console.log(
+        "renderPhoneNumbers - window.sheetsAPI exists:",
+        !!window.sheetsAPI
+      );
+
       const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
+      console.log("renderPhoneNumbers - contact found:", !!contact, contact);
 
       if (!contact) return "";
 
       // Get all contacts and phones using helper methods
       const contacts = window.sheetsAPI?.getAllContacts?.(contact) || [];
       const phones = window.sheetsAPI?.getAllPhones?.(contact) || [];
+
+      console.log("renderPhoneNumbers - contacts:", contacts);
+      console.log("renderPhoneNumbers - phones:", phones);
 
       if (contacts.length === 0 && phones.length === 0) return "";
 
@@ -390,6 +400,7 @@ class RouteDetails extends HTMLElement {
         `);
       }
 
+      console.log("renderPhoneNumbers - rows generated:", rows.length);
       return `<div style="margin-top:8px;">${rows.join("")}</div>`;
     } catch (e) {
       console.error("Error rendering phone numbers:", e);

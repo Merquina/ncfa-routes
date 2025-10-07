@@ -1695,6 +1695,11 @@ class SheetsAPIService extends EventTarget {
       if (contactPerson) contacts.push(contactPerson);
       i++;
     }
+    // Fallback to single contact field
+    if (contacts.length === 0 && (contact.Contact || contact.contact)) {
+      const single = String(contact.Contact || contact.contact).trim();
+      if (single) contacts.push(single);
+    }
     return contacts;
   }
   getAllPhones(contact) {
@@ -1704,6 +1709,11 @@ class SheetsAPIService extends EventTarget {
       const phone = (contact[`phone${i}`] || contact[`Phone${i}`] || "").trim();
       if (phone) phones.push(phone);
       i++;
+    }
+    // Fallback to single phone field
+    if (phones.length === 0 && (contact.Phone || contact.phone)) {
+      const single = String(contact.Phone || contact.phone).trim();
+      if (single) phones.push(single);
     }
     return phones;
   }
