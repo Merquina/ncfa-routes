@@ -850,6 +850,10 @@
 
       // Initialize APIs when page loads
       window.onload = function () {
+        // Automatically show main app without authentication
+        showMainApp();
+        updateStatus("Development mode - bypassed authentication");
+
         gapiLoaded();
         gisLoaded();
       };
