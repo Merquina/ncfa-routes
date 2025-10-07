@@ -61,13 +61,19 @@ class AppLayout extends HTMLElement {
       hamburger.addEventListener("click", () => this.toggleMenu());
     }
 
-    // Add address book button listener
-    const addressBookBtn = this.shadowRoot.querySelector("#addressBookBtn");
-    if (addressBookBtn) {
-      addressBookBtn.addEventListener("click", () =>
-        this.navigateToAddressBook()
-      );
-    }
+    // Add address book button listener with slight delay to ensure DOM is ready
+    setTimeout(() => {
+      const addressBookBtn = this.shadowRoot.querySelector("#addressBookBtn");
+      console.log("Setting up address book button, found:", !!addressBookBtn);
+      if (addressBookBtn) {
+        addressBookBtn.addEventListener("click", (e) => {
+          console.log("Address book button clicked!");
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToAddressBook();
+        });
+      }
+    }, 100);
 
     // Close menu when clicking outside
     this.shadowRoot.addEventListener("click", (event) => {
