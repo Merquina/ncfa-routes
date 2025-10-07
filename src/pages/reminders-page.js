@@ -3,6 +3,8 @@ class RemindersPage extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._remindersData = null;
+    this._marketSummary = [];
+    this._vanCapacity = [];
   }
 
   connectedCallback() {
@@ -19,6 +21,22 @@ class RemindersPage extends HTMLElement {
 
   async loadReminders() {
     try {
+      // Load announcements data - try OAuth first, then fallback to CSV
+      if (window.dataService && window.dataService.sheetsAPI) {
+        this._marketSummary = window.dataService.sheetsAPI.marketSummary || [];
+        this._vanCapacity = window.dataService.sheetsAPI.vanCapacity || [];
+        console.log("📢 Announcements loaded from sheetsAPI:", {
+          marketSummary: this._marketSummary.length,
+          vanCapacity: this._vanCapacity.length,
+        });
+      }
+
+      // If no data from OAuth, try public CSV access
+      if (this._marketSummary.length === 0 || this._vanCapacity.length === 0) {
+        console.log("📢 Trying public CSV access for announcements...");
+        await this.loadAnnouncementsFromCSV();
+      }
+
       // TEMPORARY TEST: Use hardcoded data to test display
       const testReminders = [
         { section: "Office", item: "Tablets (2)" },
@@ -234,7 +252,10 @@ class RemindersPage extends HTMLElement {
     const container = this.shadowRoot.querySelector(".reminders-container");
     if (!container) return;
 
+    const announcementsHtml = this.renderAnnouncements();
+
     container.innerHTML = `
+      ${announcementsHtml}
       <div class="reminders-grid">
         <!-- Arrive at Office -->
         <div class="reminder-box">
@@ -342,6 +363,116 @@ class RemindersPage extends HTMLElement {
     }
   }
 
+  async loadAnnouncementsFromCSV() {
+    const SPREADSHEET_ID = "1yn3yPWW5ThhPvHzYiSkwwNztVnAQLD2Rk_QEQJwlr2k";
+
+    try {
+      // Load Market Summary from Misc!J:M
+      if (this._marketSummary.length === 0) {
+        const marketUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&range=Misc!J:M`;
+        const marketResponse = await fetch(marketUrl);
+        if (marketResponse.ok) {
+          const csvText = await marketResponse.text();
+          this._marketSummary = this.parseCSV(csvText);
+          console.log(
+            "✅ Loaded Market Summary from CSV:",
+            this._marketSummary.length,
+            "rows"
+          );
+        }
+      }
+
+      // Load Van Capacity from Misc!O:R
+      if (this._vanCapacity.length === 0) {
+        const vanUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&range=Misc!O:R`;
+        const vanResponse = await fetch(vanUrl);
+        if (vanResponse.ok) {
+          const csvText = await vanResponse.text();
+          this._vanCapacity = this.parseCSV(csvText);
+          console.log(
+            "✅ Loaded Van Capacity from CSV:",
+            this._vanCapacity.length,
+            "rows"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error loading announcements from CSV:", error);
+    }
+  }
+
+  parseCSV(csvText) {
+    const rows = csvText
+      .trim()
+      .split("\n")
+      .map((row) => {
+        // Simple CSV parser - handles quoted fields
+        const cells = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < row.length; i++) {
+          const char = row[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === "," && !inQuotes) {
+            cells.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+        cells.push(current.trim());
+        return cells;
+      });
+
+    return rows.filter((row) => row.some((cell) => cell !== ""));
+  }
+
+  renderAnnouncements() {
+    if (!this._marketSummary.length && !this._vanCapacity.length) {
+      return "";
+    }
+
+    const renderTable = (data, title) => {
+      if (!data || data.length === 0) return "";
+
+      const headers = data[0] || [];
+      const rows = data.slice(1);
+
+      return `
+        <div class="announcement-table">
+          ${title ? `<h3 class="announcement-title">${title}</h3>` : ""}
+          <table>
+            <thead>
+              <tr>
+                ${headers.map((h) => `<th>${h || ""}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows
+                .map(
+                  (row) => `
+                <tr>
+                  ${headers.map((_, i) => `<td>${row[i] || ""}</td>`).join("")}
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    return `
+      <div class="announcements-section">
+        ${renderTable(this._marketSummary, this._marketSummary[0]?.[0] || "")}
+        ${renderTable(this._vanCapacity, this._vanCapacity[0]?.[0] || "")}
+      </div>
+    `;
+  }
+
   clearAll() {
     const checkboxes = this.shadowRoot.querySelectorAll(
       'input[type="checkbox"]'
@@ -363,6 +494,61 @@ class RemindersPage extends HTMLElement {
         .reminders-container {
           max-width: 1200px;
           margin: 0 auto;
+        }
+
+        .announcements-section {
+          margin-bottom: 30px;
+        }
+
+        .announcement-table {
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          margin-bottom: 20px;
+        }
+
+        .announcement-title {
+          background: #f8f9fa;
+          padding: 15px 20px;
+          margin: 0;
+          color: #333;
+          font-size: 1.1rem;
+          font-weight: 600;
+          border-bottom: 1px solid #ddd;
+        }
+
+        .announcement-table table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .announcement-table th,
+        .announcement-table td {
+          padding: 12px 15px;
+          text-align: left;
+          border-bottom: 1px solid #eee;
+        }
+
+        .announcement-table th {
+          background: #f8f9fa;
+          font-weight: 600;
+          color: #555;
+          font-size: 0.9rem;
+          text-transform: capitalize;
+        }
+
+        .announcement-table td {
+          color: #333;
+          font-size: 0.9rem;
+        }
+
+        .announcement-table tbody tr:hover {
+          background: #f8f9fa;
+        }
+
+        .announcement-table tbody tr:last-child td {
+          border-bottom: none;
         }
 
         .reminders-grid {

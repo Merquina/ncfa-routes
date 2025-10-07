@@ -35,6 +35,8 @@ class SheetsAPIService extends EventTarget {
     this.miscVehicles = [];
     this.miscVehicleMap = {};
     this.miscReminders = [];
+    this.marketSummary = [];
+    this.vanCapacity = [];
     this.isLoading = false;
     this._workersCacheKey = null;
     this._workersCache = null;
@@ -405,6 +407,11 @@ class SheetsAPIService extends EventTarget {
     // Misc
     try {
       await this.fetchMiscData();
+    } catch {}
+
+    // Announcements (Market Summary and Van Capacity)
+    try {
+      await this.fetchAnnouncementsData();
     } catch {}
 
     // Schema summary log for quick diagnostics (headers + sources)
@@ -798,6 +805,50 @@ class SheetsAPIService extends EventTarget {
     } catch (e) {
       console.info("Routes sheet not available:", e);
       this.routesData = [];
+    }
+  }
+
+  async fetchAnnouncementsData() {
+    await this._ensureTableMappings();
+    const pickRanges = (key) => {
+      const dyn = this._dynamicTableRanges && this._dynamicTableRanges[key];
+      if (typeof dyn === "string" && dyn.trim()) return [dyn.trim()];
+      if (Array.isArray(dyn) && dyn.length) return dyn;
+      return TABLE_RANGES[key] || [];
+    };
+
+    // Fetch Market Summary
+    try {
+      const { range, values } = await this._getFirstNonEmptyRange(
+        pickRanges("announcements")
+      );
+      this.marketSummary = [];
+      if (values.length > 0) {
+        this.marketSummary = values;
+        this._tableSources.marketSummary = range;
+        console.info(
+          `✅ Loaded Market Summary (${values.length} rows) from ${range}`
+        );
+      }
+    } catch (e) {
+      console.info("Market Summary table not available:", e);
+    }
+
+    // Fetch Van Capacity
+    try {
+      const { range, values } = await this._getFirstNonEmptyRange(
+        pickRanges("vanCapacity")
+      );
+      this.vanCapacity = [];
+      if (values.length > 0) {
+        this.vanCapacity = values;
+        this._tableSources.vanCapacity = range;
+        console.info(
+          `✅ Loaded Van Capacity (${values.length} rows) from ${range}`
+        );
+      }
+    } catch (e) {
+      console.info("Van Capacity table not available:", e);
     }
   }
 

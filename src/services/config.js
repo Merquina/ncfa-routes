@@ -26,4 +26,12 @@ export const TABLE_RANGES = (typeof window !== "undefined" &&
     "Reminders",
     "Misc!G:I", // Fallback to correct range G:I
   ],
+  announcements: [
+    "MarketSummary", // table name
+    "Misc!J:M", // fallback range for market summary table
+  ],
+  vanCapacity: [
+    "VanCapacity", // table name
+    "Misc!O:R", // fallback range for van capacity table
+  ],
 };
