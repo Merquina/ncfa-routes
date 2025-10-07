@@ -15,6 +15,8 @@ class AppLayout extends HTMLElement {
     this.setupRouting();
     this._wireSyncStatus();
     this.setupHeaderHandler();
+    // Ensure page starts at top
+    setTimeout(() => this.scrollToTop(), 100);
   }
   disconnectedCallback() {}
 
@@ -49,7 +51,16 @@ class AppLayout extends HTMLElement {
     if (router) {
       router.addEventListener("route-changed", (e) => {
         this.updateActiveTab(e.detail.path);
+        // Scroll to top when route changes
+        this.scrollToTop();
       });
+    }
+  }
+
+  scrollToTop() {
+    const pageContainer = this.shadowRoot.querySelector(".page-container");
+    if (pageContainer) {
+      pageContainer.scrollTop = 0;
     }
   }
 
@@ -266,7 +277,7 @@ class AppLayout extends HTMLElement {
         }
       </style>
 
-      <div style="position: relative;">
+      <div style="position: sticky; top: 0; z-index: 1001; background: white;">
         <app-header></app-header>
 
         <!-- Hamburger Menu Button -->
