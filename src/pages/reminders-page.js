@@ -521,6 +521,8 @@ class RemindersPage extends HTMLElement {
         .announcement-table table {
           width: 100%;
           border-collapse: collapse;
+          table-layout: auto;
+          max-width: 100%;
         }
 
         .announcement-table th,
@@ -528,6 +530,9 @@ class RemindersPage extends HTMLElement {
           padding: 12px 15px;
           text-align: left;
           border-bottom: 1px solid #eee;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          max-width: 200px;
         }
 
         .announcement-table th {

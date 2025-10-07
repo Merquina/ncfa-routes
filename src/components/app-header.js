@@ -31,12 +31,15 @@ class AppHeader extends HTMLElement {
           color: white;
           padding: 12px;
           text-align: center;
-          position: relative;
+          position: sticky;
+          top: 0;
           flex-shrink: 0;
           z-index: 1001;
           cursor: pointer;
           transition: all 0.3s ease;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .header:hover {

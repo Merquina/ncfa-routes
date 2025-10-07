@@ -151,18 +151,27 @@ class AppLayout extends HTMLElement {
           flex-direction: column;
           height: 100vh;
           height: 100dvh; /* Dynamic viewport height for mobile */
+          width: 100vw;
+          width: 100dvw;
+          max-width: 100%;
           font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
           font-size: var(--font-size-base, 1rem);
           line-height: var(--line-height, 1.5);
           letter-spacing: var(--letter-spacing, 0.025em);
           background: #f8f9fa;
-          overflow: hidden;
+          overflow-x: hidden;
+          overflow-y: hidden;
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
+          box-sizing: border-box;
           -webkit-overflow-scrolling: touch;
+        }
+
+        * {
+          box-sizing: border-box;
         }
 
 
@@ -190,6 +199,9 @@ class AppLayout extends HTMLElement {
           overscroll-behavior: contain;
           -webkit-transform: translateZ(0); /* Hardware acceleration */
           transform: translateZ(0);
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
 
         .bottom-tabs {
