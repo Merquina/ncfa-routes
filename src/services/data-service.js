@@ -765,15 +765,36 @@ class DataService extends EventTarget {
     }
 
     console.debug("[DataService] Normalized routes:", routes.length);
-    this.routes = routes;
+
+    // CRITICAL: Filter to only show routes on or after today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+
+    const filteredRoutes = routes.filter((route) => {
+      const routeDate = route.sortDate || route.date;
+      if (!routeDate) return false; // Skip routes without dates
+
+      const dateObj =
+        routeDate instanceof Date ? routeDate : new Date(routeDate);
+      if (isNaN(dateObj.getTime())) return false; // Skip invalid dates
+
+      dateObj.setHours(0, 0, 0, 0); // Normalize to start of day
+      return dateObj >= today; // Only include today and future dates
+    });
+
+    console.debug(
+      `[DataService] Filtered routes (today+): ${filteredRoutes.length} of ${routes.length}`
+    );
+
+    this.routes = filteredRoutes;
     this._routesCacheKey = cacheKey;
-    this._routesCache = [...routes];
+    this._routesCache = [...filteredRoutes];
     // Persist normalized result for fast subsequent queries
     try {
-      await localStore.putCache("normalizedRoutes", routes);
+      await localStore.putCache("normalizedRoutes", filteredRoutes);
       await localStore.setMeta("dataSignature", cacheKey);
     } catch {}
-    return [...routes];
+    return [...filteredRoutes];
   }
 
   // Alias used by some controllers

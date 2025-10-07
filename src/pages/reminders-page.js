@@ -558,25 +558,24 @@ class RemindersPage extends HTMLElement {
 
         .announcement-table th,
         .announcement-table td {
-          padding: 12px 15px;
+          padding: 8px 10px;
           text-align: left;
           border-bottom: 1px solid #eee;
           word-wrap: break-word;
           overflow-wrap: break-word;
-          max-width: 200px;
+          font-size: 0.75rem;
+          line-height: 1.3;
         }
 
         .announcement-table th {
           background: #f8f9fa;
           font-weight: 600;
           color: #555;
-          font-size: 0.9rem;
           text-transform: capitalize;
         }
 
         .announcement-table td {
           color: #333;
-          font-size: 0.9rem;
         }
 
         .announcement-table tbody tr:hover {

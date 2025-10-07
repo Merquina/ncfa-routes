@@ -311,45 +311,6 @@
             Sign in with your NCFA account
           </button>
 
-          <!-- Development Mode Bypass -->
-          <button
-            id="devBypassButton"
-            onclick="showMainApp(); updateStatus('Development mode - bypassed authentication')"
-            style="
-              background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-              color: white;
-              border: none;
-              padding: 15px 24px;
-              border-radius: 8px;
-              font-size: var(--font-size-base, 1rem);
-              font-weight: 600;
-              cursor: pointer;
-              font-family: var(
-                --font-family,
-                'OpenDyslexic',
-                'Comic Sans MS',
-                'Trebuchet MS',
-                'Verdana',
-                'Arial',
-                sans-serif
-              );
-              margin-top: 12px;
-              width: 100%;
-              max-width: 280px;
-              height: 48px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin-left: auto;
-              margin-right: auto;
-              box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
-              transition: all 0.3s ease;
-            "
-            onmouseover="this.style.background='linear-gradient(135deg, #c53030 0%, #9c2626 100%)'; this.style.boxShadow='0 6px 20px rgba(229, 62, 62, 0.4)'; this.style.transform='translateY(-2px)'"
-            onmouseout="this.style.background='linear-gradient(135deg, #e53e3e 0%, #c53030 100%)'; this.style.boxShadow='0 4px 12px rgba(229, 62, 62, 0.3)'; this.style.transform='translateY(0)'"
-          >
-            Dev Mode (No password)
-          </button>
           <div
             id="signInStatus"
             style="margin-top: 20px; color: #666; font-size: 0.9rem"
@@ -850,10 +811,6 @@
 
       // Initialize APIs when page loads
       window.onload = function () {
-        // Automatically show main app without authentication
-        showMainApp();
-        updateStatus("Development mode - bypassed authentication");
-
         gapiLoaded();
         gisLoaded();
       };
