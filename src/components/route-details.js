@@ -407,6 +407,14 @@ class RouteDetails extends HTMLElement {
     if (!location) return "";
     try {
       console.log("renderContactInfo - location:", location);
+      console.log(
+        "renderContactInfo - window.sheetsAPI exists:",
+        !!window.sheetsAPI
+      );
+      console.log(
+        "renderContactInfo - contactsData:",
+        window.sheetsAPI?.contactsData
+      );
       const contact = window.sheetsAPI?.getAddressFromContacts?.(location);
       console.log("renderContactInfo - contact:", contact);
       console.log("renderContactInfo - notes:", contact?.notes);

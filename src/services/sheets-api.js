@@ -410,18 +410,32 @@ class SheetsAPIService extends EventTarget {
     // Schema summary log for quick diagnostics (headers + sources)
     try {
       const hdr = (name) => (map.get(name)?.values || [])[0] || [];
-      console.info('[Schema] Tables loaded:', {
-        SPFM: { headers: hdr('SPFM'), rows: (this.data || []).length },
-        Routes: { headers: hdr('Routes'), rows: (this.routesData || []).length },
-        Recovery: { headers: hdr('Recovery'), rows: (this.recoveryData || []).length },
-        SPFM_Delivery: { headers: hdr('SPFM_Delivery'), rows: (this.deliveryData || []).length },
-        Status: { headers: hdr('Status'), rows: (this.inventoryData || []).length },
-        Contacts: { headers: hdr('Contacts'), rows: (this.contactsData || []).length },
+      console.info("[Schema] Tables loaded:", {
+        SPFM: { headers: hdr("SPFM"), rows: (this.data || []).length },
+        Routes: {
+          headers: hdr("Routes"),
+          rows: (this.routesData || []).length,
+        },
+        Recovery: {
+          headers: hdr("Recovery"),
+          rows: (this.recoveryData || []).length,
+        },
+        SPFM_Delivery: {
+          headers: hdr("SPFM_Delivery"),
+          rows: (this.deliveryData || []).length,
+        },
+        Status: {
+          headers: hdr("Status"),
+          rows: (this.inventoryData || []).length,
+        },
+        Contacts: {
+          headers: hdr("Contacts"),
+          rows: (this.contactsData || []).length,
+        },
         Sources: { ...this._tableSources },
       });
     } catch {}
   }
-
 
   // ===== Public API fallback for dev mode (no OAuth) =====
   async _fetchWithPublicAPI() {
@@ -429,34 +443,36 @@ class SheetsAPIService extends EventTarget {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`Public API failed: ${resp.statusText}`);
     const data = await resp.json();
-    
-    const map = new Map((data.valueRanges || []).map(vr => [vr.range.split('!')[0], vr]));
-    
+
+    const map = new Map(
+      (data.valueRanges || []).map((vr) => [vr.range.split("!")[0], vr])
+    );
+
     this._parseSPFM(map.get("SPFM")?.values || []);
-    
+
     // Simple parsing for other sheets
     const parseSheet = (name) => {
       const values = map.get(name)?.values || [];
       if (values.length < 2) return [];
       const headers = values[0];
-      return values.slice(1).map(row => {
+      return values.slice(1).map((row) => {
         const obj = {};
         headers.forEach((h, i) => (obj[h] = row[i] || ""));
         return obj;
       });
     };
-    
+
     this.routesData = parseSheet("Routes");
     this.recoveryData = parseSheet("Recovery");
     this.deliveryData = parseSheet("SPFM_Delivery");
     this.inventoryData = parseSheet("Status");
     this.contactsData = parseSheet("Contacts");
-    
+
     this.miscWorkers = [];
     this.miscVehicles = [];
     this.miscReminders = [];
-    
-    console.info('[Public API] Successfully loaded basic data');
+
+    console.info("[Public API] Successfully loaded basic data");
   }
 
   // ===== Declarative table helpers (maintainable) =====
@@ -859,7 +875,7 @@ class SheetsAPIService extends EventTarget {
         pickRanges("reminders")
       );
       this.miscReminders = [];
-      let primaryWidth = (values && values[0]) ? values[0].length : 0;
+      let primaryWidth = values && values[0] ? values[0].length : 0;
       if (values.length > 0) {
         this._parseReminders(values);
         this._tableSources.reminders = range;
@@ -873,7 +889,10 @@ class SheetsAPIService extends EventTarget {
         const detected = await this._scanMiscForReminders();
         if (detected && detected.values && detected.values.length) {
           const detectedWidth = (detected.values[0] || []).length;
-          if ((this.miscReminders || []).length === 0 || detectedWidth > primaryWidth) {
+          if (
+            (this.miscReminders || []).length === 0 ||
+            detectedWidth > primaryWidth
+          ) {
             this._parseReminders(detected.values);
             this._tableSources.reminders = detected.a1 || "Misc!A:Z(auto)";
             if (this.miscReminders.length)
@@ -923,10 +942,14 @@ class SheetsAPIService extends EventTarget {
         }
         return -1;
       };
-      
-      const materialsOfficeRowIdx = findRowIndex(/^(materials_office|materialsoffice|materials\s?office)$/i);
-      const materialsStorageRowIdx = findRowIndex(/^(materials_storage|materialsstorage|materials\s?storage)$/i);
-      
+
+      const materialsOfficeRowIdx = findRowIndex(
+        /^(materials_office|materialsoffice|materials\s?office)$/i
+      );
+      const materialsStorageRowIdx = findRowIndex(
+        /^(materials_storage|materialsstorage|materials\s?storage)$/i
+      );
+
       // Find step columns (step1, step2, step3, step4, step5)
       const stepColumns = [];
       for (let i = 0; i < headers.length; i++) {
@@ -940,7 +963,7 @@ class SheetsAPIService extends EventTarget {
       ]);
       // Log detected columns once per parse to aid maintainers
       try {
-        console.info('[Reminders] Detected columns:', {
+        console.info("[Reminders] Detected columns:", {
           key: idxKey >= 0,
           dropoff: idxDrop >= 0,
           atoffice: idxAtOffice >= 0,
@@ -974,10 +997,14 @@ class SheetsAPIService extends EventTarget {
         }
         return materials;
       };
-      
-      const globalMaterialsOffice = extractMaterialsFromRow(materialsOfficeRowIdx);
-      const globalMaterialsStorage = extractMaterialsFromRow(materialsStorageRowIdx);
-      
+
+      const globalMaterialsOffice = extractMaterialsFromRow(
+        materialsOfficeRowIdx
+      );
+      const globalMaterialsStorage = extractMaterialsFromRow(
+        materialsStorageRowIdx
+      );
+
       const hasAnyReminderCols =
         idxDrop >= 0 ||
         idxAtOffice >= 0 ||
@@ -1004,8 +1031,9 @@ class SheetsAPIService extends EventTarget {
           const b = idxBackOffice >= 0 ? splitItems(row[idxBackOffice]) : [];
           const m = idxAtMarket >= 0 ? splitItems(row[idxAtMarket]) : [];
           // Skip processing rows that are materials definition rows themselves
-          if (i === materialsOfficeRowIdx || i === materialsStorageRowIdx) continue;
-          
+          if (i === materialsOfficeRowIdx || i === materialsStorageRowIdx)
+            continue;
+
           // Use global materials for all routes
           const mo = globalMaterialsOffice;
           const ms = globalMaterialsStorage;
@@ -1022,10 +1050,28 @@ class SheetsAPIService extends EventTarget {
             bao.length === 0;
           if (emptyRow) continue;
           // If no keys/market/type columns exist in the sheet, treat rows as global (applies to 'all')
-          if (keys.length === 0 && (d.length || a.length || b.length || m.length || mo.length || ms.length || bao.length)) {
-            keys.push('all');
+          if (
+            keys.length === 0 &&
+            (d.length ||
+              a.length ||
+              b.length ||
+              m.length ||
+              mo.length ||
+              ms.length ||
+              bao.length)
+          ) {
+            keys.push("all");
           }
-          if (keys.length > 0 && (d.length || a.length || b.length || m.length || mo.length || ms.length || bao.length)) {
+          if (
+            keys.length > 0 &&
+            (d.length ||
+              a.length ||
+              b.length ||
+              m.length ||
+              mo.length ||
+              ms.length ||
+              bao.length)
+          ) {
             const rec = {
               keys: Array.from(new Set(keys)),
               dropoff: d,
@@ -1062,23 +1108,30 @@ class SheetsAPIService extends EventTarget {
         }
       } else {
         // Row-oriented format: a 'where/section/bucket' column with items spread across other columns.
-      const idxWhere = headers.findIndex((h) => /^(where|section|bucket)$/i.test(h));
-      if (idxWhere >= 0) {
+        const idxWhere = headers.findIndex((h) =>
+          /^(where|section|bucket)$/i.test(h)
+        );
+        if (idxWhere >= 0) {
           const merge = {
-            keys: ['all'],
-            dropoff: [], atoffice: [], backatoffice: [], atmarket: [],
-            materials_office: [], materials_storage: [], backAtOffice: [],
+            keys: ["all"],
+            dropoff: [],
+            atoffice: [],
+            backatoffice: [],
+            atmarket: [],
+            materials_office: [],
+            materials_storage: [],
+            backAtOffice: [],
           };
-          const norm = (s) => (s == null ? '' : String(s)).trim().toLowerCase();
+          const norm = (s) => (s == null ? "" : String(s)).trim().toLowerCase();
           const mapBucket = (w) => {
             const n = norm(w);
-            if (/^drop/.test(n)) return 'dropoff';
-            if (/^(at\s*)?office$|^atoffice$/.test(n)) return 'atoffice';
-            if (/^back/.test(n)) return 'backatoffice';
-            if (/^(at\s*)?market$|^atmarket$/.test(n)) return 'atmarket';
-            if (/materials.*office/.test(n)) return 'materials_office';
-            if (/materials.*storage/.test(n)) return 'materials_storage';
-            return '';
+            if (/^drop/.test(n)) return "dropoff";
+            if (/^(at\s*)?office$|^atoffice$/.test(n)) return "atoffice";
+            if (/^back/.test(n)) return "backatoffice";
+            if (/^(at\s*)?market$|^atmarket$/.test(n)) return "atmarket";
+            if (/materials.*office/.test(n)) return "materials_office";
+            if (/materials.*storage/.test(n)) return "materials_storage";
+            return "";
           };
           // Only include cells from recognized step columns
           const stepIdxs = headers
@@ -1093,11 +1146,17 @@ class SheetsAPIService extends EventTarget {
             const items = stepIdxs.length
               ? stepIdxs.map((ci) => row[ci]).flatMap(splitItems)
               : row.filter((_, ci) => ci !== idxWhere).flatMap(splitItems);
-            items.forEach((t) => { if (t && !merge[b].includes(t)) merge[b].push(t); });
+            items.forEach((t) => {
+              if (t && !merge[b].includes(t)) merge[b].push(t);
+            });
           }
           if (
-            merge.dropoff.length || merge.atoffice.length || merge.backatoffice.length || merge.atmarket.length ||
-            merge.materials_office.length || merge.materials_storage.length
+            merge.dropoff.length ||
+            merge.atoffice.length ||
+            merge.backatoffice.length ||
+            merge.atmarket.length ||
+            merge.materials_office.length ||
+            merge.materials_storage.length
           ) {
             out.push(merge);
           }
@@ -1499,7 +1558,11 @@ class SheetsAPIService extends EventTarget {
 
       // Score potential header rows. Prefer explicit bucket columns; next prefer a row-oriented header with 'where' + stepN.
       const scoreHeader = (hdr) => {
-        const lower = (hdr || []).map((h) => String(h || "").trim().toLowerCase());
+        const lower = (hdr || []).map((h) =>
+          String(h || "")
+            .trim()
+            .toLowerCase()
+        );
         let score = 0;
         const has = (re) => lower.some((h) => re.test(h));
         const count = (re) => lower.filter((h) => re.test(h)).length;
@@ -1508,11 +1571,18 @@ class SheetsAPIService extends EventTarget {
         score += Math.min(5, count(/^step\d+$/i));
         if (has(/(^|\b)(drop\s?off|dropoff|drop-off)(\b|$)/i)) score += 2;
         if (has(/(^|\b)(at\s?office|atoffice|office)(\b|$)/i)) score += 2;
-        if (has(/(^|\b)(back\s?at\s?office|back\s?office|backatoffice)(\b|$)/i)) score += 2;
-        if (has(/^(materials[_\s]?office|materials[_\s]?storage)$/i)) score += 2;
+        if (has(/(^|\b)(back\s?at\s?office|back\s?office|backatoffice)(\b|$)/i))
+          score += 2;
+        if (has(/^(materials[_\s]?office|materials[_\s]?storage)$/i))
+          score += 2;
         if (has(/^(at\s?market|atmarket|market)$/i)) score += 2;
         // Key/market/type give slight boost but are not required for global lists
-        if (has(/^(key|keys|context|contexts|name|names|market|location|type|route)$/i)) score += 1;
+        if (
+          has(
+            /^(key|keys|context|contexts|name|names|market|location|type|route)$/i
+          )
+        )
+          score += 1;
         // Negative signals: workers/vehicles tables
         if (has(/worker|van|vehicle/i)) score -= 3;
         return score;
@@ -1536,24 +1606,46 @@ class SheetsAPIService extends EventTarget {
         return idx;
       };
       const headerRow = rows[headerIdx] || [];
-      const lowerHdr = headerRow.map((h) => String(h || '').trim().toLowerCase());
-      const idxWhere = lowerHdr.findIndex((h) => /^(where|section|bucket)$/i.test(h));
+      const lowerHdr = headerRow.map((h) =>
+        String(h || "")
+          .trim()
+          .toLowerCase()
+      );
+      const idxWhere = lowerHdr.findIndex((h) =>
+        /^(where|section|bucket)$/i.test(h)
+      );
       const stepIdxs = lowerHdr
         .map((h, i) => (/^step\s*\d+$/i.test(h) ? i : -1))
         .filter((i) => i >= 0);
       const bucketIdxs = lowerHdr
-        .map((h, i) => ((/^(drop\s?off|dropoff|drop-off)$/i.test(h) || /^(at\s?office|atoffice|office)$/i.test(h) || /^(back\s?at\s?office|back\s?office|backatoffice)$/i.test(h) || /^(materials[_\s]?office|materials[_\s]?storage)$/i.test(h) || /^(at\s?market|atmarket|market)$/i.test(h)) ? i : -1))
+        .map((h, i) =>
+          /^(drop\s?off|dropoff|drop-off)$/i.test(h) ||
+          /^(at\s?office|atoffice|office)$/i.test(h) ||
+          /^(back\s?at\s?office|back\s?office|backatoffice)$/i.test(h) ||
+          /^(materials[_\s]?office|materials[_\s]?storage)$/i.test(h) ||
+          /^(at\s?market|atmarket|market)$/i.test(h)
+            ? i
+            : -1
+        )
         .filter((i) => i >= 0);
-      const nonEmptyIdxs = lowerHdr.map((h, i) => (h ? i : -1)).filter((i) => i >= 0);
+      const nonEmptyIdxs = lowerHdr
+        .map((h, i) => (h ? i : -1))
+        .filter((i) => i >= 0);
       let c1 = Math.min(
-        ...[idxWhere >= 0 ? idxWhere : Infinity, ...(stepIdxs.length ? stepIdxs : [Infinity]), ...(bucketIdxs.length ? bucketIdxs : [Infinity])]
+        ...[
+          idxWhere >= 0 ? idxWhere : Infinity,
+          ...(stepIdxs.length ? stepIdxs : [Infinity]),
+          ...(bucketIdxs.length ? bucketIdxs : [Infinity]),
+        ]
       );
-      if (!isFinite(c1)) c1 = nonEmptyIdxs.length ? Math.min(...nonEmptyIdxs) : 0;
+      if (!isFinite(c1))
+        c1 = nonEmptyIdxs.length ? Math.min(...nonEmptyIdxs) : 0;
       const c2 = (() => {
         const rightCandidates = [];
         if (stepIdxs.length) rightCandidates.push(Math.max(...stepIdxs));
         if (bucketIdxs.length) rightCandidates.push(Math.max(...bucketIdxs));
-        if (!rightCandidates.length) rightCandidates.push(lastColIndex(headerRow));
+        if (!rightCandidates.length)
+          rightCandidates.push(lastColIndex(headerRow));
         return Math.max(...rightCandidates);
       })();
       const endRow = (() => {
@@ -1569,14 +1661,22 @@ class SheetsAPIService extends EventTarget {
         return last;
       })();
       const colToA1 = (n) => {
-        let s = '';
+        let s = "";
         n = n + 1; // 1-based
-        while (n > 0) { const mod = (n - 1) % 26; s = String.fromCharCode(65 + mod) + s; n = Math.floor((n - 1) / 26); }
+        while (n > 0) {
+          const mod = (n - 1) % 26;
+          s = String.fromCharCode(65 + mod) + s;
+          n = Math.floor((n - 1) / 26);
+        }
         return s;
       };
-      const a1 = `Misc!${colToA1(c1)}${headerIdx + 1}:${colToA1(c2)}${endRow + 1}`;
+      const a1 = `Misc!${colToA1(c1)}${headerIdx + 1}:${colToA1(c2)}${
+        endRow + 1
+      }`;
       console.info("[Reminders] Auto-detected table at", a1);
-      const sliced = rows.slice(headerIdx, endRow + 1).map((row) => (row || []).slice(c1, c2 + 1));
+      const sliced = rows
+        .slice(headerIdx, endRow + 1)
+        .map((row) => (row || []).slice(c1, c2 + 1));
       return { a1, values: sliced };
     } catch (e) {
       return null;
@@ -1624,6 +1724,12 @@ class SheetsAPIService extends EventTarget {
 }
 
 export const sheetsAPI = new SheetsAPIService();
+
+// Expose sheetsAPI globally immediately
+if (typeof window !== "undefined") {
+  window.sheetsAPI = sheetsAPI;
+  console.log("✅ window.sheetsAPI exposed globally");
+}
 
 export async function loadApiDataIfNeeded(force = false) {
   const SHEETS_TTL_MS = 120000;
