@@ -867,42 +867,52 @@ class SheetsAPIService extends EventTarget {
   _filterEmptyRowsAndColumns(values, colors) {
     if (!values || values.length === 0) return { values: [], colors: [] };
 
-    // Remove completely empty rows (all cells are empty or whitespace)
-    const nonEmptyRows = [];
-    const nonEmptyColors = [];
+    // Step 1: Find first and last non-empty rows
+    let firstRow = -1;
+    let lastRow = -1;
 
     for (let i = 0; i < values.length; i++) {
       const row = values[i] || [];
-      const hasContent = row.some((cell) => {
-        const str = String(cell || "").trim();
-        return str !== "";
-      });
-
+      const hasContent = row.some((cell) => String(cell || "").trim() !== "");
       if (hasContent) {
-        nonEmptyRows.push(row);
-        if (colors[i]) {
-          nonEmptyColors.push(colors[i]);
+        if (firstRow === -1) firstRow = i;
+        lastRow = i;
+      }
+    }
+
+    if (firstRow === -1) return { values: [], colors: [] };
+
+    // Step 2: Extract only rows between first and last non-empty
+    const rowSlice = values.slice(firstRow, lastRow + 1);
+    const colorSlice = colors.slice(firstRow, lastRow + 1);
+
+    // Step 3: Find first and last non-empty columns
+    let firstCol = Infinity;
+    let lastCol = -1;
+
+    for (const row of rowSlice) {
+      for (let c = 0; c < row.length; c++) {
+        if (String(row[c] || "").trim() !== "") {
+          firstCol = Math.min(firstCol, c);
+          lastCol = Math.max(lastCol, c);
         }
       }
     }
 
-    if (nonEmptyRows.length === 0) return { values: [], colors: [] };
+    if (firstCol === Infinity || lastCol === -1)
+      return { values: [], colors: [] };
 
-    // Find the rightmost non-empty column across all rows
-    let maxCol = 0;
-    for (const row of nonEmptyRows) {
-      for (let c = row.length - 1; c >= 0; c--) {
-        const str = String(row[c] || "").trim();
-        if (str !== "") {
-          maxCol = Math.max(maxCol, c + 1);
-          break;
-        }
-      }
-    }
+    // Step 4: Trim to only content columns
+    const trimmedRows = rowSlice.map((row) => row.slice(firstCol, lastCol + 1));
+    const trimmedColors = colorSlice.map((row) =>
+      row.slice(firstCol, lastCol + 1)
+    );
 
-    // Trim all rows to the rightmost non-empty column
-    const trimmedRows = nonEmptyRows.map((row) => row.slice(0, maxCol));
-    const trimmedColors = nonEmptyColors.map((row) => row.slice(0, maxCol));
+    console.log(
+      `Filtered table: ${trimmedRows.length} rows x ${
+        trimmedRows[0]?.length || 0
+      } cols (was ${values.length} x ${values[0]?.length || 0})`
+    );
 
     return { values: trimmedRows, colors: trimmedColors };
   }
