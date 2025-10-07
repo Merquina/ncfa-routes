@@ -101,7 +101,10 @@ class AppLayout extends HTMLElement {
   }
 
   navigateToAddressBook() {
+    console.log("navigateToAddressBook called");
+    console.log("Current hash:", window.location.hash);
     window.location.hash = "/address-book";
+    console.log("New hash:", window.location.hash);
     this.toggleMenu(); // Close menu after navigation
   }
 

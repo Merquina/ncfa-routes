@@ -252,6 +252,7 @@ class AddressBookPage extends HTMLElement {
   }
 
   render() {
+    console.log("Address Book Page - render() called");
     this.shadowRoot.innerHTML = `
       <style>
         :host {
