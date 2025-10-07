@@ -152,17 +152,6 @@ class AddressBookPage extends HTMLElement {
         </div>
 
         ${
-          address
-            ? `
-          <div class="contact-row">
-            <i class="mdi mdi-home-map-marker"></i>
-            <span>${address}</span>
-          </div>
-        `
-            : ""
-        }
-
-        ${
           contacts.length > 0
             ? `
           <div class="contact-row">

@@ -299,7 +299,6 @@ class RouteDetails extends HTMLElement {
                   ${this.renderAddressButton(s.location)}
                   ${this.renderPhoneButtons(s.location)}
                 </div>
-                ${this.renderJobInfo(s.location)}
               </div>
             `
               )
