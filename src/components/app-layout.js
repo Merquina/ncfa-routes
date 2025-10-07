@@ -206,12 +206,12 @@ class AppLayout extends HTMLElement {
           border-top: 1px solid #ddd;
           display: flex;
           justify-content: space-around;
-          padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+          padding: 6px 0 max(6px, env(safe-area-inset-bottom));
           flex-shrink: 0;
           position: relative;
           z-index: 100;
           /* Mobile safe area */
-          padding-bottom: max(12px, env(safe-area-inset-bottom));
+          padding-bottom: max(6px, env(safe-area-inset-bottom));
           box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
         }
 
@@ -219,7 +219,7 @@ class AppLayout extends HTMLElement {
           flex: 1;
           background: none;
           border: none;
-          padding: 12px 4px;
+          padding: 8px 4px;
           text-align: center;
           cursor: pointer;
           transition: all 0.15s ease;
@@ -228,9 +228,9 @@ class AppLayout extends HTMLElement {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 6px;
+          gap: 4px;
           position: relative;
-          min-height: 50px;
+          min-height: 44px;
           /* Touch optimization */
           -webkit-tap-highlight-color: transparent;
           touch-action: manipulation;
@@ -259,7 +259,8 @@ class AppLayout extends HTMLElement {
         }
 
         .tab-icon {
-          font-size: 1.2rem;
+          font-size: 1.1rem;
+          line-height: 1;
         }
 
         .tab-label {
