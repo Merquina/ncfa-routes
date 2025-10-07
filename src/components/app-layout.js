@@ -61,6 +61,14 @@ class AppLayout extends HTMLElement {
       hamburger.addEventListener("click", () => this.toggleMenu());
     }
 
+    // Add address book button listener
+    const addressBookBtn = this.shadowRoot.querySelector("#addressBookBtn");
+    if (addressBookBtn) {
+      addressBookBtn.addEventListener("click", () =>
+        this.navigateToAddressBook()
+      );
+    }
+
     // Close menu when clicking outside
     this.shadowRoot.addEventListener("click", (event) => {
       const menu = this.shadowRoot.querySelector("#dropdownMenu");
@@ -281,7 +289,7 @@ class AppLayout extends HTMLElement {
           z-index: 1003;
           display: none;
         ">
-          <button onclick="this.getRootNode().host.navigateToAddressBook()" style="
+          <button id="addressBookBtn" style="
             width: 100%;
             padding: 12px 16px;
             border: none;
