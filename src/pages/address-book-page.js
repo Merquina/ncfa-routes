@@ -65,44 +65,50 @@ class AddressBookPage extends HTMLElement {
       return nameA.localeCompare(nameB);
     });
 
-    // Group by first letter
+    // Group by first character (letter or number)
     const grouped = {};
     sorted.forEach((contact) => {
       const name = contact.Location || contact.location || "";
-      const firstLetter = name.charAt(0).toUpperCase();
-      if (!grouped[firstLetter]) {
-        grouped[firstLetter] = [];
+      const firstChar = name.charAt(0).toUpperCase();
+      // Check if it's a digit, if so group under '#'
+      const key = /\d/.test(firstChar) ? "#" : firstChar;
+      if (!grouped[key]) {
+        grouped[key] = [];
       }
-      grouped[firstLetter].push(contact);
+      grouped[key].push(contact);
     });
 
-    // Get all letters present
-    const letters = Object.keys(grouped).sort();
+    // Get all characters present and sort (# first, then letters)
+    const chars = Object.keys(grouped).sort((a, b) => {
+      if (a === "#") return -1;
+      if (b === "#") return 1;
+      return a.localeCompare(b);
+    });
 
-    // Render alphabet navigation
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    // Render alphabet navigation with numbers
+    const alphabet = ["#", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
     const navHTML = `
       <div class="alphabet-nav">
         ${alphabet
-          .map((letter) => {
-            const hasContacts = letters.includes(letter);
+          .map((char) => {
+            const hasContacts = chars.includes(char);
             return `<button class="letter-link ${
               hasContacts ? "active" : "inactive"
-            }" data-letter="${letter}" ${
+            }" data-letter="${char}" ${
               hasContacts ? "" : "disabled"
-            }>${letter}</button>`;
+            }>${char}</button>`;
           })
           .join("")}
       </div>
     `;
 
     // Render grouped contacts
-    const contactsHTML = letters
+    const contactsHTML = chars
       .map(
-        (letter) => `
-      <div id="letter-${letter}" class="letter-section">
-        <h3 class="letter-header">${letter}</h3>
-        ${grouped[letter]
+        (char) => `
+      <div id="letter-${char}" class="letter-section">
+        <h3 class="letter-header">${char === "#" ? "# (Numbers)" : char}</h3>
+        ${grouped[char]
           .map((contact) => this.renderContactCard(contact))
           .join("")}
       </div>
