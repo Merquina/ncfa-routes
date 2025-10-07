@@ -131,7 +131,6 @@ class AddressBookPage extends HTMLElement {
     const location = contact.Location || contact.location || "Unknown";
     const address = contact.Address || contact.address || "";
     const type = contact.Type || contact.type || contact.TYPE || "";
-    const job = contact.Job || contact.job || contact.JOB || "";
     const notes =
       contact["Notes/ Special Instructions"] ||
       contact.Notes ||
@@ -190,17 +189,6 @@ class AddressBookPage extends HTMLElement {
         }
 
         ${
-          job
-            ? `
-          <div class="contact-row">
-            <i class="mdi mdi-briefcase"></i>
-            <span>${job}</span>
-          </div>
-        `
-            : ""
-        }
-
-        ${
           notes
             ? `
           <div class="notes-section">
@@ -221,7 +209,7 @@ class AddressBookPage extends HTMLElement {
             <button class="action-btn" onclick="window.open('https://maps.google.com/maps?q=${encodeURIComponent(
               address
             )}', '_blank')">
-              <i class="mdi mdi-map"></i> Directions
+              <i class="mdi mdi-map"></i> ${address}
             </button>
           `
               : ""
