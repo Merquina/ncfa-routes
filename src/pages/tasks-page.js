@@ -301,10 +301,18 @@ class TasksPage extends HTMLElement {
 
   render() {
     console.log("Tasks Page - render() called");
+
+    // Import Material Design Icons stylesheet into the document head if not already present
+    if (!document.querySelector('link[href*="materialdesignicons"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href =
+        "https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.4.47/css/materialdesignicons.min.css";
+      document.head.appendChild(link);
+    }
+
     this.shadowRoot.innerHTML = `
       <style>
-        @import url("https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.4.47/css/materialdesignicons.min.css");
-
         :host {
           display: block;
           font-family: var(--font-family, 'Atkinson Hyperlegible', sans-serif);
