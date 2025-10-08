@@ -530,11 +530,11 @@ class InventoryComponent extends HTMLElement {
       <div class="section">
         <h4><i class="mdi mdi-calculator"></i> Box Calculator</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
-          <div class="form-row">
-            <label class="form-label">Farmers:</label>
-            <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" class="form-input">
-          </div>
-          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end;">
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end;">
+            <div>
+              <label class="form-label">Farmers:</label>
+              <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" class="form-input">
+            </div>
             <div>
               <label class="form-label">Small boxes:</label>
               <input type="number" id="smallBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input">
@@ -555,13 +555,15 @@ class InventoryComponent extends HTMLElement {
       <div class="section">
         <h4><i class="mdi mdi-clipboard-edit"></i> Update Inventory</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
-          <div class="form-row">
-            <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">small boxes:</label>
-            <input type="number" id="updateSmallBoxes" min="0" value="${smallBoxes}" inputmode="numeric" class="form-input">
-          </div>
-          <div class="form-row">
-            <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">LARGE boxes:</label>
-            <input type="number" id="updateLargeBoxes" min="0" value="${largeBoxes}" inputmode="numeric" class="form-input">
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end;">
+            <div>
+              <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">small boxes:</label>
+              <input type="number" id="updateSmallBoxes" min="0" value="${smallBoxes}" inputmode="numeric" class="form-input">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">LARGE boxes:</label>
+              <input type="number" id="updateLargeBoxes" min="0" value="${largeBoxes}" inputmode="numeric" class="form-input">
+            </div>
           </div>
           <!-- Name field removed; we use OAuth profile name -->
           <button id="updateBtn" class="btn" style="margin-top: 5px; font-size: 0.9rem;"><i class="mdi mdi-chart-bar"></i> Update & Share Inventory</button>
