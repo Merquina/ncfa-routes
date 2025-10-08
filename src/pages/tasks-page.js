@@ -8,6 +8,8 @@ class TasksPage extends HTMLElement {
       completed: [],
     };
     this.completedCollapsed = true;
+    this.needOwnerCollapsed = false;
+    this.withOwnerIncompleteCollapsed = false;
   }
 
   connectedCallback() {
@@ -50,10 +52,56 @@ class TasksPage extends HTMLElement {
       addBtn.addEventListener("click", () => this.showAddTaskModal());
     }
 
-    // Completed section toggle
+    // Section toggles
+    const needOwnerHeader = this.shadowRoot.querySelector("#needOwnerHeader");
+    if (needOwnerHeader) {
+      needOwnerHeader.addEventListener("click", () => this.toggleNeedOwner());
+    }
+
+    const withOwnerIncompleteHeader = this.shadowRoot.querySelector(
+      "#withOwnerIncompleteHeader"
+    );
+    if (withOwnerIncompleteHeader) {
+      withOwnerIncompleteHeader.addEventListener("click", () =>
+        this.toggleWithOwnerIncomplete()
+      );
+    }
+
     const completedHeader = this.shadowRoot.querySelector("#completedHeader");
     if (completedHeader) {
       completedHeader.addEventListener("click", () => this.toggleCompleted());
+    }
+  }
+
+  toggleNeedOwner() {
+    this.needOwnerCollapsed = !this.needOwnerCollapsed;
+    const container = this.shadowRoot.querySelector("#needOwnerTasks");
+    const icon = this.shadowRoot.querySelector("#needOwnerToggleIcon");
+
+    if (container) {
+      container.style.display = this.needOwnerCollapsed ? "none" : "block";
+    }
+    if (icon) {
+      icon.textContent = this.needOwnerCollapsed ? "+" : "-";
+    }
+  }
+
+  toggleWithOwnerIncomplete() {
+    this.withOwnerIncompleteCollapsed = !this.withOwnerIncompleteCollapsed;
+    const container = this.shadowRoot.querySelector(
+      "#withOwnerIncompleteTasks"
+    );
+    const icon = this.shadowRoot.querySelector(
+      "#withOwnerIncompleteToggleIcon"
+    );
+
+    if (container) {
+      container.style.display = this.withOwnerIncompleteCollapsed
+        ? "none"
+        : "block";
+    }
+    if (icon) {
+      icon.textContent = this.withOwnerIncompleteCollapsed ? "+" : "-";
     }
   }
 
@@ -66,9 +114,7 @@ class TasksPage extends HTMLElement {
       container.style.display = this.completedCollapsed ? "none" : "block";
     }
     if (icon) {
-      icon.className = this.completedCollapsed
-        ? "mdi mdi-chevron-down"
-        : "mdi mdi-chevron-up";
+      icon.textContent = this.completedCollapsed ? "+" : "-";
     }
   }
 
@@ -378,6 +424,17 @@ class TasksPage extends HTMLElement {
     );
     const completedContainer = this.shadowRoot.querySelector("#completedTasks");
 
+    // Auto-collapse empty sections
+    if (this.tasks.needOwner.length === 0 && !this.needOwnerCollapsed) {
+      this.needOwnerCollapsed = true;
+    }
+    if (
+      this.tasks.withOwnerIncomplete.length === 0 &&
+      !this.withOwnerIncompleteCollapsed
+    ) {
+      this.withOwnerIncompleteCollapsed = true;
+    }
+
     if (needOwnerContainer) {
       if (this.tasks.needOwner.length === 0) {
         needOwnerContainer.innerHTML = `
@@ -392,6 +449,9 @@ class TasksPage extends HTMLElement {
           .map((task) => this.renderTaskCard(task, "needOwner"))
           .join("");
       }
+      needOwnerContainer.style.display = this.needOwnerCollapsed
+        ? "none"
+        : "block";
     }
 
     if (withOwnerIncompleteContainer) {
@@ -407,6 +467,10 @@ class TasksPage extends HTMLElement {
           .map((task) => this.renderTaskCard(task, "pending"))
           .join("");
       }
+      withOwnerIncompleteContainer.style.display = this
+        .withOwnerIncompleteCollapsed
+        ? "none"
+        : "block";
     }
 
     if (completedContainer) {
@@ -422,6 +486,9 @@ class TasksPage extends HTMLElement {
           .map((task) => this.renderTaskCard(task, "completed"))
           .join("");
       }
+      completedContainer.style.display = this.completedCollapsed
+        ? "none"
+        : "block";
     }
 
     // Update counts
@@ -437,6 +504,21 @@ class TasksPage extends HTMLElement {
         this.tasks.withOwnerIncomplete.length;
     if (completedCount)
       completedCount.textContent = this.tasks.completed.length;
+
+    // Update toggle icons
+    const needOwnerIcon = this.shadowRoot.querySelector("#needOwnerToggleIcon");
+    const withOwnerIncompleteIcon = this.shadowRoot.querySelector(
+      "#withOwnerIncompleteToggleIcon"
+    );
+    const completedIcon = this.shadowRoot.querySelector("#completedToggleIcon");
+    if (needOwnerIcon)
+      needOwnerIcon.textContent = this.needOwnerCollapsed ? "+" : "-";
+    if (withOwnerIncompleteIcon)
+      withOwnerIncompleteIcon.textContent = this.withOwnerIncompleteCollapsed
+        ? "+"
+        : "-";
+    if (completedIcon)
+      completedIcon.textContent = this.completedCollapsed ? "+" : "-";
   }
 
   render() {
@@ -916,8 +998,11 @@ class TasksPage extends HTMLElement {
       </style>
 
       <div class="section">
-        <div class="section-header">
-          <h3 class="section-title">Need Owner</h3>
+        <div class="section-header" id="needOwnerHeader" style="cursor: pointer; user-select: none;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="needOwnerToggleIcon" style="font-weight: bold; font-size: 1.2rem; width: 20px; text-align: center;">-</span>
+            <h3 class="section-title">Need Owner</h3>
+          </div>
           <span class="task-count" id="needOwnerCount">0</span>
         </div>
         <div id="needOwnerTasks">
@@ -929,8 +1014,11 @@ class TasksPage extends HTMLElement {
       </div>
 
       <div class="section">
-        <div class="section-header">
-          <h3 class="section-title">With Owner Incomplete</h3>
+        <div class="section-header" id="withOwnerIncompleteHeader" style="cursor: pointer; user-select: none;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="withOwnerIncompleteToggleIcon" style="font-weight: bold; font-size: 1.2rem; width: 20px; text-align: center;">-</span>
+            <h3 class="section-title">With Owner Incomplete</h3>
+          </div>
           <span class="task-count" id="withOwnerIncompleteCount">0</span>
         </div>
         <div id="withOwnerIncompleteTasks">
@@ -944,7 +1032,7 @@ class TasksPage extends HTMLElement {
       <div class="section">
         <div class="section-header" id="completedHeader" style="cursor: pointer; user-select: none;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <i id="completedToggleIcon" class="mdi mdi-chevron-down"></i>
+            <span id="completedToggleIcon" style="font-weight: bold; font-size: 1.2rem; width: 20px; text-align: center;">+</span>
             <h3 class="section-title">Completed</h3>
           </div>
           <span class="task-count" id="completedCount">0</span>
