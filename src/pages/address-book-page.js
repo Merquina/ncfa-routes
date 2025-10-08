@@ -409,7 +409,7 @@ class AddressBookPage extends HTMLElement {
           margin-bottom: 20px;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           position: sticky;
-          top: 0;
+          top: 120px;
           z-index: 10;
         }
 
@@ -455,7 +455,7 @@ class AddressBookPage extends HTMLElement {
           margin: 0 0 12px 0;
           padding: 8px 0;
           border-bottom: 3px solid #3182ce;
-          scroll-margin-top: 60px;
+          scroll-margin-top: 200px;
         }
 
         @media (max-width: 600px) {
