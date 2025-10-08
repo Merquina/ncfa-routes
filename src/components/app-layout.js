@@ -40,6 +40,7 @@ class AppLayout extends HTMLElement {
         "address-book-page",
         "Address Book"
       );
+      router.registerRoute("/tasks", "tasks-page", "Tasks");
 
       router.registerRoute("/route", "route-details-page", "Route Details");
     } catch {}
@@ -352,6 +353,10 @@ class AppLayout extends HTMLElement {
         <a href="/reminders" class="tab-btn" data-route="/reminders">
           <div class="tab-icon"><i class="mdi mdi-bell"></i></div>
           <div class="tab-label">Reminders</div>
+        </a>
+        <a href="/tasks" class="tab-btn" data-route="/tasks">
+          <div class="tab-icon"><i class="mdi mdi-clipboard-list-outline"></i></div>
+          <div class="tab-label">Tasks</div>
         </a>
         <a href="/boxes" class="tab-btn" data-route="/boxes">
           <div class="tab-icon"><i class="mdi mdi-package-variant"></i></div>
