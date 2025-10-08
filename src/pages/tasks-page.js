@@ -3,6 +3,7 @@ class TasksPage extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.tasks = {
+      needOwner: [],
       pending: [],
       completed: [],
     };
@@ -19,7 +20,7 @@ class TasksPage extends HTMLElement {
     try {
       // TODO: Load tasks from Google Sheets
       // For now, using mock data for demo
-      this.tasks.pending = [
+      this.tasks.needOwner = [
         {
           id: Date.now() + 1,
           title: "Order more boxes for food distribution",
@@ -27,6 +28,9 @@ class TasksPage extends HTMLElement {
           createdAt: new Date().toISOString(),
           createdBy: "Admin",
         },
+      ];
+
+      this.tasks.pending = [
         {
           id: Date.now() + 2,
           title: "Check van tire pressure",
@@ -98,7 +102,7 @@ class TasksPage extends HTMLElement {
       createdBy: userName,
     };
 
-    this.tasks.pending.unshift(newTask);
+    this.tasks.needOwner.unshift(newTask);
     this.renderTasks();
     this.hideAddTaskModal();
 
@@ -107,14 +111,34 @@ class TasksPage extends HTMLElement {
   }
 
   volunteerForTask(taskId) {
-    const task = this.tasks.pending.find((t) => t.id === taskId);
-    if (!task) return;
+    // Check if task is in needOwner list
+    let taskIndex = this.tasks.needOwner.findIndex((t) => t.id === taskId);
+    let task = null;
 
-    const userName =
-      localStorage.getItem("gapi_user_name") || prompt("Enter your name:");
-    if (!userName) return;
+    if (taskIndex !== -1) {
+      // Move from needOwner to pending
+      task = this.tasks.needOwner.splice(taskIndex, 1)[0];
+      const userName =
+        localStorage.getItem("gapi_user_name") || prompt("Enter your name:");
+      if (!userName) {
+        // Put it back if user cancels
+        this.tasks.needOwner.splice(taskIndex, 0, task);
+        return;
+      }
+      task.volunteer = userName;
+      this.tasks.pending.unshift(task);
+    } else {
+      // Check if it's already in pending (shouldn't happen, but handle it)
+      task = this.tasks.pending.find((t) => t.id === taskId);
+      if (!task) return;
 
-    task.volunteer = userName;
+      const userName =
+        localStorage.getItem("gapi_user_name") || prompt("Enter your name:");
+      if (!userName) return;
+
+      task.volunteer = userName;
+    }
+
     this.renderTasks();
 
     // TODO: Update Google Sheets
@@ -140,17 +164,26 @@ class TasksPage extends HTMLElement {
 
     const task = this.tasks.completed.splice(taskIndex, 1)[0];
     delete task.completedAt;
-    this.tasks.pending.unshift(task);
+
+    // Put back in appropriate list based on whether it has a volunteer
+    if (task.volunteer) {
+      this.tasks.pending.unshift(task);
+    } else {
+      this.tasks.needOwner.unshift(task);
+    }
+
     this.renderTasks();
 
     // TODO: Update Google Sheets
     console.log("Task uncompleted:", task);
   }
 
-  deleteTask(taskId, isCompleted = false) {
+  deleteTask(taskId, listType = "needOwner") {
     if (!confirm("Are you sure you want to delete this task?")) return;
 
-    const list = isCompleted ? this.tasks.completed : this.tasks.pending;
+    const list = this.tasks[listType];
+    if (!list) return;
+
     const taskIndex = list.findIndex((t) => t.id === taskId);
     if (taskIndex === -1) return;
 
@@ -178,7 +211,10 @@ class TasksPage extends HTMLElement {
     });
   }
 
-  renderTaskCard(task, isCompleted = false) {
+  renderTaskCard(task, listType = "needOwner") {
+    const isCompleted = listType === "completed";
+    const hasOwner = listType === "pending";
+
     return `
       <div class="task-card ${isCompleted ? "completed" : ""}">
         <div class="task-header">
@@ -194,7 +230,7 @@ class TasksPage extends HTMLElement {
           }
           <button class="icon-btn delete-btn" onclick="this.getRootNode().host.deleteTask(${
             task.id
-          }, ${isCompleted})" title="Delete task">
+          }, '${listType}')" title="Delete task">
             <i class="mdi mdi-delete"></i>
           </button>
         </div>
@@ -257,8 +293,25 @@ class TasksPage extends HTMLElement {
   }
 
   renderTasks() {
+    const needOwnerContainer = this.shadowRoot.querySelector("#needOwnerTasks");
     const pendingContainer = this.shadowRoot.querySelector("#pendingTasks");
     const completedContainer = this.shadowRoot.querySelector("#completedTasks");
+
+    if (needOwnerContainer) {
+      if (this.tasks.needOwner.length === 0) {
+        needOwnerContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="mdi mdi-account-question-outline"></i>
+            <p>No tasks need an owner</p>
+            <p class="empty-state-hint">Click the + button to add a new task</p>
+          </div>
+        `;
+      } else {
+        needOwnerContainer.innerHTML = this.tasks.needOwner
+          .map((task) => this.renderTaskCard(task, "needOwner"))
+          .join("");
+      }
+    }
 
     if (pendingContainer) {
       if (this.tasks.pending.length === 0) {
@@ -266,12 +319,11 @@ class TasksPage extends HTMLElement {
           <div class="empty-state">
             <i class="mdi mdi-clipboard-check-outline"></i>
             <p>No pending tasks</p>
-            <p class="empty-state-hint">Click the + button to add a new task</p>
           </div>
         `;
       } else {
         pendingContainer.innerHTML = this.tasks.pending
-          .map((task) => this.renderTaskCard(task, false))
+          .map((task) => this.renderTaskCard(task, "pending"))
           .join("");
       }
     }
@@ -286,14 +338,17 @@ class TasksPage extends HTMLElement {
         `;
       } else {
         completedContainer.innerHTML = this.tasks.completed
-          .map((task) => this.renderTaskCard(task, true))
+          .map((task) => this.renderTaskCard(task, "completed"))
           .join("");
       }
     }
 
     // Update counts
+    const needOwnerCount = this.shadowRoot.querySelector("#needOwnerCount");
     const pendingCount = this.shadowRoot.querySelector("#pendingCount");
     const completedCount = this.shadowRoot.querySelector("#completedCount");
+    if (needOwnerCount)
+      needOwnerCount.textContent = this.tasks.needOwner.length;
     if (pendingCount) pendingCount.textContent = this.tasks.pending.length;
     if (completedCount)
       completedCount.textContent = this.tasks.completed.length;
@@ -377,12 +432,17 @@ class TasksPage extends HTMLElement {
           border-radius: 8px;
         }
 
-        .section:first-of-type .section-header {
+        .section:nth-of-type(1) .section-header {
           background: #fff3e0;
           border-left: 4px solid #ff9800;
         }
 
-        .section:last-of-type .section-header {
+        .section:nth-of-type(2) .section-header {
+          background: #e3f2fd;
+          border-left: 4px solid #2196f3;
+        }
+
+        .section:nth-of-type(3) .section-header {
           background: #e8f5e9;
           border-left: 4px solid #28a745;
         }
@@ -393,11 +453,15 @@ class TasksPage extends HTMLElement {
           margin: 0;
         }
 
-        .section:first-of-type .section-title {
+        .section:nth-of-type(1) .section-title {
           color: #e65100;
         }
 
-        .section:last-of-type .section-title {
+        .section:nth-of-type(2) .section-title {
+          color: #1565c0;
+        }
+
+        .section:nth-of-type(3) .section-title {
           color: #1b5e20;
         }
 
@@ -737,6 +801,19 @@ class TasksPage extends HTMLElement {
           <i class="mdi mdi-clipboard-list-outline"></i> Tasks
         </h2>
         <button id="addTaskBtn" title="Add new task">+</button>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h3 class="section-title">Need Owner</h3>
+          <span class="task-count" id="needOwnerCount">0</span>
+        </div>
+        <div id="needOwnerTasks">
+          <div class="empty-state">
+            <i class="mdi mdi-loading mdi-spin"></i>
+            <p>Loading tasks...</p>
+          </div>
+        </div>
       </div>
 
       <div class="section">
