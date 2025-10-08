@@ -286,8 +286,8 @@ class AppLayout extends HTMLElement {
 
         <!-- Hamburger Menu Button -->
         <button id="hamburgerMenu" style="
-          position: absolute;
-          bottom: 4px;
+          position: fixed;
+          top: 60px;
           right: 12px;
           background: rgba(255, 255, 255, 0.2);
           border: none;

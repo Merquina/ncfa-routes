@@ -7,6 +7,7 @@ class TasksPage extends HTMLElement {
       withOwnerIncomplete: [],
       completed: [],
     };
+    this.completedCollapsed = true;
   }
 
   connectedCallback() {
@@ -20,11 +21,19 @@ class TasksPage extends HTMLElement {
     try {
       // TODO: Load tasks from Google Sheets
       // For now, using mock data for demo
+      // Calculate dates for demo
+      const today = new Date();
+      const twoDaysFromNow = new Date(today);
+      twoDaysFromNow.setDate(today.getDate() + 2);
+      const fiveDaysFromNow = new Date(today);
+      fiveDaysFromNow.setDate(today.getDate() + 5);
+
       this.tasks.needOwner = [
         {
           id: Date.now() + 1,
           title: "Order more boxes for food distribution",
           volunteer: "",
+          dueDate: twoDaysFromNow.toISOString().split("T")[0],
           createdAt: new Date().toISOString(),
           createdBy: "Admin",
         },
@@ -35,6 +44,7 @@ class TasksPage extends HTMLElement {
           id: Date.now() + 2,
           title: "Check van tire pressure",
           volunteer: "John Smith",
+          dueDate: fiveDaysFromNow.toISOString().split("T")[0],
           createdAt: new Date(Date.now() - 86400000).toISOString(),
           createdBy: "Admin",
         },
@@ -45,6 +55,7 @@ class TasksPage extends HTMLElement {
           id: Date.now() - 1000,
           title: "Update contact information for markets",
           volunteer: "Jane Doe",
+          dueDate: "",
           completedAt: new Date(Date.now() - 172800000).toISOString(),
           createdBy: "Admin",
         },
@@ -62,6 +73,27 @@ class TasksPage extends HTMLElement {
     if (addBtn) {
       addBtn.addEventListener("click", () => this.showAddTaskModal());
     }
+
+    // Completed section toggle
+    const completedHeader = this.shadowRoot.querySelector("#completedHeader");
+    if (completedHeader) {
+      completedHeader.addEventListener("click", () => this.toggleCompleted());
+    }
+  }
+
+  toggleCompleted() {
+    this.completedCollapsed = !this.completedCollapsed;
+    const container = this.shadowRoot.querySelector("#completedTasks");
+    const icon = this.shadowRoot.querySelector("#completedToggleIcon");
+
+    if (container) {
+      container.style.display = this.completedCollapsed ? "none" : "block";
+    }
+    if (icon) {
+      icon.className = this.completedCollapsed
+        ? "mdi mdi-chevron-down"
+        : "mdi mdi-chevron-up";
+    }
   }
 
   showAddTaskModal() {
@@ -78,13 +110,17 @@ class TasksPage extends HTMLElement {
     if (modal) {
       modal.style.display = "none";
       const input = this.shadowRoot.querySelector("#newTaskInput");
+      const dueDateInput = this.shadowRoot.querySelector("#newTaskDueDate");
       if (input) input.value = "";
+      if (dueDateInput) dueDateInput.value = "";
     }
   }
 
   async addTask() {
     const input = this.shadowRoot.querySelector("#newTaskInput");
+    const dueDateInput = this.shadowRoot.querySelector("#newTaskDueDate");
     const taskTitle = input?.value?.trim();
+    const dueDate = dueDateInput?.value || "";
 
     if (!taskTitle) {
       alert("Please enter a task description");
@@ -98,6 +134,7 @@ class TasksPage extends HTMLElement {
       id: Date.now(),
       title: taskTitle,
       volunteer: "",
+      dueDate: dueDate,
       createdAt: new Date().toISOString(),
       createdBy: userName,
     };
@@ -213,9 +250,29 @@ class TasksPage extends HTMLElement {
     });
   }
 
+  formatDueDate(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  isDueSoon(dateString) {
+    if (!dateString) return false;
+    const dueDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = dueDate - now;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 3;
+  }
+
   renderTaskCard(task, listType = "needOwner") {
     const isCompleted = listType === "completed";
     const hasOwner = listType === "pending";
+    const dueSoon = this.isDueSoon(task.dueDate);
 
     return `
       <div class="task-card ${isCompleted ? "completed" : ""}">
@@ -236,6 +293,17 @@ class TasksPage extends HTMLElement {
             <i class="mdi mdi-delete"></i>
           </button>
         </div>
+
+        ${
+          task.dueDate
+            ? `
+          <div class="task-due-date ${dueSoon ? "due-soon" : ""}">
+            <i class="mdi mdi-calendar-alert"></i>
+            Due: ${this.formatDueDate(task.dueDate)}
+          </div>
+        `
+            : ""
+        }
 
         <div class="task-meta">
           <span class="task-date">
@@ -441,23 +509,23 @@ class TasksPage extends HTMLElement {
         }
 
         .section:nth-of-type(1) .section-header {
-          background: #ffebee;
-          border-left: 4px solid #f44336;
+          background: #fce4ec;
+          border-left: 4px solid #ec407a;
         }
 
         .section:nth-of-type(2) .section-header {
-          background: #fff9c4;
-          border-left: 4px solid #fbc02d;
+          background: #fff3e0;
+          border-left: 4px solid #ff9800;
         }
 
         .section:nth-of-type(3) .section-header {
-          background: #f3e5f5;
-          border-left: 4px solid #9c27b0;
+          background: #e3f2fd;
+          border-left: 4px solid #2196f3;
         }
 
         .section:nth-of-type(4) .section-header {
-          background: #e3f2fd;
-          border-left: 4px solid #2196f3;
+          background: #f3e5f5;
+          border-left: 4px solid #9c27b0;
         }
 
         .section-title {
@@ -467,19 +535,19 @@ class TasksPage extends HTMLElement {
         }
 
         .section:nth-of-type(1) .section-title {
-          color: #c62828;
+          color: #c2185b;
         }
 
         .section:nth-of-type(2) .section-title {
-          color: #f9a825;
+          color: #e65100;
         }
 
         .section:nth-of-type(3) .section-title {
-          color: #7b1fa2;
+          color: #1565c0;
         }
 
         .section:nth-of-type(4) .section-title {
-          color: #1565c0;
+          color: #7b1fa2;
         }
 
         .task-count {
@@ -529,6 +597,29 @@ class TasksPage extends HTMLElement {
         .task-card.completed .task-title {
           text-decoration: line-through;
           color: #666;
+        }
+
+        .task-due-date {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          padding: 8px 12px;
+          margin: 8px 0;
+          border-radius: 6px;
+          background: #e8f5e9;
+          color: #2e7d32;
+        }
+
+        .task-due-date.due-soon {
+          background: #fce4ec;
+          color: #880e4f;
+          border: 2px solid #880e4f;
+        }
+
+        .task-due-date i {
+          font-size: 1.1rem;
         }
 
         .task-meta {
@@ -840,11 +931,14 @@ class TasksPage extends HTMLElement {
       </div>
 
       <div class="section">
-        <div class="section-header">
-          <h3 class="section-title">Completed</h3>
+        <div class="section-header" id="completedHeader" style="cursor: pointer; user-select: none;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i id="completedToggleIcon" class="mdi mdi-chevron-down"></i>
+            <h3 class="section-title">Completed</h3>
+          </div>
           <span class="task-count" id="completedCount">0</span>
         </div>
-        <div id="completedTasks">
+        <div id="completedTasks" style="display: none;">
           <div class="empty-state">
             <i class="mdi mdi-loading mdi-spin"></i>
             <p>Loading tasks...</p>
@@ -852,15 +946,10 @@ class TasksPage extends HTMLElement {
         </div>
       </div>
 
-      <div class="section">
-        <div class="section-header">
-          <h3 class="section-title">Add Tasks</h3>
-        </div>
-        <div style="padding: 16px;">
-          <button id="addTaskBtn" class="btn btn-primary" style="width: 100%;">
-            <i class="mdi mdi-plus-circle"></i> Add New Task
-          </button>
-        </div>
+      <div style="padding: 16px; background: #f3e5f5; border-left: 4px solid #9c27b0; border-radius: 8px;">
+        <button id="addTaskBtn" class="btn btn-primary" style="width: 100%; background: #9c27b0; border: none;">
+          <i class="mdi mdi-plus-circle"></i> Add New Task
+        </button>
       </div>
 
       <!-- Add Task Modal -->
@@ -878,7 +967,14 @@ class TasksPage extends HTMLElement {
                 id="newTaskInput"
                 class="form-input"
                 placeholder="e.g., Order more boxes for food distribution"
-                onkeypress="if(event.key==='Enter') this.getRootNode().host.addTask()"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Due Date (optional)</label>
+              <input
+                type="date"
+                id="newTaskDueDate"
+                class="form-input"
               />
             </div>
           </div>
