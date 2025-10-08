@@ -191,6 +191,7 @@ class AppLayout extends HTMLElement {
           overflow-y: auto;
           overflow-x: hidden;
           padding: 8px;
+          padding-top: 110px;
           background: white;
           -webkit-overflow-scrolling: touch;
           scroll-behavior: smooth;
@@ -286,18 +287,22 @@ class AppLayout extends HTMLElement {
         <!-- Hamburger Menu Button -->
         <button id="hamburgerMenu" style="
           position: absolute;
-          top: 50%;
-          right: 15px;
-          transform: translateY(-50%);
+          bottom: 8px;
+          right: 12px;
           background: rgba(255, 255, 255, 0.2);
           border: none;
           color: white;
-          font-size: 1.5rem;
-          padding: 8px;
+          font-size: 1.2rem;
+          padding: 6px;
           border-radius: 6px;
           cursor: pointer;
           z-index: 1002;
           transition: background 0.2s ease;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
           <i class="mdi mdi-menu"></i>
         </button>
