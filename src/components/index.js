@@ -25,6 +25,7 @@ import "../pages/dates-page.js";
 import "../pages/route-details-page.js";
 import "../pages/address-book-page.js";
 import "../pages/tasks-page.js";
+import "../pages/timesheet-page.js";
 
 // Optional named exports for convenience (valid ESM syntax)
 export const InventoryComponent = customElements.get("inventory-component");
@@ -42,6 +43,7 @@ export const DatesPage = customElements.get("dates-page");
 export const RouteDetailsPage = customElements.get("route-details-page");
 export const AddressBookPage = customElements.get("address-book-page");
 export const TasksPage = customElements.get("tasks-page");
+export const TimesheetPage = customElements.get("timesheet-page");
 
 // In dev, force a full reload when any web component module changes.
 // This avoids stale customElements definitions that cannot be re-registered.
@@ -82,6 +84,7 @@ if (typeof window !== "undefined") {
         "Address Book"
       );
       router.registerRoute("/tasks", "tasks-page", "Tasks");
+      router.registerRoute("/timesheet", "timesheet-page", "Timesheet");
 
       router.registerRoute("/route", "route-details-page", "Route Details");
     } catch {}

@@ -41,6 +41,7 @@ class AppLayout extends HTMLElement {
         "Address Book"
       );
       router.registerRoute("/tasks", "tasks-page", "Tasks");
+      router.registerRoute("/timesheet", "timesheet-page", "Timesheet");
 
       router.registerRoute("/route", "route-details-page", "Route Details");
     } catch {}
@@ -314,6 +315,19 @@ class AppLayout extends HTMLElement {
           z-index: 1003;
           display: none;
         ">
+          <button onclick="window.location.hash='/timesheet'; this.getRootNode().host.toggleMenu();" style="
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-family: inherit;
+          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+            <i class="mdi mdi-clipboard-clock-outline" style="margin-right: 8px; color: #666;"></i>
+            Timesheet
+          </button>
           <button onclick="this.getRootNode().host.openBackendData()" style="
             width: 100%;
             padding: 12px 16px;

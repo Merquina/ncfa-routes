@@ -599,11 +599,17 @@ class RemindersPage extends HTMLElement {
           border-bottom: 1px solid #ddd;
         }
 
+        .announcement-table {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
         .announcement-table table {
           width: 100%;
           border-collapse: collapse;
-          table-layout: fixed;
+          table-layout: auto;
           max-width: 100%;
+          min-width: 100%;
         }
 
         .announcement-table th,

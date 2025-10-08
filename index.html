@@ -250,6 +250,8 @@
           align-items: center;
           justify-content: center;
           padding: 16px;
+          padding-top: 0;
+          margin-top: 0;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
         "
@@ -782,8 +784,10 @@
         document.getElementById("signInPage").style.display = "none";
         document.getElementById("mainApp").style.display = "flex";
 
-        // Navigate to Reminders tab after sign-in
-        window.location.hash = "/reminders";
+        // Navigate to Reminders tab after sign-in (ensure it happens after router is ready)
+        setTimeout(() => {
+          window.location.hash = "/reminders";
+        }, 100);
 
         // Eagerly load data once visible using the modern service; retry until ready
         (function ensureLoad(attempts = 0) {
