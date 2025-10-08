@@ -290,14 +290,10 @@ class SheetsAPIService extends EventTarget {
             (k) => String(obj[k]).trim() === String(k).trim() || obj[k] === ""
           );
 
-          // Filter out cancelled routes - check worker/volunteer fields
-          const isCancelled = Object.entries(obj).some(([key, value]) => {
-            const keyLower = String(key).toLowerCase();
+          // Filter out cancelled routes - check if ANY field contains "Cancelled"
+          const isCancelled = Object.values(obj).some((value) => {
             const valueLower = String(value).toLowerCase();
-            return (
-              (keyLower.includes("worker") || keyLower.includes("volunteer")) &&
-              valueLower.includes("cancelled")
-            );
+            return valueLower.includes("cancelled");
           });
 
           if (!isHeaderEcho && !isCancelled) this.routesData.push(obj);
@@ -812,14 +808,10 @@ class SheetsAPIService extends EventTarget {
         );
         if (isHeaderEcho) continue;
 
-        // Filter out cancelled routes - check worker/volunteer fields
-        const isCancelled = Object.entries(obj).some(([key, value]) => {
-          const keyLower = String(key).toLowerCase();
+        // Filter out cancelled routes - check if ANY field contains "Cancelled"
+        const isCancelled = Object.values(obj).some((value) => {
           const valueLower = String(value).toLowerCase();
-          return (
-            (keyLower.includes("worker") || keyLower.includes("volunteer")) &&
-            valueLower.includes("cancelled")
-          );
+          return valueLower.includes("cancelled");
         });
 
         if (isCancelled) continue;
