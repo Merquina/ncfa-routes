@@ -4,7 +4,7 @@ class TasksPage extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.tasks = {
       needOwner: [],
-      pending: [],
+      withOwnerIncomplete: [],
       completed: [],
     };
   }
@@ -30,7 +30,7 @@ class TasksPage extends HTMLElement {
         },
       ];
 
-      this.tasks.pending = [
+      this.tasks.withOwnerIncomplete = [
         {
           id: Date.now() + 2,
           title: "Check van tire pressure",
@@ -126,10 +126,10 @@ class TasksPage extends HTMLElement {
         return;
       }
       task.volunteer = userName;
-      this.tasks.pending.unshift(task);
+      this.tasks.withOwnerIncomplete.unshift(task);
     } else {
       // Check if it's already in pending (shouldn't happen, but handle it)
-      task = this.tasks.pending.find((t) => t.id === taskId);
+      task = this.tasks.withOwnerIncomplete.find((t) => t.id === taskId);
       if (!task) return;
 
       const userName =
@@ -146,10 +146,12 @@ class TasksPage extends HTMLElement {
   }
 
   completeTask(taskId) {
-    const taskIndex = this.tasks.pending.findIndex((t) => t.id === taskId);
+    const taskIndex = this.tasks.withOwnerIncomplete.findIndex(
+      (t) => t.id === taskId
+    );
     if (taskIndex === -1) return;
 
-    const task = this.tasks.pending.splice(taskIndex, 1)[0];
+    const task = this.tasks.withOwnerIncomplete.splice(taskIndex, 1)[0];
     task.completedAt = new Date().toISOString();
     this.tasks.completed.unshift(task);
     this.renderTasks();
@@ -167,7 +169,7 @@ class TasksPage extends HTMLElement {
 
     // Put back in appropriate list based on whether it has a volunteer
     if (task.volunteer) {
-      this.tasks.pending.unshift(task);
+      this.tasks.withOwnerIncomplete.unshift(task);
     } else {
       this.tasks.needOwner.unshift(task);
     }
@@ -294,7 +296,7 @@ class TasksPage extends HTMLElement {
 
   renderTasks() {
     const needOwnerContainer = this.shadowRoot.querySelector("#needOwnerTasks");
-    const pendingContainer = this.shadowRoot.querySelector("#pendingTasks");
+    const withOwnerIncompleteContainer = this.shadowRoot.querySelector("#withOwnerIncompleteTasks");
     const completedContainer = this.shadowRoot.querySelector("#completedTasks");
 
     if (needOwnerContainer) {
@@ -313,16 +315,16 @@ class TasksPage extends HTMLElement {
       }
     }
 
-    if (pendingContainer) {
-      if (this.tasks.pending.length === 0) {
-        pendingContainer.innerHTML = `
+    if (withOwnerIncompleteContainer) {
+      if (this.tasks.withOwnerIncomplete.length === 0) {
+        withOwnerIncompleteContainer.innerHTML = `
           <div class="empty-state">
             <i class="mdi mdi-clipboard-check-outline"></i>
             <p>No pending tasks</p>
           </div>
         `;
       } else {
-        pendingContainer.innerHTML = this.tasks.pending
+        withOwnerIncompleteContainer.innerHTML = this.tasks.withOwnerIncomplete
           .map((task) => this.renderTaskCard(task, "pending"))
           .join("");
       }
@@ -345,11 +347,12 @@ class TasksPage extends HTMLElement {
 
     // Update counts
     const needOwnerCount = this.shadowRoot.querySelector("#needOwnerCount");
-    const pendingCount = this.shadowRoot.querySelector("#pendingCount");
+    const withOwnerIncompleteCount = this.shadowRoot.querySelector("#withOwnerIncompleteCount");
     const completedCount = this.shadowRoot.querySelector("#completedCount");
     if (needOwnerCount)
       needOwnerCount.textContent = this.tasks.needOwner.length;
-    if (pendingCount) pendingCount.textContent = this.tasks.pending.length;
+    if (withOwnerIncompleteCount)
+      withOwnerIncompleteCount.textContent = this.tasks.withOwnerIncomplete.length;
     if (completedCount)
       completedCount.textContent = this.tasks.completed.length;
   }
@@ -433,18 +436,23 @@ class TasksPage extends HTMLElement {
         }
 
         .section:nth-of-type(1) .section-header {
-          background: #fff3e0;
-          border-left: 4px solid #ff9800;
+          background: #ffebee;
+          border-left: 4px solid #f44336;
         }
 
         .section:nth-of-type(2) .section-header {
-          background: #e3f2fd;
-          border-left: 4px solid #2196f3;
+          background: #fff9c4;
+          border-left: 4px solid #fbc02d;
         }
 
         .section:nth-of-type(3) .section-header {
-          background: #e8f5e9;
-          border-left: 4px solid #28a745;
+          background: #f3e5f5;
+          border-left: 4px solid #9c27b0;
+        }
+
+        .section:nth-of-type(4) .section-header {
+          background: #e3f2fd;
+          border-left: 4px solid #2196f3;
         }
 
         .section-title {
@@ -454,15 +462,19 @@ class TasksPage extends HTMLElement {
         }
 
         .section:nth-of-type(1) .section-title {
-          color: #e65100;
+          color: #c62828;
         }
 
         .section:nth-of-type(2) .section-title {
-          color: #1565c0;
+          color: #f9a825;
         }
 
         .section:nth-of-type(3) .section-title {
-          color: #1b5e20;
+          color: #7b1fa2;
+        }
+
+        .section:nth-of-type(4) .section-title {
+          color: #1565c0;
         }
 
         .task-count {
@@ -800,7 +812,6 @@ class TasksPage extends HTMLElement {
         <h2 class="page-title">
           <i class="mdi mdi-clipboard-list-outline"></i> Tasks
         </h2>
-        <button id="addTaskBtn" title="Add new task">+</button>
       </div>
 
       <div class="section">
@@ -818,10 +829,10 @@ class TasksPage extends HTMLElement {
 
       <div class="section">
         <div class="section-header">
-          <h3 class="section-title">Pending</h3>
-          <span class="task-count" id="pendingCount">0</span>
+          <h3 class="section-title">With Owner Incomplete</h3>
+          <span class="task-count" id="withOwnerIncompleteCount">0</span>
         </div>
-        <div id="pendingTasks">
+        <div id="withOwnerIncompleteTasks">
           <div class="empty-state">
             <i class="mdi mdi-loading mdi-spin"></i>
             <p>Loading tasks...</p>
@@ -839,6 +850,17 @@ class TasksPage extends HTMLElement {
             <i class="mdi mdi-loading mdi-spin"></i>
             <p>Loading tasks...</p>
           </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h3 class="section-title">Add Tasks</h3>
+        </div>
+        <div style="padding: 16px;">
+          <button id="addTaskBtn" class="btn btn-primary" style="width: 100%;">
+            <i class="mdi mdi-plus-circle"></i> Add New Task
+          </button>
         </div>
       </div>
 
