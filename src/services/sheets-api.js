@@ -290,11 +290,35 @@ class SheetsAPIService extends EventTarget {
             (k) => String(obj[k]).trim() === String(k).trim() || obj[k] === ""
           );
 
-          // Filter out cancelled routes - check if ANY field contains "Cancelled"
-          const isCancelled = Object.values(obj).some((value) => {
-            const valueLower = String(value).toLowerCase();
-            return valueLower.includes("cancelled");
-          });
+          // Filter out cancelled routes - check worker and volunteer fields specifically
+          const isCancelled = (() => {
+            // Check Worker field
+            const worker = String(obj.Worker || obj.worker || "")
+              .toLowerCase()
+              .trim();
+            if (worker === "cancelled") return true;
+
+            // Check Volunteer field
+            const volunteer = String(obj.Volunteer || obj.volunteer || "")
+              .toLowerCase()
+              .trim();
+            if (volunteer === "cancelled") return true;
+
+            // Check numbered worker/volunteer fields
+            for (let i = 1; i <= 10; i++) {
+              const workerN = String(obj[`worker${i}`] || "")
+                .toLowerCase()
+                .trim();
+              if (workerN === "cancelled") return true;
+
+              const volunteerN = String(obj[`volunteer${i}`] || "")
+                .toLowerCase()
+                .trim();
+              if (volunteerN === "cancelled") return true;
+            }
+
+            return false;
+          })();
 
           if (!isHeaderEcho && !isCancelled) this.routesData.push(obj);
         }
@@ -808,11 +832,35 @@ class SheetsAPIService extends EventTarget {
         );
         if (isHeaderEcho) continue;
 
-        // Filter out cancelled routes - check if ANY field contains "Cancelled"
-        const isCancelled = Object.values(obj).some((value) => {
-          const valueLower = String(value).toLowerCase();
-          return valueLower.includes("cancelled");
-        });
+        // Filter out cancelled routes - check worker and volunteer fields specifically
+        const isCancelled = (() => {
+          // Check Worker field
+          const worker = String(obj.Worker || obj.worker || "")
+            .toLowerCase()
+            .trim();
+          if (worker === "cancelled") return true;
+
+          // Check Volunteer field
+          const volunteer = String(obj.Volunteer || obj.volunteer || "")
+            .toLowerCase()
+            .trim();
+          if (volunteer === "cancelled") return true;
+
+          // Check numbered worker/volunteer fields
+          for (let i = 1; i <= 10; i++) {
+            const workerN = String(obj[`worker${i}`] || "")
+              .toLowerCase()
+              .trim();
+            if (workerN === "cancelled") return true;
+
+            const volunteerN = String(obj[`volunteer${i}`] || "")
+              .toLowerCase()
+              .trim();
+            if (volunteerN === "cancelled") return true;
+          }
+
+          return false;
+        })();
 
         if (isCancelled) continue;
 
