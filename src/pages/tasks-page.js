@@ -452,7 +452,9 @@ class TasksPage extends HTMLElement {
           letter-spacing: var(--letter-spacing, 0.025em);
           max-width: 800px;
           margin: 0 auto;
-          padding: 20px;
+          padding: 16px;
+          background: #f5f5f5;
+          min-height: 100%;
         }
 
         .page-header {

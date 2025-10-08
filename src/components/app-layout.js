@@ -190,8 +190,9 @@ class AppLayout extends HTMLElement {
           flex: 1;
           overflow-y: auto;
           overflow-x: hidden;
-          padding: 8px;
-          padding-top: 110px;
+          padding: 0;
+          padding-top: 100px;
+          padding-bottom: 80px;
           background: white;
           -webkit-overflow-scrolling: touch;
           scroll-behavior: smooth;
