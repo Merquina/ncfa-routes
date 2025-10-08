@@ -19,51 +19,27 @@ class TasksPage extends HTMLElement {
 
   async loadTasks() {
     try {
-      // TODO: Load tasks from Google Sheets
-      // For now, using mock data for demo
-      // Calculate dates for demo
-      const today = new Date();
-      const twoDaysFromNow = new Date(today);
-      twoDaysFromNow.setDate(today.getDate() + 2);
-      const fiveDaysFromNow = new Date(today);
-      fiveDaysFromNow.setDate(today.getDate() + 5);
+      // Load tasks from Google Sheets "Tasks" tab
+      const sheetsAPI = window.sheetsAPI;
+      if (!sheetsAPI) {
+        console.warn("sheetsAPI not available");
+        this.renderTasks();
+        return;
+      }
 
-      this.tasks.needOwner = [
-        {
-          id: Date.now() + 1,
-          title: "Order more boxes for food distribution",
-          volunteer: "",
-          dueDate: twoDaysFromNow.toISOString().split("T")[0],
-          createdAt: new Date().toISOString(),
-          createdBy: "Admin",
-        },
-      ];
+      const tasks = await sheetsAPI.fetchTasksData();
 
-      this.tasks.withOwnerIncomplete = [
-        {
-          id: Date.now() + 2,
-          title: "Check van tire pressure",
-          volunteer: "John Smith",
-          dueDate: fiveDaysFromNow.toISOString().split("T")[0],
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          createdBy: "Admin",
-        },
-      ];
-
-      this.tasks.completed = [
-        {
-          id: Date.now() - 1000,
-          title: "Update contact information for markets",
-          volunteer: "Jane Doe",
-          dueDate: "",
-          completedAt: new Date(Date.now() - 172800000).toISOString(),
-          createdBy: "Admin",
-        },
-      ];
+      // Organize tasks by status
+      this.tasks.needOwner = tasks.filter((t) => t.status === "needOwner");
+      this.tasks.withOwnerIncomplete = tasks.filter(
+        (t) => t.status === "withOwnerIncomplete"
+      );
+      this.tasks.completed = tasks.filter((t) => t.status === "completed");
 
       this.renderTasks();
     } catch (error) {
       console.error("Error loading tasks:", error);
+      this.renderTasks();
     }
   }
 
@@ -135,6 +111,7 @@ class TasksPage extends HTMLElement {
       title: taskTitle,
       volunteer: "",
       dueDate: dueDate,
+      status: "needOwner",
       createdAt: new Date().toISOString(),
       createdBy: userName,
     };
@@ -143,11 +120,18 @@ class TasksPage extends HTMLElement {
     this.renderTasks();
     this.hideAddTaskModal();
 
-    // TODO: Save to Google Sheets
-    console.log("New task created:", newTask);
+    // Save to Google Sheets
+    try {
+      const sheetsAPI = window.sheetsAPI;
+      if (sheetsAPI) {
+        await sheetsAPI.saveTask(newTask);
+      }
+    } catch (error) {
+      console.error("Error saving task to Google Sheets:", error);
+    }
   }
 
-  volunteerForTask(taskId) {
+  async volunteerForTask(taskId) {
     // Check if task is in needOwner list
     let taskIndex = this.tasks.needOwner.findIndex((t) => t.id === taskId);
     let task = null;
@@ -163,6 +147,7 @@ class TasksPage extends HTMLElement {
         return;
       }
       task.volunteer = userName;
+      task.status = "withOwnerIncomplete";
       this.tasks.withOwnerIncomplete.unshift(task);
     } else {
       // Check if it's already in pending (shouldn't happen, but handle it)
@@ -178,11 +163,18 @@ class TasksPage extends HTMLElement {
 
     this.renderTasks();
 
-    // TODO: Update Google Sheets
-    console.log("Volunteered for task:", task);
+    // Update Google Sheets
+    try {
+      const sheetsAPI = window.sheetsAPI;
+      if (sheetsAPI) {
+        await sheetsAPI.updateTask(task);
+      }
+    } catch (error) {
+      console.error("Error updating task in Google Sheets:", error);
+    }
   }
 
-  completeTask(taskId) {
+  async completeTask(taskId) {
     const taskIndex = this.tasks.withOwnerIncomplete.findIndex(
       (t) => t.id === taskId
     );
@@ -190,14 +182,22 @@ class TasksPage extends HTMLElement {
 
     const task = this.tasks.withOwnerIncomplete.splice(taskIndex, 1)[0];
     task.completedAt = new Date().toISOString();
+    task.status = "completed";
     this.tasks.completed.unshift(task);
     this.renderTasks();
 
-    // TODO: Update Google Sheets
-    console.log("Task completed:", task);
+    // Update Google Sheets
+    try {
+      const sheetsAPI = window.sheetsAPI;
+      if (sheetsAPI) {
+        await sheetsAPI.updateTask(task);
+      }
+    } catch (error) {
+      console.error("Error updating task in Google Sheets:", error);
+    }
   }
 
-  uncompleteTask(taskId) {
+  async uncompleteTask(taskId) {
     const taskIndex = this.tasks.completed.findIndex((t) => t.id === taskId);
     if (taskIndex === -1) return;
 
@@ -206,15 +206,24 @@ class TasksPage extends HTMLElement {
 
     // Put back in appropriate list based on whether it has a volunteer
     if (task.volunteer) {
+      task.status = "withOwnerIncomplete";
       this.tasks.withOwnerIncomplete.unshift(task);
     } else {
+      task.status = "needOwner";
       this.tasks.needOwner.unshift(task);
     }
 
     this.renderTasks();
 
-    // TODO: Update Google Sheets
-    console.log("Task uncompleted:", task);
+    // Update Google Sheets
+    try {
+      const sheetsAPI = window.sheetsAPI;
+      if (sheetsAPI) {
+        await sheetsAPI.updateTask(task);
+      }
+    } catch (error) {
+      console.error("Error updating task in Google Sheets:", error);
+    }
   }
 
   deleteTask(taskId, listType = "needOwner") {

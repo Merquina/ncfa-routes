@@ -16,14 +16,14 @@ class TimesheetPage extends HTMLElement {
 
   getWeekDates() {
     const today = new Date();
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - dayOfWeek); // Go back to Sunday
 
     const week = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
+      const date = new Date(sunday);
+      date.setDate(sunday.getDate() + i);
       week.push(date);
     }
     return week;
@@ -148,7 +148,7 @@ class TimesheetPage extends HTMLElement {
     }
 
     try {
-      // TODO: Submit to Google Sheets
+      // Submit to Google Sheets
       const timesheetData = {
         userName,
         weekStart: this.formatDateKey(this.currentWeek[0]),
@@ -159,8 +159,13 @@ class TimesheetPage extends HTMLElement {
 
       console.log("Submitting timesheet:", timesheetData);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Save to Google Sheets
+      const sheetsAPI = window.sheetsAPI;
+      if (sheetsAPI) {
+        await sheetsAPI.saveTimesheetEntry(timesheetData);
+      } else {
+        throw new Error("Google Sheets API not available");
+      }
 
       // Show success message
       this.showSuccessMessage();
@@ -209,7 +214,7 @@ class TimesheetPage extends HTMLElement {
       .map((date, index) => {
         const dateKey = this.formatDateKey(date);
         const entry = this.timeEntries[dateKey] || { hours: "", notes: "" };
-        const isWeekend = index >= 5;
+        const isWeekend = index === 0 || index === 6; // Sunday (0) and Saturday (6)
 
         return `
         <div class="day-entry ${isWeekend ? "weekend" : ""}">

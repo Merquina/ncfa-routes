@@ -1978,6 +1978,273 @@ class SheetsAPIService extends EventTarget {
       return "";
     }
   }
+
+  // ===== Google Sheets Write Methods =====
+
+  async appendToSheet(sheetName, values) {
+    try {
+      await this.ensureGapiClientReady();
+      const range = `${sheetName}!A:Z`;
+
+      const response =
+        await window.gapi.client.sheets.spreadsheets.values.append({
+          spreadsheetId: SPREADSHEET_ID,
+          range: range,
+          valueInputOption: "USER_ENTERED",
+          resource: {
+            values: values,
+          },
+        });
+
+      console.log(`✅ Appended ${values.length} row(s) to ${sheetName}`);
+      return response.result;
+    } catch (error) {
+      console.error(`❌ Error appending to ${sheetName}:`, error);
+      throw error;
+    }
+  }
+
+  async updateSheet(sheetName, range, values) {
+    try {
+      await this.ensureGapiClientReady();
+      const fullRange = `${sheetName}!${range}`;
+
+      const response =
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: fullRange,
+          valueInputOption: "USER_ENTERED",
+          resource: {
+            values: values,
+          },
+        });
+
+      console.log(`✅ Updated ${sheetName} at ${range}`);
+      return response.result;
+    } catch (error) {
+      console.error(`❌ Error updating ${sheetName}:`, error);
+      throw error;
+    }
+  }
+
+  async fetchTasksData() {
+    try {
+      await this.ensureGapiClientReady();
+      const tasksRange = "Tasks!A:Z";
+
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: tasksRange,
+      });
+
+      const values = resp.result?.values || [];
+      if (values.length < 2) {
+        return [];
+      }
+
+      const headers = values[0];
+      const tasks = values.slice(1).map((row) => {
+        const obj = {};
+        headers.forEach((h, i) => (obj[h] = row[i] || ""));
+        return obj;
+      });
+
+      console.log(`✅ Loaded ${tasks.length} tasks from Tasks sheet`);
+      return tasks;
+    } catch (error) {
+      console.info("Tasks sheet not available or empty:", error);
+      return [];
+    }
+  }
+
+  async saveTask(task) {
+    try {
+      await this.ensureGapiClientReady();
+
+      // Check if Tasks sheet has headers, if not, create them
+      const tasksRange = "Tasks!A1:Z1";
+      let headers;
+
+      try {
+        const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: tasksRange,
+        });
+
+        headers = resp.result?.values?.[0];
+        if (!headers || headers.length === 0) {
+          // Create headers
+          headers = [
+            "id",
+            "title",
+            "volunteer",
+            "dueDate",
+            "status",
+            "createdAt",
+            "createdBy",
+            "completedAt",
+          ];
+          await this.updateSheet("Tasks", "A1:H1", [headers]);
+        }
+      } catch (error) {
+        // Sheet might not exist, create headers
+        headers = [
+          "id",
+          "title",
+          "volunteer",
+          "dueDate",
+          "status",
+          "createdAt",
+          "createdBy",
+          "completedAt",
+        ];
+        await this.updateSheet("Tasks", "A1:H1", [headers]);
+      }
+
+      // Prepare row data
+      const row = [
+        task.id || "",
+        task.title || "",
+        task.volunteer || "",
+        task.dueDate || "",
+        task.status || "needOwner",
+        task.createdAt || "",
+        task.createdBy || "",
+        task.completedAt || "",
+      ];
+
+      await this.appendToSheet("Tasks", [row]);
+      console.log("✅ Task saved to Google Sheets:", task);
+    } catch (error) {
+      console.error("❌ Error saving task:", error);
+      throw error;
+    }
+  }
+
+  async updateTask(task) {
+    try {
+      await this.ensureGapiClientReady();
+
+      // Find the task row by ID
+      const tasksRange = "Tasks!A:Z";
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: tasksRange,
+      });
+
+      const values = resp.result?.values || [];
+      if (values.length < 2) {
+        console.warn("No tasks found to update");
+        return;
+      }
+
+      const headers = values[0];
+      const idIndex = headers.indexOf("id");
+
+      // Find row index (add 2 because: 1 for 1-based indexing, 1 for header row)
+      let rowIndex = -1;
+      for (let i = 1; i < values.length; i++) {
+        if (values[i][idIndex] == task.id) {
+          rowIndex = i + 1;
+          break;
+        }
+      }
+
+      if (rowIndex === -1) {
+        console.warn("Task not found with id:", task.id);
+        return;
+      }
+
+      // Prepare row data
+      const row = [
+        task.id || "",
+        task.title || "",
+        task.volunteer || "",
+        task.dueDate || "",
+        task.status || "needOwner",
+        task.createdAt || "",
+        task.createdBy || "",
+        task.completedAt || "",
+      ];
+
+      await this.updateSheet("Tasks", `A${rowIndex}:H${rowIndex}`, [row]);
+      console.log("✅ Task updated in Google Sheets:", task);
+    } catch (error) {
+      console.error("❌ Error updating task:", error);
+      throw error;
+    }
+  }
+
+  async saveTimesheetEntry(timesheetData) {
+    try {
+      await this.ensureGapiClientReady();
+
+      // Check if Timesheet sheet has headers, if not, create them
+      const timesheetRange = "Timesheet!A1:Z1";
+      let headers;
+
+      try {
+        const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: timesheetRange,
+        });
+
+        headers = resp.result?.values?.[0];
+        if (!headers || headers.length === 0) {
+          // Create headers
+          headers = [
+            "userName",
+            "weekStart",
+            "weekEnd",
+            "date",
+            "hours",
+            "notes",
+            "submittedAt",
+          ];
+          await this.updateSheet("Timesheet", "A1:G1", [headers]);
+        }
+      } catch (error) {
+        // Sheet might not exist, create headers
+        headers = [
+          "userName",
+          "weekStart",
+          "weekEnd",
+          "date",
+          "hours",
+          "notes",
+          "submittedAt",
+        ];
+        await this.updateSheet("Timesheet", "A1:G1", [headers]);
+      }
+
+      // Convert timesheetData entries into rows
+      const rows = [];
+      Object.keys(timesheetData.entries).forEach((dateKey) => {
+        const entry = timesheetData.entries[dateKey];
+        if (entry.hours && parseFloat(entry.hours) > 0) {
+          rows.push([
+            timesheetData.userName || "",
+            timesheetData.weekStart || "",
+            timesheetData.weekEnd || "",
+            dateKey || "",
+            entry.hours || "",
+            entry.notes || "",
+            timesheetData.submittedAt || "",
+          ]);
+        }
+      });
+
+      if (rows.length > 0) {
+        await this.appendToSheet("Timesheet", rows);
+        console.log(
+          `✅ Saved ${rows.length} timesheet entries to Google Sheets`
+        );
+      }
+    } catch (error) {
+      console.error("❌ Error saving timesheet:", error);
+      throw error;
+    }
+  }
 }
 
 export const sheetsAPI = new SheetsAPIService();
