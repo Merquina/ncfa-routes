@@ -31,8 +31,10 @@ class AppHeader extends HTMLElement {
           color: white;
           padding: 12px;
           text-align: center;
-          position: sticky;
+          position: fixed;
           top: 0;
+          left: 0;
+          right: 0;
           flex-shrink: 0;
           z-index: 1001;
           cursor: pointer;

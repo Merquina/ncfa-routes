@@ -129,16 +129,6 @@ body {
   scroll-padding-top: 130px;
 }
 
-/* Sign-in page: center content without top padding */
-#signInPage .main-content {
-  padding-top: 0;
-}
-
-/* Make header non-sticky on sign-in page */
-#signInPage app-header {
-  position: relative !important;
-}
-
 .tab-content {
   padding: 8px;
   min-height: calc(100vh - 200px);
