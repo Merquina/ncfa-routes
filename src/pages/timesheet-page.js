@@ -30,26 +30,26 @@ class TimesheetPage extends HTMLElement {
   }
 
   initializeEmptyWeek() {
-    this.currentWeek.forEach(date => {
+    this.currentWeek.forEach((date) => {
       const dateKey = this.formatDateKey(date);
       if (!this.timeEntries[dateKey]) {
         this.timeEntries[dateKey] = {
           hours: "",
-          notes: ""
+          notes: "",
         };
       }
     });
   }
 
   formatDateKey(date) {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }
 
   formatDateDisplay(date) {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
     });
   }
 
@@ -83,7 +83,10 @@ class TimesheetPage extends HTMLElement {
 
     // Listen to input changes
     this.shadowRoot.addEventListener("input", (e) => {
-      if (e.target.classList.contains("hours-input") || e.target.classList.contains("notes-input")) {
+      if (
+        e.target.classList.contains("hours-input") ||
+        e.target.classList.contains("notes-input")
+      ) {
         this.updateTimeEntry(e.target);
       }
     });
@@ -103,7 +106,7 @@ class TimesheetPage extends HTMLElement {
 
   updateTotalHours() {
     let total = 0;
-    Object.values(this.timeEntries).forEach(entry => {
+    Object.values(this.timeEntries).forEach((entry) => {
       const hours = parseFloat(entry.hours) || 0;
       total += hours;
     });
@@ -116,7 +119,7 @@ class TimesheetPage extends HTMLElement {
 
   changeWeek(direction) {
     const firstDay = this.currentWeek[0];
-    firstDay.setDate(firstDay.getDate() + (direction * 7));
+    firstDay.setDate(firstDay.getDate() + direction * 7);
     this.currentWeek = this.getWeekDates();
     this.initializeEmptyWeek();
     this.render();
@@ -128,8 +131,8 @@ class TimesheetPage extends HTMLElement {
     const userName = localStorage.getItem("gapi_user_name") || "Anonymous";
 
     // Validate that at least one day has hours
-    const hasHours = Object.values(this.timeEntries).some(entry =>
-      entry.hours && parseFloat(entry.hours) > 0
+    const hasHours = Object.values(this.timeEntries).some(
+      (entry) => entry.hours && parseFloat(entry.hours) > 0
     );
 
     if (!hasHours) {
@@ -140,7 +143,8 @@ class TimesheetPage extends HTMLElement {
     const submitBtn = this.shadowRoot.querySelector("#submitTimesheet");
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Submitting...';
+      submitBtn.innerHTML =
+        '<i class="mdi mdi-loading mdi-spin"></i> Submitting...';
     }
 
     try {
@@ -150,13 +154,13 @@ class TimesheetPage extends HTMLElement {
         weekStart: this.formatDateKey(this.currentWeek[0]),
         weekEnd: this.formatDateKey(this.currentWeek[6]),
         entries: this.timeEntries,
-        submittedAt: new Date().toISOString()
+        submittedAt: new Date().toISOString(),
       };
 
       console.log("Submitting timesheet:", timesheetData);
 
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Show success message
       this.showSuccessMessage();
@@ -169,7 +173,6 @@ class TimesheetPage extends HTMLElement {
         this.setupEventListeners();
         this.loadTimesheet();
       }, 2000);
-
     } catch (error) {
       console.error("Error submitting timesheet:", error);
       alert("Failed to submit timesheet. Please try again.");
@@ -202,16 +205,17 @@ class TimesheetPage extends HTMLElement {
     const container = this.shadowRoot.querySelector("#timeEntriesContainer");
     if (!container) return;
 
-    container.innerHTML = this.currentWeek.map((date, index) => {
-      const dateKey = this.formatDateKey(date);
-      const entry = this.timeEntries[dateKey] || { hours: "", notes: "" };
-      const isWeekend = index >= 5;
+    container.innerHTML = this.currentWeek
+      .map((date, index) => {
+        const dateKey = this.formatDateKey(date);
+        const entry = this.timeEntries[dateKey] || { hours: "", notes: "" };
+        const isWeekend = index >= 5;
 
-      return `
-        <div class="day-entry ${isWeekend ? 'weekend' : ''}">
+        return `
+        <div class="day-entry ${isWeekend ? "weekend" : ""}">
           <div class="day-header">
             <div class="day-name">${this.formatDateDisplay(date)}</div>
-            ${isWeekend ? '<span class="weekend-badge">Weekend</span>' : ''}
+            ${isWeekend ? '<span class="weekend-badge">Weekend</span>' : ""}
           </div>
 
           <div class="entry-row">
@@ -248,7 +252,8 @@ class TimesheetPage extends HTMLElement {
           </div>
         </div>
       `;
-    }).join('');
+      })
+      .join("");
 
     this.updateTotalHours();
   }
@@ -256,7 +261,14 @@ class TimesheetPage extends HTMLElement {
   getWeekRange() {
     const start = this.currentWeek[0];
     const end = this.currentWeek[6];
-    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    return `${start.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })} - ${end.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })}`;
   }
 
   render() {
@@ -583,12 +595,12 @@ class TimesheetPage extends HTMLElement {
       </style>
 
       <div class="page-container">
-        <div class="page-header">
+        <div style="margin-bottom: 20px;">
           <div class="header-content">
             <div>
-              <h2 class="page-title">
+              <h2 style="margin: 0; font-size: 1.2rem; color: #2c5282;">
                 <i class="mdi mdi-clipboard-clock-outline"></i>
-                Timesheet
+                Select Date
               </h2>
               <div class="user-name">${userName}</div>
             </div>

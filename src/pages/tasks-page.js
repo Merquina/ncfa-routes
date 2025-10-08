@@ -296,7 +296,9 @@ class TasksPage extends HTMLElement {
 
   renderTasks() {
     const needOwnerContainer = this.shadowRoot.querySelector("#needOwnerTasks");
-    const withOwnerIncompleteContainer = this.shadowRoot.querySelector("#withOwnerIncompleteTasks");
+    const withOwnerIncompleteContainer = this.shadowRoot.querySelector(
+      "#withOwnerIncompleteTasks"
+    );
     const completedContainer = this.shadowRoot.querySelector("#completedTasks");
 
     if (needOwnerContainer) {
@@ -347,12 +349,15 @@ class TasksPage extends HTMLElement {
 
     // Update counts
     const needOwnerCount = this.shadowRoot.querySelector("#needOwnerCount");
-    const withOwnerIncompleteCount = this.shadowRoot.querySelector("#withOwnerIncompleteCount");
+    const withOwnerIncompleteCount = this.shadowRoot.querySelector(
+      "#withOwnerIncompleteCount"
+    );
     const completedCount = this.shadowRoot.querySelector("#completedCount");
     if (needOwnerCount)
       needOwnerCount.textContent = this.tasks.needOwner.length;
     if (withOwnerIncompleteCount)
-      withOwnerIncompleteCount.textContent = this.tasks.withOwnerIncomplete.length;
+      withOwnerIncompleteCount.textContent =
+        this.tasks.withOwnerIncomplete.length;
     if (completedCount)
       completedCount.textContent = this.tasks.completed.length;
   }
@@ -807,12 +812,6 @@ class TasksPage extends HTMLElement {
           }
         }
       </style>
-
-      <div class="page-header">
-        <h2 class="page-title">
-          <i class="mdi mdi-clipboard-list-outline"></i> Tasks
-        </h2>
-      </div>
 
       <div class="section">
         <div class="section-header">

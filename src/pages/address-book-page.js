@@ -489,11 +489,6 @@ class AddressBookPage extends HTMLElement {
         }
       </style>
 
-      <div class="page-header">
-        <h2 class="page-title"><i class="mdi mdi-book-open-page-variant"></i> Address Book</h2>
-        <p class="page-description">All locations with contact information and notes</p>
-      </div>
-
       <div id="contactsList">
         <div style="text-align: center; padding: 40px; color: #666;">
           <i class="mdi mdi-loading mdi-spin" style="font-size: 2rem;"></i>
