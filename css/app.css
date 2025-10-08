@@ -123,15 +123,15 @@ body {
   flex: 1;
   overflow-y: auto;
   padding-bottom: var(--tab-height);
-  padding-top: 0;
+  padding-top: 120px;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   scroll-padding-top: 130px;
 }
 
-/* Main content padding for app (not sign-in page) */
-#mainApp .main-content {
-  padding-top: 120px;
+/* Sign-in page: center content without top padding since header is sticky */
+#signInPage .main-content {
+  padding-top: 0;
 }
 
 .tab-content {
