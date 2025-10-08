@@ -4,7 +4,7 @@ class TasksPage extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.tasks = {
       pending: [],
-      completed: []
+      completed: [],
     };
   }
 
@@ -25,15 +25,15 @@ class TasksPage extends HTMLElement {
           title: "Order more boxes for food distribution",
           volunteer: "",
           createdAt: new Date().toISOString(),
-          createdBy: "Admin"
+          createdBy: "Admin",
         },
         {
           id: Date.now() + 2,
           title: "Check van tire pressure",
           volunteer: "John Smith",
           createdAt: new Date(Date.now() - 86400000).toISOString(),
-          createdBy: "Admin"
-        }
+          createdBy: "Admin",
+        },
       ];
 
       this.tasks.completed = [
@@ -42,8 +42,8 @@ class TasksPage extends HTMLElement {
           title: "Update contact information for markets",
           volunteer: "Jane Doe",
           completedAt: new Date(Date.now() - 172800000).toISOString(),
-          createdBy: "Admin"
-        }
+          createdBy: "Admin",
+        },
       ];
 
       this.renderTasks();
@@ -95,7 +95,7 @@ class TasksPage extends HTMLElement {
       title: taskTitle,
       volunteer: "",
       createdAt: new Date().toISOString(),
-      createdBy: userName
+      createdBy: userName,
     };
 
     this.tasks.pending.unshift(newTask);
@@ -107,10 +107,11 @@ class TasksPage extends HTMLElement {
   }
 
   volunteerForTask(taskId) {
-    const task = this.tasks.pending.find(t => t.id === taskId);
+    const task = this.tasks.pending.find((t) => t.id === taskId);
     if (!task) return;
 
-    const userName = localStorage.getItem("gapi_user_name") || prompt("Enter your name:");
+    const userName =
+      localStorage.getItem("gapi_user_name") || prompt("Enter your name:");
     if (!userName) return;
 
     task.volunteer = userName;
@@ -121,7 +122,7 @@ class TasksPage extends HTMLElement {
   }
 
   completeTask(taskId) {
-    const taskIndex = this.tasks.pending.findIndex(t => t.id === taskId);
+    const taskIndex = this.tasks.pending.findIndex((t) => t.id === taskId);
     if (taskIndex === -1) return;
 
     const task = this.tasks.pending.splice(taskIndex, 1)[0];
@@ -134,7 +135,7 @@ class TasksPage extends HTMLElement {
   }
 
   uncompleteTask(taskId) {
-    const taskIndex = this.tasks.completed.findIndex(t => t.id === taskId);
+    const taskIndex = this.tasks.completed.findIndex((t) => t.id === taskId);
     if (taskIndex === -1) return;
 
     const task = this.tasks.completed.splice(taskIndex, 1)[0];
@@ -150,7 +151,7 @@ class TasksPage extends HTMLElement {
     if (!confirm("Are you sure you want to delete this task?")) return;
 
     const list = isCompleted ? this.tasks.completed : this.tasks.pending;
-    const taskIndex = list.findIndex(t => t.id === taskId);
+    const taskIndex = list.findIndex((t) => t.id === taskId);
     if (taskIndex === -1) return;
 
     list.splice(taskIndex, 1);
@@ -173,21 +174,27 @@ class TasksPage extends HTMLElement {
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
   }
 
   renderTaskCard(task, isCompleted = false) {
     return `
-      <div class="task-card ${isCompleted ? 'completed' : ''}">
+      <div class="task-card ${isCompleted ? "completed" : ""}">
         <div class="task-header">
           <div class="task-title">${task.title}</div>
-          ${isCompleted ? `
+          ${
+            isCompleted
+              ? `
             <button class="icon-btn" onclick="this.getRootNode().host.uncompleteTask(${task.id})" title="Move back to pending">
               <i class="mdi mdi-undo"></i>
             </button>
-          ` : ''}
-          <button class="icon-btn delete-btn" onclick="this.getRootNode().host.deleteTask(${task.id}, ${isCompleted})" title="Delete task">
+          `
+              : ""
+          }
+          <button class="icon-btn delete-btn" onclick="this.getRootNode().host.deleteTask(${
+            task.id
+          }, ${isCompleted})" title="Delete task">
             <i class="mdi mdi-delete"></i>
           </button>
         </div>
@@ -195,42 +202,56 @@ class TasksPage extends HTMLElement {
         <div class="task-meta">
           <span class="task-date">
             <i class="mdi mdi-clock-outline"></i>
-            ${isCompleted
-              ? `Completed ${this.formatDate(task.completedAt)}`
-              : `Created ${this.formatDate(task.createdAt)}`}
+            ${
+              isCompleted
+                ? `Completed ${this.formatDate(task.completedAt)}`
+                : `Created ${this.formatDate(task.createdAt)}`
+            }
           </span>
           <span class="task-creator">by ${task.createdBy}</span>
         </div>
 
-        ${!isCompleted ? `
+        ${
+          !isCompleted
+            ? `
           <div class="task-actions">
             <div class="volunteer-section">
-              ${task.volunteer ? `
+              ${
+                task.volunteer
+                  ? `
                 <span class="volunteer-name">
                   <i class="mdi mdi-account"></i>
                   ${task.volunteer}
                 </span>
-              ` : `
+              `
+                  : `
                 <button class="volunteer-btn" onclick="this.getRootNode().host.volunteerForTask(${task.id})">
                   <i class="mdi mdi-hand-heart"></i>
                   I'll do this
                 </button>
-              `}
+              `
+              }
             </div>
 
-            ${task.volunteer ? `
+            ${
+              task.volunteer
+                ? `
               <button class="complete-btn" onclick="this.getRootNode().host.completeTask(${task.id})">
                 <i class="mdi mdi-check-circle"></i>
                 Mark Complete
               </button>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
-        ` : `
+        `
+            : `
           <div class="completed-by">
             <i class="mdi mdi-check-circle"></i>
-            Completed by ${task.volunteer || 'Unknown'}
+            Completed by ${task.volunteer || "Unknown"}
           </div>
-        `}
+        `
+        }
       </div>
     `;
   }
@@ -249,7 +270,9 @@ class TasksPage extends HTMLElement {
           </div>
         `;
       } else {
-        pendingContainer.innerHTML = this.tasks.pending.map(task => this.renderTaskCard(task, false)).join('');
+        pendingContainer.innerHTML = this.tasks.pending
+          .map((task) => this.renderTaskCard(task, false))
+          .join("");
       }
     }
 
@@ -262,7 +285,9 @@ class TasksPage extends HTMLElement {
           </div>
         `;
       } else {
-        completedContainer.innerHTML = this.tasks.completed.map(task => this.renderTaskCard(task, true)).join('');
+        completedContainer.innerHTML = this.tasks.completed
+          .map((task) => this.renderTaskCard(task, true))
+          .join("");
       }
     }
 
@@ -270,13 +295,16 @@ class TasksPage extends HTMLElement {
     const pendingCount = this.shadowRoot.querySelector("#pendingCount");
     const completedCount = this.shadowRoot.querySelector("#completedCount");
     if (pendingCount) pendingCount.textContent = this.tasks.pending.length;
-    if (completedCount) completedCount.textContent = this.tasks.completed.length;
+    if (completedCount)
+      completedCount.textContent = this.tasks.completed.length;
   }
 
   render() {
     console.log("Tasks Page - render() called");
     this.shadowRoot.innerHTML = `
       <style>
+        @import url("https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.4.47/css/materialdesignicons.min.css");
+
         :host {
           display: block;
           font-family: var(--font-family, 'Atkinson Hyperlegible', sans-serif);
