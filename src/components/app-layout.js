@@ -378,11 +378,11 @@ class AppLayout extends HTMLElement {
         </a>
         <a href="/dates" class="tab-btn" data-route="/dates">
           <div class="tab-icon"><i class="mdi mdi-calendar"></i></div>
-          <div class="tab-label">By Date</div>
+          <div class="tab-label">Date</div>
         </a>
         <a href="/workers" class="tab-btn" data-route="/workers">
           <div class="tab-icon"><i class="mdi mdi-account"></i></div>
-          <div class="tab-label">By Worker</div>
+          <div class="tab-label">Worker</div>
         </a>
         <a href="/address-book" class="tab-btn" data-route="/address-book">
           <div class="tab-icon"><i class="mdi mdi-book-open-page-variant"></i></div>

@@ -5,49 +5,58 @@ class InventoryComponent extends HTMLElement {
       smallBoxes: 0,
       largeBoxes: 0,
       lastUpdated: null,
-      updatedBy: null
+      updatedBy: null,
     };
-    
+
     // Default box configuration - can be overridden
     this.boxConfig = {
       small: {
-        label: 'small',
-        description: '5/9 bushel',
-        farmersRatio: 2
+        label: "small",
+        description: "5/9 bushel",
+        farmersRatio: 2,
       },
       large: {
-        label: 'LARGE',
-        description: '1 1/9 bushel',
-        farmersRatio: 1
-      }
+        label: "LARGE",
+        description: "1 1/9 bushel",
+        farmersRatio: 1,
+      },
     };
-    
+
     this.isLoading = false;
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
   }
-  
+
   showToast(message) {
-    const toast = this.shadowRoot && this.shadowRoot.querySelector('#toast');
+    const toast = this.shadowRoot && this.shadowRoot.querySelector("#toast");
     if (!toast) return;
-    toast.textContent = message || 'Done';
-    toast.classList.add('show');
+    toast.textContent = message || "Done";
+    toast.classList.add("show");
     clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => {
-      toast.classList.remove('show');
+      toast.classList.remove("show");
     }, 2200);
   }
 
   static get observedAttributes() {
-    return ['small-boxes', 'large-boxes', 'last-updated', 'updated-by', 'box-config'];
+    return [
+      "small-boxes",
+      "large-boxes",
+      "last-updated",
+      "updated-by",
+      "box-config",
+    ];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
-      if (name === 'box-config') {
+      if (name === "box-config") {
         try {
-          this.boxConfig = { ...this.boxConfig, ...JSON.parse(newValue || '{}') };
+          this.boxConfig = {
+            ...this.boxConfig,
+            ...JSON.parse(newValue || "{}"),
+          };
         } catch (e) {
-          console.error('Invalid box config:', e);
+          console.error("Invalid box config:", e);
         }
       }
       this.render();
@@ -66,7 +75,7 @@ class InventoryComponent extends HTMLElement {
 
   async loadInventoryData() {
     if (this.isLoading) return;
-    
+
     this.isLoading = true;
     this.showLoading();
 
@@ -77,8 +86,8 @@ class InventoryComponent extends HTMLElement {
         this.setInventoryData(inventory);
       }
     } catch (error) {
-      console.error('Error loading inventory:', error);
-      this.showError('Failed to load inventory data');
+      console.error("Error loading inventory:", error);
+      this.showError("Failed to load inventory data");
     } finally {
       this.isLoading = false;
     }
@@ -95,25 +104,28 @@ class InventoryComponent extends HTMLElement {
   }
 
   updateAttributes() {
-    this.setAttribute('small-boxes', this.inventoryData.smallBoxes);
-    this.setAttribute('large-boxes', this.inventoryData.largeBoxes);
+    this.setAttribute("small-boxes", this.inventoryData.smallBoxes);
+    this.setAttribute("large-boxes", this.inventoryData.largeBoxes);
     if (this.inventoryData.lastUpdated) {
-      this.setAttribute('last-updated', this.inventoryData.lastUpdated);
+      this.setAttribute("last-updated", this.inventoryData.lastUpdated);
     }
     if (this.inventoryData.updatedBy) {
-      this.setAttribute('updated-by', this.inventoryData.updatedBy);
+      this.setAttribute("updated-by", this.inventoryData.updatedBy);
     }
   }
 
   saveToLocalStorage() {
     try {
-      localStorage.setItem('spfm_inventory', JSON.stringify(this.inventoryData));
+      localStorage.setItem(
+        "spfm_inventory",
+        JSON.stringify(this.inventoryData)
+      );
     } catch (error) {
-      console.error('Error saving inventory to localStorage:', error);
+      console.error("Error saving inventory to localStorage:", error);
     }
   }
 
-  async updateInventory(smallBoxes, largeBoxes, updatedBy = 'User') {
+  async updateInventory(smallBoxes, largeBoxes, updatedBy = "User") {
     if (this.isLoading) return;
 
     this.isLoading = true;
@@ -121,39 +133,62 @@ class InventoryComponent extends HTMLElement {
 
     try {
       // Prefer DataService; fallback to direct manager + localStorage
-      if (window.dataService && typeof window.dataService.updateInventory === 'function') {
-        const updatedInventory = await window.dataService.updateInventory(smallBoxes, largeBoxes, updatedBy);
+      if (
+        window.dataService &&
+        typeof window.dataService.updateInventory === "function"
+      ) {
+        const updatedInventory = await window.dataService.updateInventory(
+          smallBoxes,
+          largeBoxes,
+          updatedBy
+        );
         this.setInventoryData(updatedInventory);
-        this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...updatedInventory }, bubbles: true }));
+        this.dispatchEvent(
+          new CustomEvent("inventory-changed", {
+            detail: { ...updatedInventory },
+            bubbles: true,
+          })
+        );
         if (updatedInventory && updatedInventory.synced) {
-          this.showToast('✅ Inventory synced to Google Sheets');
+          this.showToast("✅ Inventory synced to Google Sheets");
         }
       } else {
         const inv = {
           smallBoxes: parseInt(smallBoxes) || 0,
           largeBoxes: parseInt(largeBoxes) || 0,
           lastUpdated: new Date().toLocaleString(),
-          updatedBy: updatedBy || 'Anonymous'
+          updatedBy: updatedBy || "Anonymous",
         };
-        try { localStorage.setItem('spfm_inventory', JSON.stringify(inv)); } catch {}
+        try {
+          localStorage.setItem("spfm_inventory", JSON.stringify(inv));
+        } catch {}
         let synced = false;
-        if (window.inventoryManager && typeof window.inventoryManager.tryUploadInventoryToSheets === 'function') {
+        if (
+          window.inventoryManager &&
+          typeof window.inventoryManager.tryUploadInventoryToSheets ===
+            "function"
+        ) {
           try {
             await window.inventoryManager.tryUploadInventoryToSheets(inv);
             synced = true;
           } catch (e) {
-            console.error('Upload failed:', e);
+            console.error("Upload failed:", e);
           }
         }
         this.setInventoryData(inv);
-        this.dispatchEvent(new CustomEvent('inventory-changed', { detail: { ...inv }, bubbles: true }));
+        this.dispatchEvent(
+          new CustomEvent("inventory-changed", {
+            detail: { ...inv },
+            bubbles: true,
+          })
+        );
         if (synced) {
-          this.showToast('✅ Inventory synced to Google Sheets');
+          this.showToast("✅ Inventory synced to Google Sheets");
         }
       }
     } catch (error) {
-      console.error('Error updating inventory:', error);
-      this.showError('Failed to update inventory');
+      console.error("Error updating inventory:", error);
+      this.showError("Failed to update inventory");
     } finally {
       this.isLoading = false;
     }
@@ -161,7 +196,7 @@ class InventoryComponent extends HTMLElement {
 
   setBoxConfig(config) {
     this.boxConfig = { ...this.boxConfig, ...config };
-    this.setAttribute('box-config', JSON.stringify(this.boxConfig));
+    this.setAttribute("box-config", JSON.stringify(this.boxConfig));
   }
 
   showLoading() {
@@ -179,65 +214,67 @@ class InventoryComponent extends HTMLElement {
     const farmersCount = parseInt(farmers) || 1;
     const smallNeeded = farmersCount * this.boxConfig.small.farmersRatio;
     const largeNeeded = farmersCount * this.boxConfig.large.farmersRatio;
-    
+
     return {
       small: {
         needed: smallNeeded,
         available: this.inventoryData.smallBoxes,
-        sufficient: this.inventoryData.smallBoxes >= smallNeeded
+        sufficient: this.inventoryData.smallBoxes >= smallNeeded,
       },
       large: {
         needed: largeNeeded,
         available: this.inventoryData.largeBoxes,
-        sufficient: this.inventoryData.largeBoxes >= largeNeeded
-      }
+        sufficient: this.inventoryData.largeBoxes >= largeNeeded,
+      },
     };
   }
 
   setupEventListeners() {
     const shadow = this.shadowRoot;
-    
+
     // Update button handler
-    const updateBtn = shadow.querySelector('#updateBtn');
+    const updateBtn = shadow.querySelector("#updateBtn");
     if (updateBtn) {
-      updateBtn.addEventListener('click', () => {
-        const smallInput = shadow.querySelector('#updateSmallBoxes');
-        const largeInput = shadow.querySelector('#updateLargeBoxes');
+      updateBtn.addEventListener("click", () => {
+        const smallInput = shadow.querySelector("#updateSmallBoxes");
+        const largeInput = shadow.querySelector("#updateLargeBoxes");
         if (smallInput && largeInput) {
           // Always use Google OAuth profile name if available
           let userName = null;
           try {
-            const stored = localStorage.getItem('gapi_user_name');
+            const stored = localStorage.getItem("gapi_user_name");
             if (stored) userName = stored;
           } catch {}
-          if (!userName) userName = 'Anonymous';
+          if (!userName) userName = "Anonymous";
           this.updateInventory(smallInput.value, largeInput.value, userName);
         }
       });
     }
 
     // Calculator input handlers
-    const farmersInput = shadow.querySelector('#farmersInput');
-    const smallBoxesCalcInput = shadow.querySelector('#smallBoxesCalcInput');
-    const largeBoxesCalcInput = shadow.querySelector('#largeBoxesCalcInput');
-    
-    [farmersInput, smallBoxesCalcInput, largeBoxesCalcInput].forEach(input => {
-      if (input) {
-        input.addEventListener('input', () => {
-          this.updateDistributionCalculator();
-        });
+    const farmersInput = shadow.querySelector("#farmersInput");
+    const smallBoxesCalcInput = shadow.querySelector("#smallBoxesCalcInput");
+    const largeBoxesCalcInput = shadow.querySelector("#largeBoxesCalcInput");
+
+    [farmersInput, smallBoxesCalcInput, largeBoxesCalcInput].forEach(
+      (input) => {
+        if (input) {
+          input.addEventListener("input", () => {
+            this.updateDistributionCalculator();
+          });
+        }
       }
-    });
+    );
 
     // Add focus handlers to clear fields and show cursor
     const allInputs = shadow.querySelectorAll('input[type="number"]');
-    allInputs.forEach(input => {
-      input.addEventListener('focus', (e) => {
+    allInputs.forEach((input) => {
+      input.addEventListener("focus", (e) => {
         e.target.dataset.originalValue = e.target.value;
-        e.target.value = '';
+        e.target.value = "";
       });
-      input.addEventListener('blur', (e) => {
-        if (e.target.value === '' && e.target.dataset.originalValue) {
+      input.addEventListener("blur", (e) => {
+        if (e.target.value === "" && e.target.dataset.originalValue) {
           e.target.value = e.target.dataset.originalValue;
         }
       });
@@ -246,77 +283,88 @@ class InventoryComponent extends HTMLElement {
 
   // Ensure section titles are visible at top when interacting
   attachSectionScrollHandlers() {
-    const sections = this.shadowRoot.querySelectorAll('.section');
-    sections.forEach(sec => {
+    const sections = this.shadowRoot.querySelectorAll(".section");
+    sections.forEach((sec) => {
       const scrollToTop = () => {
-        try { sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+        try {
+          sec.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch {}
       };
-      sec.addEventListener('focusin', scrollToTop);
-      sec.addEventListener('click', (e) => {
+      sec.addEventListener("focusin", scrollToTop);
+      sec.addEventListener("click", (e) => {
         // Only scroll if clicking inside inputs/interactive areas
-        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-        if (['input','button','select','textarea','label'].includes(tag)) scrollToTop();
+        const tag =
+          e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "";
+        if (["input", "button", "select", "textarea", "label"].includes(tag))
+          scrollToTop();
       });
     });
   }
 
   updateDistributionCalculator() {
     const shadow = this.shadowRoot;
-    const farmersInput = shadow.querySelector('#farmersInput');
-    const smallBoxesInput = shadow.querySelector('#smallBoxesCalcInput');
-    const largeBoxesInput = shadow.querySelector('#largeBoxesCalcInput');
-    const resultDiv = shadow.querySelector('#calculationResult');
-    const distributionText = shadow.querySelector('#distributionText');
-    
-    if (!farmersInput || !smallBoxesInput || !largeBoxesInput || !resultDiv) return;
-    
+    const farmersInput = shadow.querySelector("#farmersInput");
+    const smallBoxesInput = shadow.querySelector("#smallBoxesCalcInput");
+    const largeBoxesInput = shadow.querySelector("#largeBoxesCalcInput");
+    const resultDiv = shadow.querySelector("#calculationResult");
+    const distributionText = shadow.querySelector("#distributionText");
+
+    if (!farmersInput || !smallBoxesInput || !largeBoxesInput || !resultDiv)
+      return;
+
     const farmers = parseInt(farmersInput.value) || 1;
     const smallBoxes = parseInt(smallBoxesInput.value) || 0;
     const largeBoxes = parseInt(largeBoxesInput.value) || 0;
-    
+
     if (smallBoxes === 0 && largeBoxes === 0) {
-      resultDiv.style.display = 'none';
+      resultDiv.style.display = "none";
       return;
     }
-    
+
     // Calculate distribution
     const smallPerFarmer = Math.floor(smallBoxes / farmers);
     const largePerFarmer = Math.floor(largeBoxes / farmers);
     const smallRemainder = smallBoxes % farmers;
     const largeRemainder = largeBoxes % farmers;
-    
-    let distributionHTML = '';
-    
+
+    let distributionHTML = "";
+
     if (smallPerFarmer > 0 || largePerFarmer > 0) {
       distributionHTML = `<div style="font-size: 0.9rem; margin: 4px 0;">`;
-      
+
       if (smallPerFarmer > 0 && largePerFarmer > 0) {
-        distributionHTML += `${smallPerFarmer} small + ${largePerFarmer} LARGE box${largePerFarmer !== 1 ? 'es' : ''}`;
+        distributionHTML += `${smallPerFarmer} small + ${largePerFarmer} LARGE box${
+          largePerFarmer !== 1 ? "es" : ""
+        }`;
       } else if (smallPerFarmer > 0) {
-        distributionHTML += `${smallPerFarmer} small box${smallPerFarmer !== 1 ? 'es' : ''}`;
+        distributionHTML += `${smallPerFarmer} small box${
+          smallPerFarmer !== 1 ? "es" : ""
+        }`;
       } else if (largePerFarmer > 0) {
-        distributionHTML += `${largePerFarmer} LARGE box${largePerFarmer !== 1 ? 'es' : ''}`;
+        distributionHTML += `${largePerFarmer} LARGE box${
+          largePerFarmer !== 1 ? "es" : ""
+        }`;
       }
-      
+
       distributionHTML += `</div>`;
-      
+
       // Show remainder if any
       if (smallRemainder > 0 || largeRemainder > 0) {
         distributionHTML += `<div style="font-size: 0.8rem; color: #666; margin: 2px 0;">Remaining: `;
         const remainderParts = [];
         if (smallRemainder > 0) remainderParts.push(`${smallRemainder} small`);
         if (largeRemainder > 0) remainderParts.push(`${largeRemainder} LARGE`);
-        distributionHTML += remainderParts.join(' + ') + `</div>`;
+        distributionHTML += remainderParts.join(" + ") + `</div>`;
       }
     } else {
       distributionHTML = `<div style="font-size: 0.9rem; color: #888;">Not enough boxes for equal distribution</div>`;
     }
-    
+
     if (distributionText) {
       distributionText.innerHTML = distributionHTML;
     }
-    
-    resultDiv.style.display = 'block';
+
+    resultDiv.style.display = "block";
   }
 
   // Keep the old calculator for compatibility but rename it
@@ -325,10 +373,14 @@ class InventoryComponent extends HTMLElement {
   }
 
   render() {
-    const smallBoxes = this.getAttribute('small-boxes') || this.inventoryData.smallBoxes;
-    const largeBoxes = this.getAttribute('large-boxes') || this.inventoryData.largeBoxes;
-    const lastUpdated = this.getAttribute('last-updated') || this.inventoryData.lastUpdated;
-    const updatedBy = this.getAttribute('updated-by') || this.inventoryData.updatedBy;
+    const smallBoxes =
+      this.getAttribute("small-boxes") || this.inventoryData.smallBoxes;
+    const largeBoxes =
+      this.getAttribute("large-boxes") || this.inventoryData.largeBoxes;
+    const lastUpdated =
+      this.getAttribute("last-updated") || this.inventoryData.lastUpdated;
+    const updatedBy =
+      this.getAttribute("updated-by") || this.inventoryData.updatedBy;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -461,13 +513,17 @@ class InventoryComponent extends HTMLElement {
             <div class="box-size">${this.boxConfig.large.description}</div>
           </div>
         </div>
-        ${lastUpdated ? `
+        ${
+          lastUpdated
+            ? `
           <div class="timestamp">
             Last updated by ${updatedBy} at ${lastUpdated}
           </div>
-        ` : `
+        `
+            : `
           <div class="timestamp">No updates yet</div>
-        `}
+        `
+        }
       </div>
 
       <!-- Box Calculator Section -->
@@ -475,16 +531,18 @@ class InventoryComponent extends HTMLElement {
         <h4><i class="mdi mdi-calculator"></i> Box Calculator</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
           <div class="form-row">
-            <label class="form-label">How many farmers:</label>
+            <label class="form-label">Farmers:</label>
             <input type="number" id="farmersInput" min="1" value="1" inputmode="numeric" class="form-input">
           </div>
-          <div class="form-row">
-            <label class="form-label">How many small boxes:</label>
-            <input type="number" id="smallBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input">
-          </div>
-          <div class="form-row">
-            <label class="form-label">How many LARGE boxes:</label>
-            <input type="number" id="largeBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input">
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end;">
+            <div>
+              <label class="form-label">Small boxes:</label>
+              <input type="number" id="smallBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">LARGE boxes:</label>
+              <input type="number" id="largeBoxesCalcInput" min="0" value="0" inputmode="numeric" class="form-input">
+            </div>
           </div>
           <div id="calculationResult" class="calculation-result">
             <h4 style="margin: 2px 0; font-size: 0.9rem;">Give to each farmer:</h4>
@@ -521,4 +579,4 @@ class InventoryComponent extends HTMLElement {
   }
 }
 
-customElements.define('inventory-component', InventoryComponent);
+customElements.define("inventory-component", InventoryComponent);

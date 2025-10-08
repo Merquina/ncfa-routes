@@ -373,15 +373,32 @@ class TasksPage extends HTMLElement {
           align-items: center;
           gap: 10px;
           margin-bottom: 16px;
-          padding-bottom: 8px;
-          border-bottom: 2px solid #e0e0e0;
+          padding: 12px;
+          border-radius: 8px;
+        }
+
+        .section:first-of-type .section-header {
+          background: #fff3e0;
+          border-left: 4px solid #ff9800;
+        }
+
+        .section:last-of-type .section-header {
+          background: #e8f5e9;
+          border-left: 4px solid #28a745;
         }
 
         .section-title {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #1a365d;
           margin: 0;
+        }
+
+        .section:first-of-type .section-title {
+          color: #e65100;
+        }
+
+        .section:last-of-type .section-title {
+          color: #1b5e20;
         }
 
         .task-count {
