@@ -1047,8 +1047,8 @@ class TasksPage extends HTMLElement {
         </div>
       </div>
 
-      <div style="padding: 16px; background: #f3e5f5; border-left: 4px solid #9c27b0; border-radius: 8px;">
-        <button id="addTaskBtn" class="btn btn-primary" style="width: 100%; background: #9c27b0; border: none;">
+      <div style="padding: 16px; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 8px;">
+        <button id="addTaskBtn" class="btn btn-primary" style="width: 100%; background: #4caf50; border: none;">
           <i class="mdi mdi-plus-circle"></i> Add New Task
         </button>
       </div>

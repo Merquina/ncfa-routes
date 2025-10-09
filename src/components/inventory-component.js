@@ -555,7 +555,8 @@ class InventoryComponent extends HTMLElement {
       <div class="section">
         <h4><i class="mdi mdi-clipboard-edit"></i> Update Inventory</h4>
         <div style="display: grid; gap: 8px; margin-top: 5px;">
-          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end;">
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end;">
+            <div></div>
             <div>
               <label class="form-label" style="font-size: 0.85rem; font-weight: normal;">small boxes:</label>
               <input type="number" id="updateSmallBoxes" min="0" value="${smallBoxes}" inputmode="numeric" class="form-input">

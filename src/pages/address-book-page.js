@@ -409,7 +409,7 @@ class AddressBookPage extends HTMLElement {
           margin-bottom: 20px;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           position: sticky;
-          top: 0;
+          top: -16px;
           z-index: 10;
         }
 

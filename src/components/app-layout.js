@@ -99,6 +99,32 @@ class AppLayout extends HTMLElement {
     this.dispatchEvent(new CustomEvent("sign-out", { bubbles: true }));
   }
 
+  async refreshData() {
+    const sheetsAPI = window.sheetsAPI;
+    if (!sheetsAPI) {
+      alert("Sheets API not available");
+      return;
+    }
+
+    try {
+      console.log("🔄 Refreshing data from Google Sheets...");
+      await sheetsAPI.fetchSheetData();
+
+      // Reload current page to show updated data
+      const currentHash = window.location.hash;
+      window.location.hash = "";
+      setTimeout(() => {
+        window.location.hash = currentHash || "#/reminders";
+      }, 50);
+
+      this.toggleMenu();
+      console.log("✅ Data refreshed successfully");
+    } catch (error) {
+      console.error("❌ Error refreshing data:", error);
+      alert("Failed to refresh data. Please try again.");
+    }
+  }
+
   navigateToAddressBook() {
     console.log("navigateToAddressBook called");
     console.log("Current hash:", window.location.hash);
@@ -289,6 +315,19 @@ class AppLayout extends HTMLElement {
           z-index: 1003;
           display: none;
         ">
+          <button onclick="this.getRootNode().host.refreshData()" style="
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-family: inherit;
+          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+            <i class="mdi mdi-refresh" style="margin-right: 8px; color: #4caf50;"></i>
+            Refresh Data
+          </button>
           <button onclick="window.location.hash='/timesheet'; this.getRootNode().host.toggleMenu();" style="
             width: 100%;
             padding: 12px 16px;
