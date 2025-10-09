@@ -2059,13 +2059,16 @@ class SheetsAPIService extends EventTarget {
 
   async saveTask(task) {
     try {
+      console.log("📝 Attempting to save task:", task);
       await this.ensureGapiClientReady();
+      console.log("✓ GAPI client ready");
 
       // Check if Tasks sheet has headers, if not, create them
       const tasksRange = "Tasks!A1:Z1";
       let headers;
 
       try {
+        console.log("📋 Checking for existing headers...");
         const resp = await window.gapi.client.sheets.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
           range: tasksRange,
@@ -2073,6 +2076,7 @@ class SheetsAPIService extends EventTarget {
 
         headers = resp.result?.values?.[0];
         if (!headers || headers.length === 0) {
+          console.log("📝 No headers found, creating new headers...");
           // Create headers
           headers = [
             "id",
@@ -2085,8 +2089,12 @@ class SheetsAPIService extends EventTarget {
             "completedAt",
           ];
           await this.updateSheet("Tasks", "A1:H1", [headers]);
+          console.log("✓ Headers created");
+        } else {
+          console.log("✓ Headers found:", headers);
         }
       } catch (error) {
+        console.log("⚠️ Error reading headers, creating new headers:", error);
         // Sheet might not exist, create headers
         headers = [
           "id",
@@ -2099,6 +2107,7 @@ class SheetsAPIService extends EventTarget {
           "completedAt",
         ];
         await this.updateSheet("Tasks", "A1:H1", [headers]);
+        console.log("✓ Headers created after error");
       }
 
       // Prepare row data
@@ -2113,10 +2122,17 @@ class SheetsAPIService extends EventTarget {
         task.completedAt || "",
       ];
 
+      console.log("📤 Appending row to sheet:", row);
       await this.appendToSheet("Tasks", [row]);
-      console.log("✅ Task saved to Google Sheets:", task);
+      console.log("✅ Task saved to Google Sheets successfully:", task);
     } catch (error) {
-      console.error("❌ Error saving task:", error);
+      console.error("❌ Error saving task - Full error details:", error);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      if (error.result) {
+        console.error("Error result:", error.result);
+      }
       throw error;
     }
   }
@@ -2177,13 +2193,16 @@ class SheetsAPIService extends EventTarget {
 
   async saveTimesheetEntry(timesheetData) {
     try {
+      console.log("⏰ Attempting to save timesheet:", timesheetData);
       await this.ensureGapiClientReady();
+      console.log("✓ GAPI client ready");
 
       // Check if Timesheet sheet has headers, if not, create them
       const timesheetRange = "Timesheet!A1:Z1";
       let headers;
 
       try {
+        console.log("📋 Checking for existing Timesheet headers...");
         const resp = await window.gapi.client.sheets.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
           range: timesheetRange,
@@ -2191,6 +2210,7 @@ class SheetsAPIService extends EventTarget {
 
         headers = resp.result?.values?.[0];
         if (!headers || headers.length === 0) {
+          console.log("📝 No Timesheet headers found, creating...");
           // Create headers
           headers = [
             "userName",
@@ -2202,8 +2222,12 @@ class SheetsAPIService extends EventTarget {
             "submittedAt",
           ];
           await this.updateSheet("Timesheet", "A1:G1", [headers]);
+          console.log("✓ Timesheet headers created");
+        } else {
+          console.log("✓ Timesheet headers found:", headers);
         }
       } catch (error) {
+        console.log("⚠️ Error reading Timesheet headers, creating new:", error);
         // Sheet might not exist, create headers
         headers = [
           "userName",
@@ -2215,6 +2239,7 @@ class SheetsAPIService extends EventTarget {
           "submittedAt",
         ];
         await this.updateSheet("Timesheet", "A1:G1", [headers]);
+        console.log("✓ Timesheet headers created after error");
       }
 
       // Convert timesheetData entries into rows
@@ -2235,13 +2260,25 @@ class SheetsAPIService extends EventTarget {
       });
 
       if (rows.length > 0) {
+        console.log(
+          `📤 Appending ${rows.length} timesheet rows to sheet:`,
+          rows
+        );
         await this.appendToSheet("Timesheet", rows);
         console.log(
-          `✅ Saved ${rows.length} timesheet entries to Google Sheets`
+          `✅ Saved ${rows.length} timesheet entries to Google Sheets successfully`
         );
+      } else {
+        console.log("⚠️ No timesheet rows to save (no hours > 0)");
       }
     } catch (error) {
-      console.error("❌ Error saving timesheet:", error);
+      console.error("❌ Error saving timesheet - Full error details:", error);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      if (error.result) {
+        console.error("Error result:", error.result);
+      }
       throw error;
     }
   }
