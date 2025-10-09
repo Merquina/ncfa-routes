@@ -275,34 +275,12 @@ class AppLayout extends HTMLElement {
       <div style="position: sticky; top: 0; z-index: 1001; background: white;">
         <app-header></app-header>
 
-        <!-- Hamburger Menu Button -->
-        <button id="hamburgerMenu" style="
-          position: fixed;
-          top: 60px;
-          right: 12px;
-          background: rgba(255, 255, 255, 0.2);
-          border: none;
-          color: white;
-          font-size: 1.2rem;
-          padding: 6px;
-          border-radius: 6px;
-          cursor: pointer;
-          z-index: 1002;
-          transition: background 0.2s ease;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
-          <i class="mdi mdi-menu"></i>
-        </button>
-
         <!-- Dropdown Menu -->
         <div id="dropdownMenu" style="
           position: absolute;
           top: 100%;
-          right: 15px;
+          left: 50%;
+          transform: translateX(-50%);
           background: white;
           border: 1px solid #ddd;
           border-radius: 8px;
