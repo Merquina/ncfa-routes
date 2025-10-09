@@ -455,7 +455,7 @@ class AddressBookPage extends HTMLElement {
           margin: 0 0 12px 0;
           padding: 8px 0;
           border-bottom: 3px solid #3182ce;
-          scroll-margin-top: 200px;
+          scroll-margin-top: 80px;
         }
 
         @media (max-width: 600px) {

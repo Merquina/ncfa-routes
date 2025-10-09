@@ -8,8 +8,8 @@ class TasksPage extends HTMLElement {
       completed: [],
     };
     this.completedCollapsed = true;
-    this.needOwnerCollapsed = false;
-    this.withOwnerIncompleteCollapsed = false;
+    this.needOwnerCollapsed = true; // Start collapsed, will expand if has content
+    this.withOwnerIncompleteCollapsed = true; // Start collapsed, will expand if has content
   }
 
   connectedCallback() {
@@ -37,6 +37,12 @@ class TasksPage extends HTMLElement {
         (t) => t.status === "withOwnerIncomplete"
       );
       this.tasks.completed = tasks.filter((t) => t.status === "completed");
+
+      // Auto-expand sections with content
+      this.needOwnerCollapsed = this.tasks.needOwner.length === 0;
+      this.withOwnerIncompleteCollapsed =
+        this.tasks.withOwnerIncomplete.length === 0;
+      this.completedCollapsed = true; // Always start collapsed
 
       this.renderTasks();
     } catch (error) {

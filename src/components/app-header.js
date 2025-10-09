@@ -9,6 +9,26 @@ class AppHeader extends HTMLElement {
     this.setupClickHandler();
   }
 
+  static get observedAttributes() {
+    return ["hide-menu"];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === "hide-menu") {
+      this.updateMenuVisibility();
+    }
+  }
+
+  updateMenuVisibility() {
+    const hamburgerContainer = this.shadowRoot.querySelector(
+      ".hamburger-container"
+    );
+    if (hamburgerContainer) {
+      const hideMenu = this.hasAttribute("hide-menu");
+      hamburgerContainer.style.display = hideMenu ? "none" : "flex";
+    }
+  }
+
   setupClickHandler() {
     // Set up hamburger menu click handler
     const hamburgerBtn = this.shadowRoot.querySelector("#hamburgerBtn");
@@ -19,6 +39,8 @@ class AppHeader extends HTMLElement {
         );
       });
     }
+    // Initial menu visibility check
+    this.updateMenuVisibility();
   }
 
   render() {
