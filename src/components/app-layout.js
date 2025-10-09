@@ -74,21 +74,10 @@ class AppLayout extends HTMLElement {
   }
 
   setupMenuHandlers() {
-    const hamburger = this.shadowRoot.querySelector("#hamburgerMenu");
-    if (hamburger) {
-      hamburger.addEventListener("click", () => this.toggleMenu());
-    }
-
     // Close menu when clicking outside
     this.shadowRoot.addEventListener("click", (event) => {
       const menu = this.shadowRoot.querySelector("#dropdownMenu");
-      const hamburger = this.shadowRoot.querySelector("#hamburgerMenu");
-      if (
-        menu &&
-        hamburger &&
-        !menu.contains(event.target) &&
-        !hamburger.contains(event.target)
-      ) {
+      if (menu && !menu.contains(event.target)) {
         menu.style.display = "none";
       }
     });
@@ -125,10 +114,11 @@ class AppLayout extends HTMLElement {
   }
 
   setupHeaderHandler() {
+    // Listen for hamburger menu clicks from the header
     const header = this.shadowRoot.querySelector("app-header");
     if (header) {
-      header.addEventListener("header-click", () => {
-        this.goToSignInPage();
+      header.addEventListener("hamburger-click", () => {
+        this.toggleMenu();
       });
     }
   }

@@ -418,22 +418,17 @@ class TasksPage extends HTMLElement {
   }
 
   renderTasks() {
+    // Save scroll position before re-render
+    const pageContainer = document
+      .querySelector("app-layout")
+      ?.shadowRoot?.querySelector(".page-container");
+    const scrollTop = pageContainer?.scrollTop || 0;
+
     const needOwnerContainer = this.shadowRoot.querySelector("#needOwnerTasks");
     const withOwnerIncompleteContainer = this.shadowRoot.querySelector(
       "#withOwnerIncompleteTasks"
     );
     const completedContainer = this.shadowRoot.querySelector("#completedTasks");
-
-    // Auto-collapse empty sections
-    if (this.tasks.needOwner.length === 0 && !this.needOwnerCollapsed) {
-      this.needOwnerCollapsed = true;
-    }
-    if (
-      this.tasks.withOwnerIncomplete.length === 0 &&
-      !this.withOwnerIncompleteCollapsed
-    ) {
-      this.withOwnerIncompleteCollapsed = true;
-    }
 
     if (needOwnerContainer) {
       if (this.tasks.needOwner.length === 0) {
@@ -519,6 +514,13 @@ class TasksPage extends HTMLElement {
         : "-";
     if (completedIcon)
       completedIcon.textContent = this.completedCollapsed ? "+" : "-";
+
+    // Restore scroll position after re-render
+    if (pageContainer && scrollTop > 0) {
+      requestAnimationFrame(() => {
+        pageContainer.scrollTop = scrollTop;
+      });
+    }
   }
 
   render() {
