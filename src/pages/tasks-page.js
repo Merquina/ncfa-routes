@@ -71,6 +71,31 @@ class TasksPage extends HTMLElement {
     if (completedHeader) {
       completedHeader.addEventListener("click", () => this.toggleCompleted());
     }
+
+    // Event delegation for task action buttons
+    this.shadowRoot.addEventListener("click", (e) => {
+      const button = e.target.closest("[data-action]");
+      if (!button) return;
+
+      const action = button.dataset.action;
+      const taskId = parseInt(button.dataset.taskId);
+      const listType = button.dataset.listType;
+
+      switch (action) {
+        case "volunteer":
+          this.volunteerForTask(taskId);
+          break;
+        case "complete":
+          this.completeTask(taskId);
+          break;
+        case "uncomplete":
+          this.uncompleteTask(taskId);
+          break;
+        case "delete":
+          this.deleteTask(taskId, listType);
+          break;
+      }
+    });
   }
 
   toggleNeedOwner() {
@@ -336,15 +361,15 @@ class TasksPage extends HTMLElement {
           ${
             isCompleted
               ? `
-            <button class="icon-btn" onclick="this.getRootNode().host.uncompleteTask(${task.id})" title="Move back to pending">
+            <button class="icon-btn" data-action="uncomplete" data-task-id="${task.id}" title="Move back to pending">
               <i class="mdi mdi-undo"></i>
             </button>
           `
               : ""
           }
-          <button class="icon-btn delete-btn" onclick="this.getRootNode().host.deleteTask(${
+          <button class="icon-btn delete-btn" data-action="delete" data-task-id="${
             task.id
-          }, '${listType}')" title="Delete task">
+          }" data-list-type="${listType}" title="Delete task">
             <i class="mdi mdi-delete"></i>
           </button>
         </div>
@@ -386,7 +411,7 @@ class TasksPage extends HTMLElement {
                 </span>
               `
                   : `
-                <button class="volunteer-btn" onclick="this.getRootNode().host.volunteerForTask(${task.id})">
+                <button class="volunteer-btn" data-action="volunteer" data-task-id="${task.id}">
                   <i class="mdi mdi-hand-heart"></i>
                   I'll do this
                 </button>
@@ -397,7 +422,7 @@ class TasksPage extends HTMLElement {
             ${
               task.volunteer
                 ? `
-              <button class="complete-btn" onclick="this.getRootNode().host.completeTask(${task.id})">
+              <button class="complete-btn" data-action="complete" data-task-id="${task.id}">
                 <i class="mdi mdi-check-circle"></i>
                 Mark Complete
               </button>
