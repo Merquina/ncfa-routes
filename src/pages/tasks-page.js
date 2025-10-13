@@ -209,6 +209,13 @@ class TasksPage extends HTMLElement {
   }
 
   async volunteerForTask(taskId) {
+    // Get user name from localStorage
+    const userName = localStorage.getItem("gapi_user_name");
+    if (!userName) {
+      alert("Please sign in to volunteer for tasks");
+      return;
+    }
+
     // Check if task is in needOwner list
     let taskIndex = this.tasks.needOwner.findIndex((t) => t.id === taskId);
     let task = null;
@@ -216,13 +223,6 @@ class TasksPage extends HTMLElement {
     if (taskIndex !== -1) {
       // Move from needOwner to pending
       task = this.tasks.needOwner.splice(taskIndex, 1)[0];
-      const userName =
-        localStorage.getItem("gapi_user_name") || prompt("Enter your name:");
-      if (!userName) {
-        // Put it back if user cancels
-        this.tasks.needOwner.splice(taskIndex, 0, task);
-        return;
-      }
       task.volunteer = userName;
       task.status = "withOwnerIncomplete";
       this.tasks.withOwnerIncomplete.unshift(task);
@@ -230,10 +230,6 @@ class TasksPage extends HTMLElement {
       // Check if it's already in pending (shouldn't happen, but handle it)
       task = this.tasks.withOwnerIncomplete.find((t) => t.id === taskId);
       if (!task) return;
-
-      const userName =
-        localStorage.getItem("gapi_user_name") || prompt("Enter your name:");
-      if (!userName) return;
 
       task.volunteer = userName;
     }

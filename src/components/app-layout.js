@@ -69,16 +69,49 @@ class AppLayout extends HTMLElement {
   toggleMenu() {
     const menu = this.shadowRoot.querySelector("#dropdownMenu");
     if (menu) {
-      menu.style.display = menu.style.display === "none" ? "block" : "none";
+      const isVisible = menu.style.display !== "none";
+      menu.style.display = isVisible ? "none" : "block";
     }
   }
 
   setupMenuHandlers() {
-    // Close menu when clicking outside
+    // Event delegation for all menu interactions
     this.shadowRoot.addEventListener("click", (event) => {
       const menu = this.shadowRoot.querySelector("#dropdownMenu");
-      if (menu && !menu.contains(event.target)) {
-        menu.style.display = "none";
+
+      // Handle menu item clicks using data attributes
+      const menuItem = event.target.closest("[data-menu-action]");
+      if (menuItem) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const action = menuItem.dataset.menuAction;
+        console.log("Menu action:", action);
+
+        switch (action) {
+          case "refresh":
+            this.refreshData();
+            break;
+          case "timesheet":
+            window.location.hash = "/timesheet";
+            this.toggleMenu();
+            break;
+          case "backend":
+            this.openBackendData();
+            this.toggleMenu();
+            break;
+          case "signout":
+            this.handleSignOut();
+            break;
+        }
+        return;
+      }
+
+      // Close menu when clicking outside
+      if (menu && menu.style.display === "block") {
+        if (!menu.contains(event.target)) {
+          menu.style.display = "none";
+        }
       }
     });
 
@@ -97,6 +130,7 @@ class AppLayout extends HTMLElement {
 
   handleSignOut() {
     this.dispatchEvent(new CustomEvent("sign-out", { bubbles: true }));
+    this.toggleMenu();
   }
 
   async refreshData() {
@@ -108,6 +142,11 @@ class AppLayout extends HTMLElement {
 
     try {
       console.log("🔄 Refreshing data from Google Sheets...");
+
+      // Show loading indicator
+      const menu = this.shadowRoot.querySelector("#dropdownMenu");
+      if (menu) menu.style.display = "none";
+
       await sheetsAPI.fetchSheetData();
 
       // Reload current page to show updated data
@@ -117,7 +156,6 @@ class AppLayout extends HTMLElement {
         window.location.hash = currentHash || "#/reminders";
       }, 50);
 
-      this.toggleMenu();
       console.log("✅ Data refreshed successfully");
     } catch (error) {
       console.error("❌ Error refreshing data:", error);
@@ -165,7 +203,7 @@ class AppLayout extends HTMLElement {
           display: flex;
           flex-direction: column;
           height: 100vh;
-          height: 100dvh; /* Dynamic viewport height for mobile */
+          height: 100dvh;
           width: 100vw;
           width: 100dvw;
           max-width: 100%;
@@ -189,17 +227,13 @@ class AppLayout extends HTMLElement {
           box-sizing: border-box;
         }
 
-
-
-
-
         .main-content {
           flex: 1;
           display: flex;
           flex-direction: column;
           overflow: hidden;
           position: relative;
-          min-height: 0; /* Allow flex shrinking */
+          min-height: 0;
         }
 
         .page-container {
@@ -212,9 +246,8 @@ class AppLayout extends HTMLElement {
           background: white;
           -webkit-overflow-scrolling: touch;
           scroll-behavior: smooth;
-          /* Mobile optimizations */
           overscroll-behavior: contain;
-          -webkit-transform: translateZ(0); /* Hardware acceleration */
+          -webkit-transform: translateZ(0);
           transform: translateZ(0);
           width: 100%;
           max-width: 100%;
@@ -230,7 +263,6 @@ class AppLayout extends HTMLElement {
           flex-shrink: 0;
           position: relative;
           z-index: 100;
-          /* Mobile safe area */
           padding-bottom: max(6px, env(safe-area-inset-bottom));
           box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
         }
@@ -251,7 +283,6 @@ class AppLayout extends HTMLElement {
           gap: 4px;
           position: relative;
           min-height: 44px;
-          /* Touch optimization */
           -webkit-tap-highlight-color: transparent;
           touch-action: manipulation;
         }
@@ -290,7 +321,30 @@ class AppLayout extends HTMLElement {
           letter-spacing: var(--letter-spacing, 0.025em);
         }
 
-        /* Mobile optimizations */
+        .menu-item {
+          width: 100%;
+          padding: 12px 16px;
+          border: none;
+          background: none;
+          text-align: left;
+          cursor: pointer;
+          border-bottom: 1px solid #eee;
+          font-family: inherit;
+          transition: background 0.2s ease;
+        }
+
+        .menu-item:hover {
+          background: #f8f9fa;
+        }
+
+        .menu-item:last-child {
+          border-bottom: none;
+        }
+
+        .menu-item.danger {
+          color: #e53e3e;
+        }
+
         @media (max-width: 600px) {
           .tab-label {
             font-size: var(--font-size-small, 0.875rem);
@@ -315,55 +369,19 @@ class AppLayout extends HTMLElement {
           z-index: 1003;
           display: none;
         ">
-          <button onclick="this.getRootNode().host.refreshData()" style="
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            font-family: inherit;
-          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+          <button class="menu-item" data-menu-action="refresh">
             <i class="mdi mdi-refresh" style="margin-right: 8px; color: #4caf50;"></i>
             Refresh Data
           </button>
-          <button onclick="window.location.hash='/timesheet'; this.getRootNode().host.toggleMenu();" style="
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            font-family: inherit;
-          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+          <button class="menu-item" data-menu-action="timesheet">
             <i class="mdi mdi-clipboard-clock-outline" style="margin-right: 8px; color: #666;"></i>
             Timesheet
           </button>
-          <button onclick="this.getRootNode().host.openBackendData()" style="
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            font-family: inherit;
-          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+          <button class="menu-item" data-menu-action="backend">
             <i class="mdi mdi-table" style="margin-right: 8px; color: #666;"></i>
             Open Backend Data
           </button>
-          <button onclick="this.getRootNode().host.handleSignOut()" style="
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            font-family: inherit;
-            color: #e53e3e;
-          " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+          <button class="menu-item danger" data-menu-action="signout">
             <i class="mdi mdi-logout" style="margin-right: 8px;"></i>
             Sign Out
           </button>

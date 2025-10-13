@@ -244,7 +244,11 @@ class RouteDetails extends HTMLElement {
     } - ${title}</h3>
           <div class="meta">${this.formatDate(
             route.displayDate || route.date
-          )} · ${route.startTime || route.Time || "TBD"}</div>
+          )} · ${route.startTime || route.Time || "TBD"}${
+      route.Job || route.job
+        ? ` · <strong>${route.Job || route.job}</strong>`
+        : ""
+    }</div>
           <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn" onclick="window.print()"><i class="mdi mdi-printer"></i> Print</button>
             ${
@@ -384,20 +388,28 @@ class RouteDetails extends HTMLElement {
 
       const rows = [];
       for (let i = 0; i < Math.max(contacts.length, phones.length); i++) {
-        const contactName = contacts[i] || "Contact";
+        const contactName =
+          contacts[i] || (phones[i] ? `Contact ${i + 1}` : null);
         const phone = phones[i];
 
-        rows.push(`
-          <div style="margin-bottom: 4px;">
-            <i class="mdi mdi-account" style="color:#666;"></i>
-            <strong>${contactName}</strong>
-            ${
-              phone
-                ? `<a href="tel:${phone}" style="color:#3182ce;text-decoration:none;margin-left:8px;font-weight:500;"><i class="mdi mdi-phone"></i> ${phone}</a>`
-                : ""
-            }
-          </div>
-        `);
+        // Only show row if we have a contact name or a phone number
+        if (contactName || phone) {
+          rows.push(`
+            <div style="margin-bottom: 4px;">
+              <i class="mdi mdi-account" style="color:#666;"></i>
+              ${contactName ? `<strong>${contactName}</strong>` : ""}
+              ${
+                phone
+                  ? `<a href="tel:${phone}" style="color:#3182ce;text-decoration:none;margin-left:8px;font-weight:500;"><i class="mdi mdi-phone"></i> ${phone}</a>`
+                  : `${
+                      contactName && !phone
+                        ? '<span style="color:#999;margin-left:8px;font-style:italic;">(no phone)</span>'
+                        : ""
+                    }`
+              }
+            </div>
+          `);
+        }
       }
 
       console.log("renderPhoneNumbers - rows generated:", rows.length);

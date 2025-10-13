@@ -237,6 +237,10 @@ class RouteCard extends HTMLElement {
       isSPFM
         ? ` <span class="market-text">- ${route.market || "Market"}</span>`
         : ""
+    }${
+      route.Job || route.job
+        ? ` · <span style="color: #666;">${route.Job || route.job}</span>`
+        : ""
     }
         </div>
         <div class="card-workers">
