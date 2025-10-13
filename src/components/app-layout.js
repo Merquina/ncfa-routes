@@ -6,15 +6,22 @@ class AppLayout extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+    this._handlersSetup = false;
   }
 
   connectedCallback() {
     this.render();
     this.registerDefaultRoutes();
-    this.setupMenuHandlers();
-    this.setupRouting();
-    this._wireSyncStatus();
-    this.setupHeaderHandler();
+
+    // Only setup handlers once to avoid multiple event listeners
+    if (!this._handlersSetup) {
+      this.setupMenuHandlers();
+      this.setupRouting();
+      this._wireSyncStatus();
+      this.setupHeaderHandler();
+      this._handlersSetup = true;
+    }
+
     // Ensure page starts at top
     setTimeout(() => this.scrollToTop(), 100);
   }

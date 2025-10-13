@@ -10,13 +10,19 @@ class TasksPage extends HTMLElement {
     this.completedCollapsed = true;
     this.needOwnerCollapsed = true; // Start collapsed, will expand if has content
     this.withOwnerIncompleteCollapsed = true; // Start collapsed, will expand if has content
+    this._handlersSetup = false;
   }
 
   connectedCallback() {
     console.log("Tasks Page - connectedCallback");
     this.render();
     this.loadTasks();
-    this.setupEventListeners();
+
+    // Only setup event listeners once to avoid multiple handlers
+    if (!this._handlersSetup) {
+      this.setupEventListeners();
+      this._handlersSetup = true;
+    }
   }
 
   async loadTasks() {
