@@ -26,6 +26,7 @@ import "../pages/route-details-page.js";
 import "../pages/address-book-page.js";
 import "../pages/tasks-page.js";
 import "../pages/timesheet-page.js";
+import "../pages/routes-page.js";
 
 // Optional named exports for convenience (valid ESM syntax)
 export const InventoryComponent = customElements.get("inventory-component");

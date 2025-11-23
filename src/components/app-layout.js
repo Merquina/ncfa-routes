@@ -49,6 +49,7 @@ class AppLayout extends HTMLElement {
       );
       router.registerRoute("/tasks", "tasks-page", "Tasks");
       router.registerRoute("/timesheet", "timesheet-page", "Timesheet");
+      router.registerRoute("/routes", "routes-page", "Route Templates");
 
       router.registerRoute("/route", "route-details-page", "Route Details");
     } catch {}
@@ -101,6 +102,10 @@ class AppLayout extends HTMLElement {
             break;
           case "timesheet":
             window.location.hash = "/timesheet";
+            this.toggleMenu();
+            break;
+          case "routes":
+            window.location.hash = "/routes";
             this.toggleMenu();
             break;
           case "backend":
@@ -379,6 +384,10 @@ class AppLayout extends HTMLElement {
           <button class="menu-item" data-menu-action="refresh">
             <i class="mdi mdi-refresh" style="margin-right: 8px; color: #4caf50;"></i>
             Refresh Data
+          </button>
+          <button class="menu-item" data-menu-action="routes">
+            <i class="mdi mdi-routes" style="margin-right: 8px; color: #3182ce;"></i>
+            Routes
           </button>
           <button class="menu-item" data-menu-action="timesheet">
             <i class="mdi mdi-clipboard-clock-outline" style="margin-right: 8px; color: #666;"></i>
