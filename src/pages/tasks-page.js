@@ -58,54 +58,72 @@ class TasksPage extends HTMLElement {
   }
 
   setupEventListeners() {
-    // Add task button
-    const addBtn = this.shadowRoot.querySelector("#addTaskBtn");
-    if (addBtn) {
-      addBtn.addEventListener("click", () => this.showAddTaskModal());
-    }
-
-    // Section toggles
-    const needOwnerHeader = this.shadowRoot.querySelector("#needOwnerHeader");
-    if (needOwnerHeader) {
-      needOwnerHeader.addEventListener("click", () => this.toggleNeedOwner());
-    }
-
-    const withOwnerIncompleteHeader = this.shadowRoot.querySelector(
-      "#withOwnerIncompleteHeader"
-    );
-    if (withOwnerIncompleteHeader) {
-      withOwnerIncompleteHeader.addEventListener("click", () =>
-        this.toggleWithOwnerIncomplete()
-      );
-    }
-
-    const completedHeader = this.shadowRoot.querySelector("#completedHeader");
-    if (completedHeader) {
-      completedHeader.addEventListener("click", () => this.toggleCompleted());
-    }
-
-    // Event delegation for task action buttons
+    // Use event delegation for all clicks within shadow DOM
     this.shadowRoot.addEventListener("click", (e) => {
+      // Add task button
+      if (e.target.closest("#addTaskBtn")) {
+        this.showAddTaskModal();
+        return;
+      }
+
+      // Modal close button
+      if (e.target.closest(".close-btn")) {
+        this.hideAddTaskModal();
+        return;
+      }
+
+      // Modal cancel button
+      if (e.target.closest(".btn-secondary")) {
+        this.hideAddTaskModal();
+        return;
+      }
+
+      // Modal add button
+      if (
+        e.target.closest(".btn-primary") &&
+        e.target.closest("#addTaskModal")
+      ) {
+        this.addTask();
+        return;
+      }
+
+      // Section toggles
+      if (e.target.closest("#needOwnerHeader")) {
+        this.toggleNeedOwner();
+        return;
+      }
+
+      if (e.target.closest("#withOwnerIncompleteHeader")) {
+        this.toggleWithOwnerIncomplete();
+        return;
+      }
+
+      if (e.target.closest("#completedHeader")) {
+        this.toggleCompleted();
+        return;
+      }
+
+      // Task action buttons
       const button = e.target.closest("[data-action]");
-      if (!button) return;
+      if (button) {
+        const action = button.dataset.action;
+        const taskId = parseInt(button.dataset.taskId);
+        const listType = button.dataset.listType;
 
-      const action = button.dataset.action;
-      const taskId = parseInt(button.dataset.taskId);
-      const listType = button.dataset.listType;
-
-      switch (action) {
-        case "volunteer":
-          this.volunteerForTask(taskId);
-          break;
-        case "complete":
-          this.completeTask(taskId);
-          break;
-        case "uncomplete":
-          this.uncompleteTask(taskId);
-          break;
-        case "delete":
-          this.deleteTask(taskId, listType);
-          break;
+        switch (action) {
+          case "volunteer":
+            this.volunteerForTask(taskId);
+            break;
+          case "complete":
+            this.completeTask(taskId);
+            break;
+          case "uncomplete":
+            this.uncompleteTask(taskId);
+            break;
+          case "delete":
+            this.deleteTask(taskId, listType);
+            break;
+        }
       }
     });
   }
@@ -1091,7 +1109,7 @@ class TasksPage extends HTMLElement {
         <div class="modal-content">
           <div class="modal-header">
             <h3 class="modal-title">Add New Task</h3>
-            <button class="close-btn" onclick="this.getRootNode().host.hideAddTaskModal()">×</button>
+            <button class="close-btn">×</button>
           </div>
           <div class="modal-body">
             <div class="form-group">
@@ -1113,8 +1131,8 @@ class TasksPage extends HTMLElement {
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="this.getRootNode().host.hideAddTaskModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="this.getRootNode().host.addTask()">Add Task</button>
+            <button class="btn btn-secondary">Cancel</button>
+            <button class="btn btn-primary">Add Task</button>
           </div>
         </div>
       </div>

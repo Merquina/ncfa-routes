@@ -7,10 +7,16 @@ class AppLayout extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._handlersSetup = false;
+    this._rendered = false;
   }
 
   connectedCallback() {
-    this.render();
+    // Only render once
+    if (!this._rendered) {
+      this.render();
+      this._rendered = true;
+    }
+
     this.registerDefaultRoutes();
 
     // Only setup handlers once to avoid multiple event listeners
