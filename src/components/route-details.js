@@ -131,11 +131,127 @@ class RouteDetails extends HTMLElement {
     return undefined;
   }
 
+  connectedCallback() {
+    super.connectedCallback && super.connectedCallback();
+    this.setupPoundsEventListeners();
+  }
+
+  setupPoundsEventListeners() {
+    if (!this.shadowRoot) return;
+
+    // Use event delegation for pounds save buttons
+    this.shadowRoot.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("btn-save-pounds")) {
+        e.preventDefault();
+        await this.savePounds(e.target);
+      }
+    });
+  }
+
+  async savePounds(button) {
+    const stopIndex = button.dataset.stopIndex;
+    const location = button.dataset.location;
+    const input = this.shadowRoot.querySelector(`#pounds-${stopIndex}`);
+    const pounds = input?.value || "0";
+
+    console.log("💾 Saving pounds:", { stopIndex, location, pounds });
+
+    try {
+      button.disabled = true;
+      button.textContent = "⏳ Saving...";
+
+      // Save to Google Sheets
+      const sheetsAPI = window.sheetsAPI;
+      if (!sheetsAPI) {
+        throw new Error("Google Sheets API not available");
+      }
+
+      const route = this._route;
+      const routeId = route.id || route._routeId || "unknown";
+      const date = route.displayDate || route.date || new Date().toISOString();
+
+      // Create pounds record
+      const poundsRecord = {
+        routeId,
+        date,
+        stopIndex: parseInt(stopIndex),
+        location,
+        pounds: parseFloat(pounds) || 0,
+        timestamp: new Date().toISOString(),
+        user: localStorage.getItem("gapi_user_name") || "Unknown",
+      };
+
+      await sheetsAPI.savePoundsData(poundsRecord);
+
+      // Update UI
+      button.style.background = "#28a745";
+      button.textContent = "✅ Saved";
+
+      // Show success notification
+      this.showSuccessNotification(`Saved ${pounds} lbs for ${location}`);
+
+      setTimeout(() => {
+        button.disabled = false;
+        button.textContent = "💾 Save";
+      }, 2000);
+    } catch (error) {
+      console.error("❌ Error saving pounds:", error);
+      button.style.background = "#dc3545";
+      button.textContent = "❌ Error";
+      alert(`Failed to save pounds: ${error.message}`);
+
+      setTimeout(() => {
+        button.disabled = false;
+        button.style.background = "#28a745";
+        button.textContent = "💾 Save";
+      }, 3000);
+    }
+  }
+
+  showSuccessNotification(message) {
+    const notification = document.createElement("div");
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 6px;
+      z-index: 10000;
+      font-size: 0.9rem;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 3000);
+  }
+
   async render() {
     const route = this._route;
     if (!route) {
       this.shadowRoot.innerHTML = `<div style="padding:12px;color:#666;">No route selected</div>`;
       return;
+    }
+
+    // Load existing pounds data for this route
+    let poundsData = [];
+    try {
+      const sheetsAPI = window.sheetsAPI;
+      if (sheetsAPI && route.id && route.date) {
+        poundsData = await sheetsAPI.getPoundsDataForRoute(
+          route.id,
+          route.date
+        );
+      }
+    } catch (error) {
+      console.warn("Could not load pounds data:", error);
     }
 
     const type = route.type || "spfm";
@@ -236,6 +352,8 @@ class RouteDetails extends HTMLElement {
         }
         .btn:hover { background:#2c5282; }
         .btn:disabled { opacity:0.6; cursor:default; }
+        .btn-save-pounds:hover { background:#218838; }
+        .btn-save-pounds:disabled { background:#6c757d; cursor:default; }
       </style>
       <div class="container">
         <div class="header">
@@ -299,6 +417,33 @@ class RouteDetails extends HTMLElement {
                 ${s.address ? `<div>${s.address}</div>` : ""}
                 ${this.renderPhoneNumbers(s.location)}
                 ${this.renderContactInfo(s.location)}
+                <div style="margin-top:12px; padding:8px; background:#f8f9fa; border-radius:6px; border:1px solid #e9ecef;">
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <label style="font-weight:600; color:#495057; font-size:0.9rem;">📦 lbs:</label>
+                    <input
+                      type="number"
+                      id="pounds-${idx}"
+                      placeholder="0"
+                      min="0"
+                      step="0.1"
+                      style="width:80px; padding:4px 8px; border:1px solid #ced4da; border-radius:4px; font-size:0.9rem;"
+                      value="${(() => {
+                        const existingData = poundsData.find(
+                          (p) => p.stopIndex === idx
+                        );
+                        return existingData
+                          ? existingData.pounds
+                          : s.pounds || "";
+                      })()}"
+                    />
+                    <button
+                      class="btn-save-pounds"
+                      data-stop-index="${idx}"
+                      data-location="${s.location || s.name || "Stop"}"
+                      style="background:#28a745; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.8rem; cursor:pointer; font-weight:500;"
+                    >💾 Save</button>
+                  </div>
+                </div>
                 <div style="margin-top:8px;">
                   ${this.renderAddressButton(s.location)}
                 </div>

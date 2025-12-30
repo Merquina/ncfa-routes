@@ -2282,6 +2282,140 @@ class SheetsAPIService extends EventTarget {
       throw error;
     }
   }
+
+  async savePoundsData(poundsRecord) {
+    try {
+      console.log("📦 Attempting to save pounds data:", poundsRecord);
+      await this.ensureGapiClientReady();
+      console.log("✓ GAPI client ready");
+
+      // Check if PoundsData sheet has headers, if not, create them
+      const poundsRange = "PoundsData!A1:Z1";
+      let headers;
+
+      try {
+        console.log("📋 Checking for existing PoundsData headers...");
+        const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: poundsRange,
+        });
+
+        headers = resp.result?.values?.[0];
+        if (!headers || headers.length === 0) {
+          console.log(
+            "📝 No PoundsData headers found, creating new headers..."
+          );
+          // Create headers
+          headers = [
+            "routeId",
+            "date",
+            "stopIndex",
+            "location",
+            "pounds",
+            "timestamp",
+            "user",
+          ];
+          await this.updateSheet("PoundsData", "A1:G1", [headers]);
+          console.log("✓ PoundsData headers created");
+        } else {
+          console.log("✓ PoundsData headers found:", headers);
+        }
+      } catch (error) {
+        console.log(
+          "⚠️ Error reading PoundsData headers, creating new headers:",
+          error
+        );
+        // Sheet might not exist, create headers
+        headers = [
+          "routeId",
+          "date",
+          "stopIndex",
+          "location",
+          "pounds",
+          "timestamp",
+          "user",
+        ];
+        await this.updateSheet("PoundsData", "A1:G1", [headers]);
+        console.log("✓ PoundsData headers created after error");
+      }
+
+      // Prepare row data
+      const row = [
+        poundsRecord.routeId || "",
+        poundsRecord.date || "",
+        poundsRecord.stopIndex || 0,
+        poundsRecord.location || "",
+        poundsRecord.pounds || 0,
+        poundsRecord.timestamp || "",
+        poundsRecord.user || "",
+      ];
+
+      console.log("📤 Appending pounds data row to sheet:", row);
+      await this.appendToSheet("PoundsData", [row]);
+      console.log(
+        "✅ Pounds data saved to Google Sheets successfully:",
+        poundsRecord
+      );
+    } catch (error) {
+      console.error("❌ Error saving pounds data - Full error details:", error);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      if (error.result) {
+        console.error("Error result:", error.result);
+      }
+      throw error;
+    }
+  }
+
+  async getPoundsDataForRoute(routeId, date) {
+    try {
+      console.log("📦 Loading pounds data for route:", { routeId, date });
+      await this.ensureGapiClientReady();
+
+      // Get all pounds data from sheet
+      const poundsRange = "PoundsData!A:Z";
+      const resp = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: poundsRange,
+      });
+
+      const values = resp.result?.values || [];
+      if (values.length < 2) {
+        console.log("📦 No pounds data found");
+        return [];
+      }
+
+      const headers = values[0];
+      const routeIdIndex = headers.indexOf("routeId");
+      const dateIndex = headers.indexOf("date");
+      const stopIndexIndex = headers.indexOf("stopIndex");
+      const locationIndex = headers.indexOf("location");
+      const poundsIndex = headers.indexOf("pounds");
+
+      // Filter records for this route and date
+      const matchingRecords = [];
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        const recordRouteId = row[routeIdIndex] || "";
+        const recordDate = row[dateIndex] || "";
+
+        if (recordRouteId === routeId && recordDate === date) {
+          matchingRecords.push({
+            stopIndex: parseInt(row[stopIndexIndex]) || 0,
+            location: row[locationIndex] || "",
+            pounds: parseFloat(row[poundsIndex]) || 0,
+          });
+        }
+      }
+
+      console.log("✅ Found pounds data:", matchingRecords.length, "records");
+      return matchingRecords;
+    } catch (error) {
+      console.error("❌ Error loading pounds data:", error);
+      return [];
+    }
+  }
 }
 
 export const sheetsAPI = new SheetsAPIService();
