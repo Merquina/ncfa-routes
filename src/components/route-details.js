@@ -158,7 +158,7 @@ class RouteDetails extends HTMLElement {
 
     try {
       button.disabled = true;
-      button.textContent = "⏳ Saving...";
+      button.textContent = "⏳";
 
       // Save to Google Sheets
       const sheetsAPI = window.sheetsAPI;
@@ -185,25 +185,25 @@ class RouteDetails extends HTMLElement {
 
       // Update UI
       button.style.background = "#555";
-      button.textContent = "✅ Saved";
+      button.textContent = "✅";
 
       // Show success notification
       this.showSuccessNotification(`Saved ${pounds} lbs for ${location}`);
 
       setTimeout(() => {
         button.disabled = false;
-        button.textContent = "💾 Save";
+        button.textContent = "💾";
       }, 2000);
     } catch (error) {
       console.error("❌ Error saving pounds:", error);
       button.style.background = "#999";
-      button.textContent = "❌ Error";
+      button.textContent = "❌";
       alert(`Failed to save pounds: ${error.message}`);
 
       setTimeout(() => {
         button.disabled = false;
         button.style.background = "#666";
-        button.textContent = "💾 Save";
+        button.textContent = "💾";
       }, 3000);
     }
   }
@@ -368,18 +368,18 @@ class RouteDetails extends HTMLElement {
         : ""
     }</div>
           <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn" onclick="window.print()"><i class="mdi mdi-printer"></i> Print</button>
+            <button class="btn" onclick="window.print()"><i class="mdi mdi-printer"></i> 🖨️</button>
             ${
               stops.length
                 ? `<button class="btn" style="background:#777" onclick="window.open('${this.buildFullRouteUrl(
                     stops
-                  )}','_blank')"><i class="mdi mdi-map"></i> Full route on Google Maps</button>`
+                  )}','_blank')"><i class="mdi mdi-map"></i> 🗺️</button>`
                 : ""
             }
           </div>
         </div>
         <div class="section">
-          <div class="label">Workers</div>
+          <div class="label">👥</div>
           <div>${this.renderWorkers(
             workers,
             volunteers,
@@ -390,7 +390,7 @@ class RouteDetails extends HTMLElement {
           vans && vans.length
             ? `
           <div class="section">
-            <div class="label">Vans</div>
+            <div class="label">🚐</div>
             <div class="chips">${vans
               .map(
                 (v) =>
@@ -406,7 +406,7 @@ class RouteDetails extends HTMLElement {
           stops && stops.length
             ? `
           <div class="section">
-            <div class="label">Stops (${stops.length})</div>
+            <div class="label">📍 ${stops.length}</div>
             ${stops
               .map(
                 (s, idx) => `
@@ -419,7 +419,7 @@ class RouteDetails extends HTMLElement {
                 ${this.renderContactInfo(s.location)}
                 <div style="margin-top:12px; padding:8px; background:#f8f9fa; border-radius:6px; border:1px solid #e9ecef;">
                   <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    <label style="font-weight:600; color:#495057; font-size:0.9rem;">📦 lbs:</label>
+                    <label style="font-weight:600; color:#495057; font-size:0.9rem;">📦</label>
                     <input
                       type="number"
                       id="pounds-${idx}"
@@ -441,7 +441,7 @@ class RouteDetails extends HTMLElement {
                       data-stop-index="${idx}"
                       data-location="${s.location || s.name || "Stop"}"
                       style="background:#666; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.8rem; cursor:pointer; font-weight:500;"
-                    >💾 Save</button>
+                    >💾</button>
                   </div>
                 </div>
                 <div style="margin-top:8px;">

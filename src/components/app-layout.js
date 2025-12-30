@@ -389,23 +389,23 @@ class AppLayout extends HTMLElement {
         ">
           <button class="menu-item" data-menu-action="refresh">
             <i class="mdi mdi-refresh" style="margin-right: 8px; color: #666;"></i>
-            Refresh Data
+            🔄 Refresh
           </button>
           <button class="menu-item" data-menu-action="routes">
             <i class="mdi mdi-routes" style="margin-right: 8px; color: #666;"></i>
-            Routes
+            🗺️ Routes
           </button>
           <button class="menu-item" data-menu-action="timesheet">
             <i class="mdi mdi-clipboard-clock-outline" style="margin-right: 8px; color: #666;"></i>
-            Timesheet
+            ⏰ Time
           </button>
           <button class="menu-item" data-menu-action="backend">
             <i class="mdi mdi-table" style="margin-right: 8px; color: #666;"></i>
-            Open Backend Data
+            📊 Data
           </button>
           <button class="menu-item danger" data-menu-action="signout">
             <i class="mdi mdi-logout" style="margin-right: 8px;"></i>
-            Sign Out
+            ↩️ Out
           </button>
         </div>
       </div>
@@ -419,27 +419,27 @@ class AppLayout extends HTMLElement {
       <div class="bottom-tabs">
         <a href="/reminders" class="tab-btn" data-route="/reminders">
           <div class="tab-icon"><i class="mdi mdi-bell"></i></div>
-          <div class="tab-label">Reminders</div>
+          <div class="tab-label">🔔</div>
         </a>
         <a href="/tasks" class="tab-btn" data-route="/tasks">
           <div class="tab-icon"><i class="mdi mdi-clipboard-list-outline"></i></div>
-          <div class="tab-label">Tasks</div>
+          <div class="tab-label">📋</div>
         </a>
         <a href="/boxes" class="tab-btn" data-route="/boxes">
           <div class="tab-icon"><i class="mdi mdi-package-variant"></i></div>
-          <div class="tab-label">Boxes</div>
+          <div class="tab-label">📦</div>
         </a>
         <a href="/dates" class="tab-btn" data-route="/dates">
           <div class="tab-icon"><i class="mdi mdi-calendar"></i></div>
-          <div class="tab-label">Date</div>
+          <div class="tab-label">📅</div>
         </a>
         <a href="/workers" class="tab-btn" data-route="/workers">
           <div class="tab-icon"><i class="mdi mdi-account"></i></div>
-          <div class="tab-label">Worker</div>
+          <div class="tab-label">👤</div>
         </a>
         <a href="/address-book" class="tab-btn" data-route="/address-book">
           <div class="tab-icon"><i class="mdi mdi-book-open-page-variant"></i></div>
-          <div class="tab-label">Contacts</div>
+          <div class="tab-label">📞</div>
         </a>
 
       </div>

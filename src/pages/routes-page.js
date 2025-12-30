@@ -170,7 +170,7 @@ class RoutesPage extends HTMLElement {
               stops.length > 0
                 ? `
               <div class="route-stops">
-                <div class="stops-label">Stops:</div>
+                <div class="stops-label">📍 ${stops.length}:</div>
                 <ol class="stops-list">
                   ${stops.map((stop) => `<li>${stop}</li>`).join("")}
                 </ol>
@@ -411,8 +411,8 @@ class RoutesPage extends HTMLElement {
 
       <div class="routes-container">
         <div class="page-header">
-          <h2 class="page-title">Route Templates</h2>
-          <p class="page-description">Weekly route schedules and stops</p>
+          <h2 class="page-title">🗺️ Routes</h2>
+          <p class="page-description">Weekly schedules by day</p>
         </div>
         <div class="routes-list">
           <div class="loading">Loading routes...</div>
