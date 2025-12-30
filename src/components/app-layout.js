@@ -202,13 +202,28 @@ class AppLayout extends HTMLElement {
   setupHeaderHandler() {
     console.log("🔧 setupHeaderHandler called");
     // Listen for hamburger menu clicks from the header
-    const header = this.shadowRoot.querySelector("app-header");
-    console.log("🔧 header element found:", !!header);
-    if (header) {
-      header.addEventListener("hamburger-click", (e) => {
-        console.log("🍔 hamburger-click event received:", e);
-        this.toggleMenu();
-      });
+    const setupListener = () => {
+      const header = this.shadowRoot.querySelector("app-header");
+      console.log("🔧 header element found:", !!header);
+      if (header) {
+        header.addEventListener("hamburger-click", (e) => {
+          console.log("🍔 hamburger-click event received:", e);
+          this.toggleMenu();
+        });
+        return true;
+      }
+      return false;
+    };
+
+    // Try immediately, then retry if needed
+    if (!setupListener()) {
+      console.log("🔧 Header not found, retrying in 100ms...");
+      setTimeout(() => {
+        if (!setupListener()) {
+          console.log("🔧 Header not found after retry, retrying in 500ms...");
+          setTimeout(setupListener, 500);
+        }
+      }, 100);
     }
   }
 

@@ -201,6 +201,15 @@ class TasksPage extends HTMLElement {
 
   async addTask() {
     console.log("📝 addTask method called");
+
+    // Prevent multiple simultaneous calls
+    if (this._isAddingTask) {
+      console.log("📝 Already adding task, ignoring duplicate call");
+      return;
+    }
+
+    this._isAddingTask = true;
+
     try {
       const input = this.shadowRoot.querySelector("#newTaskInput");
       const dueDateInput = this.shadowRoot.querySelector("#newTaskDueDate");
@@ -216,55 +225,64 @@ class TasksPage extends HTMLElement {
 
       console.log("📝 Adding new task:", taskTitle);
 
-    // Get current user name from localStorage or use "Anonymous"
-    const userName = localStorage.getItem("gapi_user_name") || "Anonymous";
+      // Get current user name from localStorage or use "Anonymous"
+      const userName = localStorage.getItem("gapi_user_name") || "Anonymous";
 
-    const newTask = {
-      id: Date.now(),
-      title: taskTitle,
-      volunteer: "",
-      dueDate: dueDate,
-      status: "needOwner",
-      createdAt: new Date().toISOString(),
-      createdBy: userName,
-    };
+      const newTask = {
+        id: Date.now(),
+        title: taskTitle,
+        volunteer: "",
+        dueDate: dueDate,
+        status: "needOwner",
+        createdAt: new Date().toISOString(),
+        createdBy: userName,
+      };
 
-    // Add to UI first for immediate feedback
-    this.tasks.needOwner.unshift(newTask);
-    this.renderTasks();
-    this.hideAddTaskModal();
+      // Add to UI first for immediate feedback
+      this.tasks.needOwner.unshift(newTask);
+      this.renderTasks();
+      this.hideAddTaskModal();
 
-    // Save to Google Sheets
-    try {
-      console.log("💾 Saving task to Google Sheets...");
-      const sheetsAPI = window.sheetsAPI;
-      if (!sheetsAPI) {
-        throw new Error("Google Sheets API not available");
+      // Save to Google Sheets with timeout
+      try {
+        console.log("💾 Saving task to Google Sheets...");
+        const sheetsAPI = window.sheetsAPI;
+        if (!sheetsAPI) {
+          throw new Error("Google Sheets API not available");
+        }
+
+        // Add timeout to prevent hanging
+        const savePromise = sheetsAPI.saveTask(newTask);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Save operation timed out")), 10000)
+        );
+
+        await Promise.race([savePromise, timeoutPromise]);
+        console.log("✅ Task saved to Google Sheets successfully");
+
+        // Show success feedback
+        this.showSuccessMessage("Task saved successfully!");
+      } catch (error) {
+        console.error("❌ Error saving task to Google Sheets:", error);
+
+        // Remove from UI since save failed
+        const taskIndex = this.tasks.needOwner.findIndex(
+          (t) => t.id === newTask.id
+        );
+        if (taskIndex !== -1) {
+          this.tasks.needOwner.splice(taskIndex, 1);
+          this.renderTasks();
+        }
+
+        alert(
+          `Failed to save task: ${error.message}\nTask was not saved to Google Sheets.`
+        );
       }
-
-      await sheetsAPI.saveTask(newTask);
-      console.log("✅ Task saved to Google Sheets successfully");
-
-      // Show success feedback
-      this.showSuccessMessage("Task saved successfully!");
-    } catch (error) {
-      console.error("❌ Error saving task to Google Sheets:", error);
-
-      // Remove from UI since save failed
-      const taskIndex = this.tasks.needOwner.findIndex(
-        (t) => t.id === newTask.id
-      );
-      if (taskIndex !== -1) {
-        this.tasks.needOwner.splice(taskIndex, 1);
-        this.renderTasks();
-      }
-
-      alert(
-        `Failed to save task: ${error.message}\nTask was not saved to Google Sheets.`
-      );
     } catch (error) {
       console.error("❌ Error in addTask method:", error);
       alert(`Error adding task: ${error.message}`);
+    } finally {
+      this._isAddingTask = false;
     }
   }
 
