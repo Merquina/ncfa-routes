@@ -58,22 +58,27 @@ class TasksPage extends HTMLElement {
   }
 
   setupEventListeners() {
+    console.log("🔧 Tasks page setupEventListeners called");
     // Use event delegation for all clicks within shadow DOM
     this.shadowRoot.addEventListener("click", (e) => {
+      console.log("📋 Tasks page click event:", e.target);
       // Add task button
       if (e.target.closest("#addTaskBtn")) {
+        console.log("📋 Add task button clicked");
         this.showAddTaskModal();
         return;
       }
 
       // Modal close button
       if (e.target.closest(".close-btn")) {
+        console.log("📋 Close button clicked");
         this.hideAddTaskModal();
         return;
       }
 
       // Modal cancel button
       if (e.target.closest(".btn-secondary")) {
+        console.log("📋 Cancel button clicked");
         this.hideAddTaskModal();
         return;
       }
@@ -83,6 +88,7 @@ class TasksPage extends HTMLElement {
         e.target.closest(".btn-primary") &&
         e.target.closest("#addTaskModal")
       ) {
+        console.log("📋 Add button clicked");
         this.addTask();
         return;
       }
@@ -194,17 +200,21 @@ class TasksPage extends HTMLElement {
   }
 
   async addTask() {
-    const input = this.shadowRoot.querySelector("#newTaskInput");
-    const dueDateInput = this.shadowRoot.querySelector("#newTaskDueDate");
-    const taskTitle = input?.value?.trim();
-    const dueDate = dueDateInput?.value || "";
+    console.log("📝 addTask method called");
+    try {
+      const input = this.shadowRoot.querySelector("#newTaskInput");
+      const dueDateInput = this.shadowRoot.querySelector("#newTaskDueDate");
+      const taskTitle = input?.value?.trim();
+      const dueDate = dueDateInput?.value || "";
 
-    if (!taskTitle) {
-      alert("Please enter a task description");
-      return;
-    }
+      console.log("📝 Task input values:", { taskTitle, dueDate });
 
-    console.log("📝 Adding new task:", taskTitle);
+      if (!taskTitle) {
+        alert("Please enter a task description");
+        return;
+      }
+
+      console.log("📝 Adding new task:", taskTitle);
 
     // Get current user name from localStorage or use "Anonymous"
     const userName = localStorage.getItem("gapi_user_name") || "Anonymous";
@@ -252,6 +262,9 @@ class TasksPage extends HTMLElement {
       alert(
         `Failed to save task: ${error.message}\nTask was not saved to Google Sheets.`
       );
+    } catch (error) {
+      console.error("❌ Error in addTask method:", error);
+      alert(`Error adding task: ${error.message}`);
     }
   }
 

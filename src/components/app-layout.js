@@ -81,10 +81,14 @@ class AppLayout extends HTMLElement {
   }
 
   toggleMenu() {
+    console.log("🍔 toggleMenu called");
     const menu = this.shadowRoot.querySelector("#dropdownMenu");
+    console.log("🍔 menu element found:", !!menu);
     if (menu) {
       const isVisible = menu.style.display !== "none";
+      console.log("🍔 menu currently visible:", isVisible);
       menu.style.display = isVisible ? "none" : "block";
+      console.log("🍔 menu display set to:", menu.style.display);
     }
   }
 
@@ -196,10 +200,13 @@ class AppLayout extends HTMLElement {
   }
 
   setupHeaderHandler() {
+    console.log("🔧 setupHeaderHandler called");
     // Listen for hamburger menu clicks from the header
     const header = this.shadowRoot.querySelector("app-header");
+    console.log("🔧 header element found:", !!header);
     if (header) {
-      header.addEventListener("hamburger-click", () => {
+      header.addEventListener("hamburger-click", (e) => {
+        console.log("🍔 hamburger-click event received:", e);
         this.toggleMenu();
       });
     }
@@ -419,27 +426,27 @@ class AppLayout extends HTMLElement {
       <div class="bottom-tabs">
         <a href="/reminders" class="tab-btn" data-route="/reminders">
           <div class="tab-icon"><i class="mdi mdi-bell"></i></div>
-          <div class="tab-label">🔔</div>
+          <div class="tab-label">Reminders</div>
         </a>
         <a href="/tasks" class="tab-btn" data-route="/tasks">
           <div class="tab-icon"><i class="mdi mdi-clipboard-list-outline"></i></div>
-          <div class="tab-label">📋</div>
+          <div class="tab-label">Tasks</div>
         </a>
         <a href="/boxes" class="tab-btn" data-route="/boxes">
           <div class="tab-icon"><i class="mdi mdi-package-variant"></i></div>
-          <div class="tab-label">📦</div>
+          <div class="tab-label">Boxes</div>
         </a>
         <a href="/dates" class="tab-btn" data-route="/dates">
           <div class="tab-icon"><i class="mdi mdi-calendar"></i></div>
-          <div class="tab-label">📅</div>
+          <div class="tab-label">Dates</div>
         </a>
         <a href="/workers" class="tab-btn" data-route="/workers">
           <div class="tab-icon"><i class="mdi mdi-account"></i></div>
-          <div class="tab-label">👤</div>
+          <div class="tab-label">Workers</div>
         </a>
         <a href="/address-book" class="tab-btn" data-route="/address-book">
           <div class="tab-icon"><i class="mdi mdi-book-open-page-variant"></i></div>
-          <div class="tab-label">📞</div>
+          <div class="tab-label">Contacts</div>
         </a>
 
       </div>

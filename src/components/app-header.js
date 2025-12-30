@@ -30,13 +30,19 @@ class AppHeader extends HTMLElement {
   }
 
   setupClickHandler() {
+    console.log("🔧 app-header setupClickHandler called");
     // Set up hamburger menu click handler
     const hamburgerBtn = this.shadowRoot.querySelector("#hamburgerBtn");
+    console.log("🔧 hamburgerBtn found:", !!hamburgerBtn);
     if (hamburgerBtn) {
-      hamburgerBtn.addEventListener("click", () => {
+      hamburgerBtn.addEventListener("click", (e) => {
+        console.log("🍔 hamburger button clicked:", e);
+        e.preventDefault();
+        e.stopPropagation();
         this.dispatchEvent(
           new CustomEvent("hamburger-click", { bubbles: true })
         );
+        console.log("🍔 hamburger-click event dispatched");
       });
     }
     // Initial menu visibility check
