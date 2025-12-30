@@ -238,21 +238,21 @@ class RoutesPage extends HTMLElement {
           text-align: center;
           margin-bottom: 20px;
           padding: 20px;
-          background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+          background: #f8f8f8;
           border-radius: 12px;
-          border: 1px solid #d0e8f7;
+          border: 1px solid #ddd;
         }
 
         .page-title {
           margin: 0;
-          color: #1a365d;
+          color: #333;
           font-size: 1.5rem;
           font-weight: 600;
         }
 
         .page-description {
           margin: 8px 0 0 0;
-          color: #4a5568;
+          color: #666;
           font-size: 0.9rem;
         }
 
@@ -272,7 +272,7 @@ class RoutesPage extends HTMLElement {
         .day-header {
           margin: 0;
           padding: 12px 16px;
-          background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%);
+          background: #666;
           color: white;
           font-size: 1.1rem;
           font-weight: 600;
@@ -289,7 +289,7 @@ class RoutesPage extends HTMLElement {
           background: #f8f9fa;
           border-radius: 8px;
           padding: 12px;
-          border-left: 4px solid #3182ce;
+          border-left: 4px solid #999;
         }
 
         .route-header {
@@ -301,7 +301,7 @@ class RoutesPage extends HTMLElement {
 
         .route-id {
           font-weight: 600;
-          color: #2d3748;
+          color: #333;
         }
 
         .route-type {
@@ -313,18 +313,18 @@ class RoutesPage extends HTMLElement {
         }
 
         .route-type.spfm {
-          background: #c6f6d5;
-          color: #276749;
+          background: #e8f5e8;
+          color: #555;
         }
 
         .route-type.recovery {
-          background: #fed7d7;
-          color: #c53030;
+          background: #f0e6e6;
+          color: #666;
         }
 
         .route-type.delivery {
-          background: #feebc8;
-          color: #c05621;
+          background: #f5f0e6;
+          color: #666;
         }
 
         .route-info {
@@ -332,12 +332,12 @@ class RoutesPage extends HTMLElement {
           flex-direction: column;
           gap: 4px;
           font-size: 0.9rem;
-          color: #4a5568;
+          color: #666;
         }
 
         .route-market {
           font-size: 1rem;
-          color: #2d3748;
+          color: #333;
         }
 
         .route-stops {
@@ -349,7 +349,7 @@ class RoutesPage extends HTMLElement {
         .stops-label {
           font-weight: 600;
           font-size: 0.85rem;
-          color: #4a5568;
+          color: #666;
           margin-bottom: 4px;
         }
 
@@ -357,7 +357,7 @@ class RoutesPage extends HTMLElement {
           margin: 0;
           padding-left: 20px;
           font-size: 0.85rem;
-          color: #4a5568;
+          color: #666;
         }
 
         .stops-list li {

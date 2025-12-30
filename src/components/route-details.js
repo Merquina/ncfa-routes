@@ -184,7 +184,7 @@ class RouteDetails extends HTMLElement {
       await sheetsAPI.savePoundsData(poundsRecord);
 
       // Update UI
-      button.style.background = "#28a745";
+      button.style.background = "#555";
       button.textContent = "✅ Saved";
 
       // Show success notification
@@ -196,13 +196,13 @@ class RouteDetails extends HTMLElement {
       }, 2000);
     } catch (error) {
       console.error("❌ Error saving pounds:", error);
-      button.style.background = "#dc3545";
+      button.style.background = "#999";
       button.textContent = "❌ Error";
       alert(`Failed to save pounds: ${error.message}`);
 
       setTimeout(() => {
         button.disabled = false;
-        button.style.background = "#28a745";
+        button.style.background = "#666";
         button.textContent = "💾 Save";
       }, 3000);
     }
@@ -214,14 +214,14 @@ class RouteDetails extends HTMLElement {
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #28a745;
+      background: #555;
       color: white;
       padding: 12px 16px;
       border-radius: 6px;
       z-index: 10000;
       font-size: 0.9rem;
       font-weight: 500;
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     `;
     notification.textContent = message;
     document.body.appendChild(notification);
@@ -338,7 +338,7 @@ class RouteDetails extends HTMLElement {
           font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
         }
         .btn {
-          background:#3182ce;
+          background:#666;
           color:#fff;
           border:none;
           padding:10px 16px;
@@ -350,10 +350,10 @@ class RouteDetails extends HTMLElement {
           letter-spacing: var(--letter-spacing, 0.025em);
           transition: background 0.2s ease;
         }
-        .btn:hover { background:#2c5282; }
+        .btn:hover { background:#555; }
         .btn:disabled { opacity:0.6; cursor:default; }
-        .btn-save-pounds:hover { background:#218838; }
-        .btn-save-pounds:disabled { background:#6c757d; cursor:default; }
+        .btn-save-pounds:hover { background:#555; }
+        .btn-save-pounds:disabled { background:#999; cursor:default; }
       </style>
       <div class="container">
         <div class="header">
@@ -371,7 +371,7 @@ class RouteDetails extends HTMLElement {
             <button class="btn" onclick="window.print()"><i class="mdi mdi-printer"></i> Print</button>
             ${
               stops.length
-                ? `<button class="btn" style="background:#6f42c1" onclick="window.open('${this.buildFullRouteUrl(
+                ? `<button class="btn" style="background:#777" onclick="window.open('${this.buildFullRouteUrl(
                     stops
                   )}','_blank')"><i class="mdi mdi-map"></i> Full route on Google Maps</button>`
                 : ""
@@ -440,7 +440,7 @@ class RouteDetails extends HTMLElement {
                       class="btn-save-pounds"
                       data-stop-index="${idx}"
                       data-location="${s.location || s.name || "Stop"}"
-                      style="background:#28a745; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.8rem; cursor:pointer; font-weight:500;"
+                      style="background:#666; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.8rem; cursor:pointer; font-weight:500;"
                     >💾 Save</button>
                   </div>
                 </div>

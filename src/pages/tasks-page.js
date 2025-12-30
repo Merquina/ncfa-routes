@@ -604,13 +604,13 @@ class TasksPage extends HTMLElement {
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #28a745;
+      background: #555;
       color: white;
       padding: 12px 20px;
       border-radius: 6px;
       z-index: 10000;
       font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     `;
     notification.textContent = message;
     document.body.appendChild(notification);

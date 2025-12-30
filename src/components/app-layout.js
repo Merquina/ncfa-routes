@@ -306,8 +306,8 @@ class AppLayout extends HTMLElement {
         }
 
         .tab-btn.active {
-          color: #3182ce;
-          background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
+          color: #000;
+          background: #f0f0f0;
         }
 
         .tab-btn.active::after {
@@ -318,13 +318,13 @@ class AppLayout extends HTMLElement {
           transform: translateX(-50%);
           width: 24px;
           height: 3px;
-          background: #3182ce;
+          background: #666;
           border-radius: 0 0 2px 2px;
         }
 
         .tab-btn:hover:not(.active) {
-          background: #f8f9fa;
-          color: #4a5568;
+          background: #e8e8e8;
+          color: #333;
         }
 
         .tab-icon {
@@ -352,7 +352,7 @@ class AppLayout extends HTMLElement {
         }
 
         .menu-item:hover {
-          background: #f8f9fa;
+          background: #f0f0f0;
         }
 
         .menu-item:last-child {
@@ -360,7 +360,7 @@ class AppLayout extends HTMLElement {
         }
 
         .menu-item.danger {
-          color: #e53e3e;
+          color: #666;
         }
 
         @media (max-width: 600px) {
@@ -388,11 +388,11 @@ class AppLayout extends HTMLElement {
           display: none;
         ">
           <button class="menu-item" data-menu-action="refresh">
-            <i class="mdi mdi-refresh" style="margin-right: 8px; color: #4caf50;"></i>
+            <i class="mdi mdi-refresh" style="margin-right: 8px; color: #666;"></i>
             Refresh Data
           </button>
           <button class="menu-item" data-menu-action="routes">
-            <i class="mdi mdi-routes" style="margin-right: 8px; color: #3182ce;"></i>
+            <i class="mdi mdi-routes" style="margin-right: 8px; color: #666;"></i>
             Routes
           </button>
           <button class="menu-item" data-menu-action="timesheet">
