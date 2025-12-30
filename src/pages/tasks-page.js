@@ -204,6 +204,8 @@ class TasksPage extends HTMLElement {
       return;
     }
 
+    console.log("📝 Adding new task:", taskTitle);
+
     // Get current user name from localStorage or use "Anonymous"
     const userName = localStorage.getItem("gapi_user_name") || "Anonymous";
 
@@ -217,18 +219,39 @@ class TasksPage extends HTMLElement {
       createdBy: userName,
     };
 
+    // Add to UI first for immediate feedback
     this.tasks.needOwner.unshift(newTask);
     this.renderTasks();
     this.hideAddTaskModal();
 
     // Save to Google Sheets
     try {
+      console.log("💾 Saving task to Google Sheets...");
       const sheetsAPI = window.sheetsAPI;
-      if (sheetsAPI) {
-        await sheetsAPI.saveTask(newTask);
+      if (!sheetsAPI) {
+        throw new Error("Google Sheets API not available");
       }
+
+      await sheetsAPI.saveTask(newTask);
+      console.log("✅ Task saved to Google Sheets successfully");
+
+      // Show success feedback
+      this.showSuccessMessage("Task saved successfully!");
     } catch (error) {
-      console.error("Error saving task to Google Sheets:", error);
+      console.error("❌ Error saving task to Google Sheets:", error);
+
+      // Remove from UI since save failed
+      const taskIndex = this.tasks.needOwner.findIndex(
+        (t) => t.id === newTask.id
+      );
+      if (taskIndex !== -1) {
+        this.tasks.needOwner.splice(taskIndex, 1);
+        this.renderTasks();
+      }
+
+      alert(
+        `Failed to save task: ${error.message}\nTask was not saved to Google Sheets.`
+      );
     }
   }
 
@@ -572,6 +595,32 @@ class TasksPage extends HTMLElement {
         pageContainer.scrollTop = scrollTop;
       });
     }
+  }
+
+  showSuccessMessage(message) {
+    // Create a temporary success notification
+    const notification = document.createElement("div");
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      z-index: 10000;
+      font-family: var(--font-family, 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', 'Verdana', 'Arial', sans-serif);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 3000);
   }
 
   render() {
